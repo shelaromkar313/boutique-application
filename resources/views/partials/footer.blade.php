@@ -54,7 +54,7 @@
             <!-- Brand Info Column -->
             <div class="lg:col-span-2 space-y-6">
                 <a href="/" class="inline-block">
-                    <img src="/images/logo.jpg" alt="Estilo Wear Logo" class="h-24 sm:h-32 w-auto object-contain mix-blend-screen" />
+                    <img src="/storage/logo.jpg" alt="Estilo Wear Logo" class="h-24 sm:h-32 w-auto object-contain mix-blend-screen" />
                 </a>
                 <p class="text-xs sm:text-sm font-sans text-white/70 leading-relaxed max-w-sm">
                     Estilo Wear is an exclusive luxury boutique celebrating the timeless grandeur of Indian women’s ethnic fashion. From hand-embroidered Lucknowi Chikankari to handwoven Banarasi Silk Sarees, we curate pieces that empower you to slay every look.

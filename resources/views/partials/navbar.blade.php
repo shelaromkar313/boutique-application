@@ -66,7 +66,7 @@
                     <a href="/" class="flex items-center gap-3 group">
                         <!-- Icon Circle -->
                         <div class="w-10 h-10 sm:w-[42px] sm:h-[42px] overflow-hidden shrink-0 flex items-center justify-center bg-transparent rounded-full border-[0.5px] border-white/30 group-hover:border-[#FBEAD6]/50 transition-colors">
-                            <img src="/images/logo.jpg" alt="Icon" class="w-[160%] max-w-none mix-blend-screen -mt-[25%]" />
+                            <img src="/storage/logo.jpg" alt="Icon" class="w-[160%] max-w-none mix-blend-screen -mt-[25%]" />
                         </div>
                         <!-- Typography -->
                         <div class="flex flex-col justify-center">
@@ -152,7 +152,7 @@
             <div>
                 <div class="p-5 flex items-center justify-between border-b border-[var(--color-bisque)]/60 bg-[var(--color-champagne-light)]">
                     <a href="/" class="inline-block py-2">
-                        <img src="/images/logo.jpg" alt="Estilo Wear" class="h-8 sm:h-10 w-auto object-contain invert mix-blend-multiply transform scale-[1.8] origin-left" />
+                        <img src="/storage/logo.jpg" alt="Estilo Wear" class="h-8 sm:h-10 w-auto object-contain invert mix-blend-multiply transform scale-[1.8] origin-left" />
                     </a>
                     <button @click="mobileMenuOpen = false" class="p-2 text-[var(--color-ebony)] hover:text-[var(--color-rose-antique)] transition-colors rounded-full">
                         <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>

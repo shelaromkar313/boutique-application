@@ -70,7 +70,7 @@
                             id: product.id,
                             name: product.name,
                             price: product.price,
-                            image: product.image || product.images?.[0] || '/images/hero/hero-main.jpg',
+                            image: product.image || product.images?.[0] || '/storage/hero/hero-main.jpg',
                             color: product.color || 'Standard',
                             size: product.size || 'Free Size',
                             qty: product.qty || 1,
@@ -110,7 +110,7 @@
                             id: product.id,
                             name: product.name,
                             price: product.price,
-                            image: product.image || product.images?.[0] || '/images/hero/hero-main.jpg',
+                            image: product.image || product.images?.[0] || '/storage/hero/hero-main.jpg',
                             category: product.category || 'Atelier'
                         });
                         this.saveWishlist();

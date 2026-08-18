@@ -44,7 +44,7 @@
 
     {{-- ══ 3. HERO BANNER ══ --}}
     <section class="relative w-full overflow-hidden bg-[var(--color-ebony)]" style="height: clamp(480px, 80vh, 900px);" aria-label="Hero Banner — New Collection">
-        <img src="/images/hero/hero-main.jpg" alt="Estilo Wear — Royal Traditional Saree Collection" class="absolute inset-0 w-full h-full object-cover object-[78%_top] sm:object-[82%_top] md:object-[right_top]" fetchpriority="high" />
+        <img src="/storage/hero/hero-main.jpg" alt="Estilo Wear — Royal Traditional Saree Collection" class="absolute inset-0 w-full h-full object-cover object-[78%_top] sm:object-[82%_top] md:object-[right_top]" fetchpriority="high" />
         <div class="absolute inset-0 bg-gradient-to-r from-black/90 via-black/50 to-transparent lg:to-transparent"></div>
         <div class="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-black/20"></div>
 
@@ -138,7 +138,7 @@
             <div class="relative rounded-2xl sm:rounded-3xl overflow-hidden bg-[var(--color-ebony)] text-white shadow-2xl">
                 <div class="grid grid-cols-1 lg:grid-cols-2 min-h-[380px] sm:min-h-[480px]">
                     <div class="relative h-52 sm:h-72 lg:h-full">
-                        <img src="/images/editorial/chikankari-banner.jpg" alt="Lucknowi Chikankari Artistry" class="w-full h-full object-cover object-top brightness-95" />
+                        <img src="/storage/editorial/chikankari-banner.jpg" alt="Lucknowi Chikankari Artistry" class="w-full h-full object-cover object-top brightness-95" />
                         <div class="absolute inset-0 bg-gradient-to-r from-transparent via-transparent to-[var(--color-ebony)] hidden lg:block"></div>
                     </div>
                     <div class="p-6 sm:p-12 lg:p-16 flex flex-col justify-center space-y-4 sm:space-y-6">

@@ -1,2 +1,14 @@
 *
 !.gitignore
+!*.jpg
+!*.jpeg
+!*.png
+!*.webp
+!*.gif
+!*/
+!*.jpg
+!*.jpeg
+!*.png
+!*.webp
+!*.gif
+!*/

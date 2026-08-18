@@ -97,7 +97,7 @@ $avgRating = $totalProducts > 0 ? round($products->avg('rating'), 1) : 5.0;
                         @foreach($products as $prod)
                         <tr class="hover:bg-[var(--color-offwhite)]/80 transition-colors" x-show="!search || '{{ strtolower($prod->name) }}'.includes(search.toLowerCase()) || '{{ strtolower($prod->fabric) }}'.includes(search.toLowerCase())">
                             <td class="p-3 flex items-center gap-3">
-                                @php $img = is_array($prod->images) ? ($prod->images[0] ?? '/images/hero/hero-main.jpg') : $prod->images; @endphp
+                                @php $img = is_array($prod->images) ? ($prod->images[0] ?? '/storage/hero/hero-main.jpg') : $prod->images; @endphp
                                 <img src="{{ $img }}" alt="{{ $prod->name }}" class="w-10 h-12 object-cover rounded-lg flex-shrink-0" />
                                 <div>
                                     <h4 class="font-bold text-[var(--color-ebony)] line-clamp-1">{{ $prod->name }}</h4>

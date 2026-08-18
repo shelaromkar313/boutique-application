@@ -27,7 +27,7 @@
         if (!isset($p['isBestSeller']) && isset($p['is_best_seller'])) $p['isBestSeller'] = $p['is_best_seller'];
     }
 
-    $mainImage    = $p['images'][0] ?? '/images/hero/hero-main.jpg';
+    $mainImage    = $p['images'][0] ?? '/storage/hero/hero-main.jpg';
     $colorsPreview = array_slice($p['colors'] ?? [], 0, 3);
     $extraColors  = max(0, count($p['colors'] ?? []) - 3);
     $sizesPreview = array_slice($p['sizes'] ?? [], 0, 4);

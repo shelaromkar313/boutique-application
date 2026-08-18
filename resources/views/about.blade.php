@@ -9,7 +9,7 @@
     <!-- Banner -->
     <div class="relative bg-[var(--color-ebony)] text-white py-16 sm:py-24 overflow-hidden">
         <div class="absolute inset-0 bg-gradient-to-r from-[var(--color-ebony)] via-[var(--color-ebony)]/70 to-transparent z-10"></div>
-        <img src="/hero-kurti-model.png" alt="Estilo Wear Heritage" class="absolute inset-0 w-full h-full object-cover object-top opacity-30" />
+        <img src="/storage/hero/hero-main.jpg" alt="Estilo Wear Heritage" class="absolute inset-0 w-full h-full object-cover object-top opacity-30" />
 
         <div class="relative z-20 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center space-y-4 animate-[fadeIn_0.5s_ease-out]">
             <span class="text-xs font-sans font-bold text-[var(--color-blush)] uppercase tracking-[0.35em]">Estilo Wear Story</span>

@@ -28,35 +28,35 @@ class BoutiqueSeeder extends Seeder
                 'slug' => 'kurtis',
                 'name' => 'Kurtis & Suits',
                 'tagline' => 'Timeless Grace & Modern Cuts',
-                'image' => '/images/categories/kurtis-suits.jpg',
+                'image' => '/storage/categories/kurtis-suits.jpg',
                 'subcategories' => ['Designer Kurtis', 'Cotton Kurtis', 'Chikankari Kurtis', 'Straight Kurtis', 'Printed Kurtis', 'Anarkali Suits'],
             ],
             [
                 'slug' => 'sarees',
                 'name' => 'Luxury Sarees',
                 'tagline' => 'Six Yards of Royal Heritage',
-                'image' => '/images/categories/luxury-sarees.jpg',
+                'image' => '/storage/categories/luxury-sarees.jpg',
                 'subcategories' => ['Banarasi Sarees', 'Silk Sarees', 'Organza Sarees', 'Cotton Sarees', 'Linen Sarees'],
             ],
             [
                 'slug' => 'coord-sets',
                 'name' => 'Co-Ord Sets',
                 'tagline' => 'Effortless Chic & Modern Ethnic',
-                'image' => '/images/categories/coord-sets.jpg',
+                'image' => '/storage/categories/coord-sets.jpg',
                 'subcategories' => ['Boutique Co-Ords', 'Silk Co-Ords', 'Printed Co-Ords', 'Festive Co-Ords'],
             ],
             [
                 'slug' => 'ethnic-dresses',
                 'name' => 'Ethnic & Boutique Dresses',
                 'tagline' => 'Fusion Elegance for Every Affair',
-                'image' => '/images/categories/ethnic-dresses.jpg',
+                'image' => '/storage/categories/ethnic-dresses.jpg',
                 'subcategories' => ['Ethnic Dresses', 'Boutique Dresses', 'Party Dresses', 'Maxi Dresses'],
             ],
             [
                 'slug' => 'festive-wedding',
                 'name' => 'Festive & Wedding Couture',
                 'tagline' => 'Grand Celebrations & Bridal Radiance',
-                'image' => '/images/categories/festive-wedding.jpg',
+                'image' => '/storage/categories/festive-wedding.jpg',
                 'subcategories' => ['Wedding Collection', 'Festive Wear', 'Heavy Anarkalis', 'Lehenga Sarees'],
             ],
         ];
@@ -104,7 +104,7 @@ class BoutiqueSeeder extends Seeder
                 ],
                 'care' => 'Dry Clean Only. Cool Iron on reverse side.',
                 'images' => [
-                    '/images/products/est-001-chikankari-anarkali.jpg',
+                    '/storage/products/est-001-chikankari-anarkali.jpg',
                 ],
             ],
             [
@@ -142,7 +142,7 @@ class BoutiqueSeeder extends Seeder
                 ],
                 'care' => 'Dry Clean Only. Preserve wrapped in pure cotton muslin cloth.',
                 'images' => [
-                    '/images/products/est-002-banarasi-saree.jpg',
+                    '/storage/products/est-002-banarasi-saree.jpg',
                 ],
             ],
             [
@@ -178,7 +178,7 @@ class BoutiqueSeeder extends Seeder
                 ],
                 'care' => 'Dry Clean Only.',
                 'images' => [
-                    '/images/products/est-003-organza-saree.jpg',
+                    '/storage/products/est-003-organza-saree.jpg',
                 ],
             ],
             [
@@ -214,7 +214,7 @@ class BoutiqueSeeder extends Seeder
                 ],
                 'care' => 'Gentle Hand Wash or Dry Clean.',
                 'images' => [
-                    '/images/products/est-004-coord-set.jpg',
+                    '/storage/products/est-004-coord-set.jpg',
                 ],
             ],
             [
@@ -250,7 +250,7 @@ class BoutiqueSeeder extends Seeder
                 ],
                 'care' => 'Hand wash separately with mild detergent.',
                 'images' => [
-                    '/images/products/est-005-cotton-kurti.jpg',
+                    '/storage/products/est-005-cotton-kurti.jpg',
                 ],
             ],
             [
@@ -285,7 +285,7 @@ class BoutiqueSeeder extends Seeder
                 ],
                 'care' => 'Strictly Dry Clean Only.',
                 'images' => [
-                    '/images/products/est-006-silk-anarkali.jpg',
+                    '/storage/products/est-006-silk-anarkali.jpg',
                 ],
             ],
             [
@@ -320,7 +320,7 @@ class BoutiqueSeeder extends Seeder
                 ],
                 'care' => 'Dry Clean Only.',
                 'images' => [
-                    '/images/products/est-007-boutique-dress.jpg',
+                    '/storage/products/est-007-boutique-dress.jpg',
                 ],
             ],
             [
@@ -354,7 +354,7 @@ class BoutiqueSeeder extends Seeder
                 ],
                 'care' => 'Hand Wash with mild liquid detergent or Dry Clean.',
                 'images' => [
-                    '/images/products/est-008-linen-saree.jpg',
+                    '/storage/products/est-008-linen-saree.jpg',
                 ],
             ],
             [
@@ -388,7 +388,7 @@ class BoutiqueSeeder extends Seeder
                 ],
                 'care' => 'Dry Clean Recommended.',
                 'images' => [
-                    '/images/products/est-009-designer-kurti.jpg',
+                    '/storage/products/est-009-designer-kurti.jpg',
                 ],
             ],
             [
@@ -422,7 +422,7 @@ class BoutiqueSeeder extends Seeder
                 ],
                 'care' => 'Dry clean or gentle cold water hand wash.',
                 'images' => [
-                    '/images/products/est-010-jamdani-saree.jpg',
+                    '/storage/products/est-010-jamdani-saree.jpg',
                 ],
             ],
             [
@@ -457,7 +457,7 @@ class BoutiqueSeeder extends Seeder
                 ],
                 'care' => 'Hand Wash or Dry Clean.',
                 'images' => [
-                    '/images/products/est-011-ethnic-dress.jpg',
+                    '/storage/products/est-011-ethnic-dress.jpg',
                 ],
             ],
             [
@@ -492,7 +492,7 @@ class BoutiqueSeeder extends Seeder
                 ],
                 'care' => 'Dry Clean Only. Store in Cotton Saree Cover.',
                 'images' => [
-                    '/images/products/est-012-kanjivaram-saree.jpg',
+                    '/storage/products/est-012-kanjivaram-saree.jpg',
                 ],
             ],
         ];
