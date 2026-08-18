@@ -1,0 +1,141 @@
+@import 'tailwindcss';
+
+@source '../../vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php';
+@source '../../storage/framework/views/*.php';
+@source '../**/*.blade.php';
+@source '../**/*.js';
+
+@theme {
+    --font-sans: 'Plus Jakarta Sans', 'Inter', sans-serif;
+    --font-serif: 'Cormorant Garamond', 'Cinzel', 'Playfair Display', 'Georgia', serif;
+    --font-display: 'Cinzel', 'Cormorant Garamond', serif;
+
+    --color-blush: #F0C4CB;
+    --color-blush-light: #F8DFE3;
+    --color-blush-dark: #E29EA8;
+    
+    --color-rose-antique: #C87D87;
+    --color-rose-deep: #A25964;
+    
+    --color-champagne: #FBEAD6;
+    --color-champagne-light: #FFF5EA;
+    --color-champagne-dark: #F3D4B3;
+    
+    --color-thyme: #6B7556;
+    --color-thyme-light: #8E9976;
+    --color-thyme-dark: #4B533C;
+    
+    --color-bisque: #E5BCA9;
+    --color-bisque-light: #F2D7CB;
+    --color-bisque-dark: #D29C85;
+    
+    --color-gold-muted: #D4AF37;
+    --color-gold-soft: #E6CA65;
+    
+    --color-ebony: #1A1818;
+    --color-offwhite: #FDFBF7;
+
+    --shadow-soft: 0 10px 30px -10px rgba(200, 125, 135, 0.15);
+    --shadow-luxury: 0 20px 40px -15px rgba(26, 24, 24, 0.08);
+    --shadow-floating: 0 30px 60px -12px rgba(107, 117, 86, 0.18);
+
+    --animate-fade-in: fadeIn 0.6s ease-out forwards;
+    --animate-float: float 6s ease-in-out infinite;
+    --animate-pulse-slow: pulse 4s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+    
+    @keyframes fadeIn {
+      0% { opacity: 0; transform: translateY(10px); }
+      100% { opacity: 1; transform: translateY(0); }
+    }
+    @keyframes float {
+      0%, 100% { transform: translateY(0px); }
+      50% { transform: translateY(-10px); }
+    }
+}
+
+@layer base {
+  html, body {
+    overflow-x: hidden;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  body {
+    background-color: var(--color-offwhite);
+    color: var(--color-ebony);
+    font-family: var(--font-sans);
+  }
+
+  h1, h2, h3, .font-serif-luxury {
+    font-family: var(--font-serif);
+  }
+
+  .font-brand-title {
+    font-family: var(--font-display);
+  }
+}
+
+/* Custom Luxury Scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+::-webkit-scrollbar-track {
+  background: var(--color-champagne);
+}
+::-webkit-scrollbar-thumb {
+  background: var(--color-rose-antique);
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--color-thyme);
+}
+
+/* Hide scrollbar for category scroll row */
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+/* Glassmorphism helpers */
+.glass-panel {
+  background: rgba(255, 255, 255, 0.75);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(240, 196, 203, 0.3);
+}
+
+.glass-panel-dark {
+  background: rgba(26, 24, 24, 0.82);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(200, 125, 135, 0.2);
+}
+
+/* Shimmer animation for luxury cards */
+.shimmer-effect {
+  position: relative;
+  overflow: hidden;
+}
+.shimmer-effect::after {
+  position: absolute;
+  top: 0; right: 0; bottom: 0; left: 0;
+  transform: translateX(-100%);
+  background-image: linear-gradient(
+    90deg,
+    rgba(255, 255, 255, 0) 0,
+    rgba(255, 255, 255, 0.2) 20%,
+    rgba(255, 255, 255, 0.5) 60%,
+    rgba(255, 255, 255, 0)
+  );
+  animation: shimmer 3s infinite;
+  content: '';
+}
+
+@keyframes shimmer {
+  100% {
+    transform: translateX(100%);
+  }
+}
