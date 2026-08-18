@@ -18,7 +18,7 @@
         @click="$store.shop.isCartOpen = false"
         class="fixed inset-0 bg-[var(--color-ebony)]/70 backdrop-blur-sm transition-opacity"></div>
 
-    <div class="fixed inset-y-0 right-0 max-w-full flex pl-10">
+    <div class="fixed inset-y-0 right-0 max-w-full flex pl-10 sm:pl-16 z-50">
         <div x-show="$store.shop.isCartOpen"
             x-transition:enter="transform transition ease-in-out duration-500"
             x-transition:enter-start="translate-x-full"
@@ -26,7 +26,7 @@
             x-transition:leave="transform transition ease-in-out duration-500"
             x-transition:leave-start="translate-x-0"
             x-transition:leave-end="translate-x-full"
-            class="w-screen max-w-md bg-[var(--color-offwhite)] shadow-2xl flex flex-col justify-between">
+            class="w-[calc(100vw-40px)] sm:w-[400px] max-w-md bg-[var(--color-offwhite)] shadow-2xl flex flex-col justify-between">
 
             {{-- Header --}}
             <div class="p-5 sm:p-6 border-b border-[var(--color-bisque)]/60 bg-[var(--color-champagne-light)]/50 flex items-center justify-between">
@@ -108,11 +108,23 @@
 
             {{-- Footer Summary --}}
             <template x-if="$store.shop.cart.length > 0">
-                <div class="p-5 sm:p-6 border-t border-[var(--color-bisque)]/60 bg-white space-y-3 shadow-lg">
+                <div class="p-5 sm:p-6 border-t border-[var(--color-bisque)]/60 bg-white shadow-lg flex flex-col gap-4">
+                    
+                    {{-- Coupon Code Input --}}
+                    <div x-data="{ localCode: '' }" class="flex items-center gap-2 border border-[var(--color-bisque)] rounded-lg p-1">
+                        <input x-model="localCode" :disabled="$store.shop.discountPercent > 0" type="text" placeholder="Promo code (e.g. BOUTIQUE10)" class="flex-1 bg-transparent px-3 py-1.5 text-xs font-sans focus:outline-none uppercase placeholder:normal-case placeholder:text-[var(--color-ebony)]/50" />
+                        <button @click="if(localCode.trim()) { $store.shop.applyCoupon(localCode); localCode = ''; }" x-show="$store.shop.discountPercent === 0" class="bg-[var(--color-ebony)] text-white text-[10px] font-bold uppercase tracking-wider px-3 py-1.5 rounded hover:bg-[var(--color-rose-deep)] transition-colors flex-shrink-0">Apply</button>
+                        <button @click="$store.shop.removeCoupon();" x-show="$store.shop.discountPercent > 0" style="display: none;" class="bg-[var(--color-rose-antique)] text-white text-[10px] font-bold uppercase tracking-wider px-3 py-1.5 rounded hover:bg-red-500 transition-colors flex-shrink-0">Remove</button>
+                    </div>
+
                     <div class="space-y-1.5 text-xs font-sans text-[var(--color-ebony)]/80">
                         <div class="flex justify-between">
                             <span>Subtotal</span>
                             <span class="font-bold text-[var(--color-ebony)]" x-text="'₹' + $store.shop.cartSubtotal.toLocaleString('en-IN')"></span>
+                        </div>
+                        <div class="flex justify-between text-[var(--color-rose-antique)]" x-show="$store.shop.discountPercent > 0" style="display: none;">
+                            <span>Discount (<span x-text="$store.shop.discountPercent"></span>% OFF)</span>
+                            <span class="font-bold" x-text="'-₹' + $store.shop.discountAmount.toLocaleString('en-IN')"></span>
                         </div>
                         <div class="flex justify-between">
                             <span>Shipping</span>
@@ -120,7 +132,7 @@
                         </div>
                         <div class="flex justify-between text-sm font-serif font-bold text-[var(--color-ebony)] pt-2 border-t border-[var(--color-bisque)]/50">
                             <span>Total</span>
-                            <span x-text="'₹' + ($store.shop.cartSubtotal + ($store.shop.cartSubtotal >= 1999 ? 0 : 199)).toLocaleString('en-IN')"></span>
+                            <span x-text="'₹' + $store.shop.cartTotal.toLocaleString('en-IN')"></span>
                         </div>
                     </div>
 

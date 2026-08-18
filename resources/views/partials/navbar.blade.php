@@ -54,24 +54,24 @@
 
     <!-- 2. Premium Fixed Header -->
     <header :class="isScrolled ? 'bg-[#181818]/98 backdrop-blur-md shadow-2xl py-3 border-b border-white/10' : 'bg-[#1a1a1a] py-4 border-b border-white/5'" class="w-full transition-all duration-500 text-white">
-        <div class="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="flex items-center justify-between gap-4">
+        <div class="max-w-[1400px] mx-auto px-2 sm:px-6 lg:px-8">
+            <div class="flex items-center justify-between gap-1 sm:gap-4">
                 
                 <!-- Left: Logo Lockup + Mobile Menu -->
-                <div class="flex items-center gap-3 sm:gap-4 flex-none min-w-0">
+                <div class="flex items-center gap-1.5 sm:gap-4 flex-none min-w-0">
                     <button @click="mobileMenuOpen = true" class="lg:hidden p-1 text-white hover:text-[#FBEAD6] transition-colors rounded-full focus:outline-none flex-shrink-0" aria-label="Open Menu">
-                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 6h16M4 12h16M4 18h16"></path></svg>
+                        <svg class="w-5 h-5 sm:w-6 sm:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 6h16M4 12h16M4 18h16"></path></svg>
                     </button>
                     
-                    <a href="/" class="flex items-center gap-3 group">
+                    <a href="/" class="flex items-center gap-1.5 sm:gap-3 group shrink-0">
                         <!-- Icon Circle -->
-                        <div class="w-10 h-10 sm:w-[42px] sm:h-[42px] overflow-hidden shrink-0 flex items-center justify-center bg-transparent rounded-full border-[0.5px] border-white/30 group-hover:border-[#FBEAD6]/50 transition-colors">
+                        <div class="w-8 h-8 sm:w-[42px] sm:h-[42px] overflow-hidden shrink-0 flex items-center justify-center bg-transparent rounded-full border-[0.5px] border-white/30 group-hover:border-[#FBEAD6]/50 transition-colors">
                             <img src="/storage/logo.jpg" alt="Icon" class="w-[160%] max-w-none mix-blend-screen -mt-[25%]" />
                         </div>
                         <!-- Typography -->
                         <div class="flex flex-col justify-center">
-                            <span class="text-lg sm:text-[22px] font-serif font-bold tracking-[0.28em] text-[#FBEAD6] leading-none uppercase" style="text-shadow: 0 0 1px rgba(251,234,214,0.3);">Estilo Wear</span>
-                            <span class="text-[8px] sm:text-[9px] font-sans tracking-[0.3em] text-white/80 mt-1.5 uppercase pl-0.5">Slay Every Look</span>
+                            <span class="text-sm sm:text-[22px] font-serif font-bold tracking-[0.28em] text-[#FBEAD6] leading-none uppercase" style="text-shadow: 0 0 1px rgba(251,234,214,0.3);">Estilo Wear</span>
+                            <span class="text-[6px] sm:text-[9px] font-sans tracking-[0.3em] text-white/80 mt-1 sm:mt-1.5 uppercase pl-0.5">Slay Every Look</span>
                         </div>
                     </a>
                 </div>
@@ -111,16 +111,14 @@
                 </nav>
 
                 <!-- Right: Icons -->
-                <div class="flex items-center gap-4 sm:gap-6 flex-none flex-shrink-0">
+                <div class="flex items-center gap-2 sm:gap-4 lg:gap-6 flex-none shrink-0">
                     <button @click="$store.shop.isSearchOpen = true" class="text-white hover:text-[#FBEAD6] transition-colors" aria-label="Search">
                         <svg class="w-[18px] h-[18px] sm:w-5 sm:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
                     </button>
                     
                     <a href="/wishlist" class="text-white hover:text-[#FBEAD6] transition-colors relative" aria-label="Wishlist">
                         <svg class="w-[18px] h-[18px] sm:w-5 sm:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"></path></svg>
-                        <span x-show="$store.shop.wishlist.length > 0" class="absolute -top-2 -right-2 w-[18px] h-[18px] bg-[#F0C4CB] text-[#1A1818] text-[9px] font-bold rounded-full flex items-center justify-center" x-text="$store.shop.wishlist.length"></span>
-                        <!-- Default badge to match screenshot if empty -->
-                        <span x-show="$store.shop.wishlist.length === 0" class="absolute -top-2 -right-2 w-[18px] h-[18px] bg-[#F0C4CB] text-[#1A1818] text-[10px] font-bold rounded-full flex items-center justify-center border-2 border-[#1a1a1a]">2</span>
+                        <span x-show="$store.shop.wishlist.length > 0" class="absolute -top-2 -right-2 w-[16px] h-[16px] sm:w-[18px] sm:h-[18px] bg-[#F0C4CB] text-[#1A1818] text-[9px] font-bold rounded-full flex items-center justify-center" x-text="$store.shop.wishlist.length"></span>
                     </a>
 
                     <a href="/login" class="text-white hover:text-[#FBEAD6] transition-colors" aria-label="Profile">
@@ -129,7 +127,7 @@
 
                     <button @click="$store.shop.isCartOpen = true" class="text-white hover:text-[#FBEAD6] transition-colors relative" aria-label="Cart">
                         <svg class="w-[18px] h-[18px] sm:w-5 sm:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"></path></svg>
-                        <span x-show="$store.shop.cartCount > 0" class="absolute -top-2 -right-2 w-[18px] h-[18px] bg-[#F0C4CB] text-[#1A1818] text-[9px] font-bold rounded-full flex items-center justify-center" x-text="$store.shop.cartCount"></span>
+                        <span x-show="$store.shop.cartCount > 0" class="absolute -top-2 -right-2 w-[16px] h-[16px] sm:w-[18px] sm:h-[18px] bg-[#F0C4CB] text-[#1A1818] text-[9px] font-bold rounded-full flex items-center justify-center" x-text="$store.shop.cartCount"></span>
                     </button>
                 </div>
             </div>
@@ -163,6 +161,20 @@
                     <a href="/shop" class="block text-sm font-sans font-semibold text-[var(--color-ebony)] uppercase tracking-wider hover:text-[var(--color-rose-antique)]">Shop All</a>
                     <a href="/about" class="block text-sm font-sans font-semibold text-[var(--color-ebony)] uppercase tracking-wider hover:text-[var(--color-rose-antique)]">About</a>
                     <a href="/contact" class="block text-sm font-sans font-semibold text-[var(--color-ebony)] uppercase tracking-wider hover:text-[var(--color-rose-antique)]">Contact</a>
+                    
+                    <div class="h-px bg-[var(--color-bisque)]/40 my-2"></div>
+                    
+                    <a href="/login" class="block text-sm font-sans font-semibold text-[var(--color-ebony)] uppercase tracking-wider hover:text-[var(--color-rose-antique)]">Profile / Login</a>
+                    
+                    <a href="/wishlist" class="flex items-center justify-between text-sm font-sans font-semibold text-[var(--color-ebony)] uppercase tracking-wider hover:text-[var(--color-rose-antique)]">
+                        <span>Wishlist</span>
+                        <span x-show="$store.shop.wishlist.length > 0" class="bg-[var(--color-rose-antique)] text-white text-[10px] px-2 py-0.5 rounded-full" x-text="$store.shop.wishlist.length"></span>
+                    </a>
+                    
+                    <a href="#" @click.prevent="$store.shop.isCartOpen = true; mobileMenuOpen = false" class="flex items-center justify-between text-sm font-sans font-semibold text-[var(--color-ebony)] uppercase tracking-wider hover:text-[var(--color-rose-antique)]">
+                        <span>Cart</span>
+                        <span x-show="$store.shop.cartCount > 0" class="bg-[var(--color-rose-antique)] text-white text-[10px] px-2 py-0.5 rounded-full" x-text="$store.shop.cartCount"></span>
+                    </a>
                 </div>
             </div>
         </aside>

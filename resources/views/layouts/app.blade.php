@@ -26,6 +26,8 @@
                 isSizeGuideOpen: false,
                 searchQuery: '',
                 toast: { show: false, message: '' },
+                couponCode: localStorage.getItem('estilo_coupon') || '',
+                discountPercent: parseInt(localStorage.getItem('estilo_discount') || '0'),
 
                 get cartCount() {
                     return this.cart.reduce((sum, item) => sum + (item.qty || 1), 0);
@@ -33,6 +35,18 @@
 
                 get cartSubtotal() {
                     return this.cart.reduce((sum, item) => sum + (item.price * (item.qty || 1)), 0);
+                },
+
+                get discountAmount() {
+                    return Math.round(this.cartSubtotal * (this.discountPercent / 100));
+                },
+
+                get cartTotal() {
+                    let total = this.cartSubtotal - this.discountAmount;
+                    if (this.cartSubtotal > 0 && this.cartSubtotal < 1999) {
+                        total += 199; // shipping
+                    }
+                    return total;
                 },
 
                 get freeShippingRemaining() {
@@ -55,6 +69,28 @@
                     this.toast.message = msg;
                     this.toast.show = true;
                     setTimeout(() => { this.toast.show = false; }, 3500);
+                },
+
+                applyCoupon(code) {
+                    if (code.toUpperCase() === 'BOUTIQUE10') {
+                        this.couponCode = code.toUpperCase();
+                        this.discountPercent = 10;
+                        localStorage.setItem('estilo_coupon', this.couponCode);
+                        localStorage.setItem('estilo_discount', '10');
+                        this.showToast('Promo code applied: 10% OFF');
+                        return true;
+                    } else {
+                        this.showToast('Invalid or expired promo code.');
+                        return false;
+                    }
+                },
+
+                removeCoupon() {
+                    this.couponCode = '';
+                    this.discountPercent = 0;
+                    localStorage.removeItem('estilo_coupon');
+                    localStorage.removeItem('estilo_discount');
+                    this.showToast('Promo code removed.');
                 },
 
                 addToCart(product) {
@@ -100,7 +136,7 @@
                 },
 
                 toggleWishlist(product) {
-                    const idx = this.wishlist.findIndex(i => i.id === product.id);
+                    const idx = this.wishlist.findIndex(i => i.id == product.id);
                     if (idx > -1) {
                         this.wishlist.splice(idx, 1);
                         this.saveWishlist();
@@ -119,7 +155,7 @@
                 },
 
                 isInWishlist(id) {
-                    return this.wishlist.some(i => i.id === id);
+                    return this.wishlist.some(i => i.id == id);
                 }
             });
         });
