@@ -77,7 +77,7 @@
                 </div>
 
                 <!-- Center: Navigation -->
-                <nav class="hidden lg:flex flex-1 justify-center items-center gap-5 xl:gap-8 ml-4">
+                <nav class="hidden lg:flex flex-1 justify-center items-center gap-5 xl:gap-7 ml-4">
                     <a href="/" class="text-[11px] font-sans font-bold tracking-[0.15em] text-white hover:text-[#FBEAD6] uppercase transition-colors whitespace-nowrap">Home</a>
                     
                     <a href="/shop" class="text-[11px] font-sans font-bold tracking-[0.15em] text-white hover:text-[#FBEAD6] uppercase transition-colors flex items-center gap-1.5 whitespace-nowrap">
@@ -86,16 +86,162 @@
                     
                     <a href="/shop" class="text-[11px] font-sans font-bold tracking-[0.15em] text-white hover:text-[#FBEAD6] uppercase transition-colors whitespace-nowrap">Shop</a>
                     
-                    <div class="relative group cursor-pointer flex items-center">
+                    {{-- 1. Kurtis Hover Dropdown --}}
+                    <div class="relative group cursor-pointer py-3 flex items-center">
                         <a href="/shop?category=Kurtis" class="text-[11px] font-sans font-bold tracking-[0.15em] text-white group-hover:text-[#FBEAD6] uppercase transition-colors flex items-center gap-1 whitespace-nowrap">
-                            Kurtis <svg class="w-3 h-3 text-white/50 group-hover:text-[#FBEAD6]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                            Kurtis <svg class="w-3 h-3 text-white/50 group-hover:text-[#FBEAD6] transition-transform duration-200 group-hover:rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
                         </a>
+
+                        {{-- Mega Dropdown Menu --}}
+                        <div class="absolute top-full left-1/2 -translate-x-1/2 pt-2 w-[480px] hidden group-hover:block transition-all duration-300 z-50">
+                            <div class="bg-[#1C1A1A] border border-white/10 rounded-2xl p-5 shadow-2xl backdrop-blur-xl text-left grid grid-cols-5 gap-4 ring-1 ring-white/5">
+                                
+                                {{-- Subcategories list --}}
+                                <div class="col-span-3 space-y-1">
+                                    <span class="text-[9px] font-sans font-bold tracking-[0.25em] text-[#FBEAD6] uppercase block mb-2 pb-1.5 border-b border-white/10">Kurtis & Suits Types</span>
+                                    
+                                    <a href="/shop?category=Chikankari+Kurtis" class="group/item flex items-center justify-between px-2.5 py-1.5 rounded-lg hover:bg-white/5 transition-all">
+                                        <div>
+                                            <span class="text-xs font-serif font-bold text-white group-hover/item:text-[#FBEAD6] block">Chikankari Kurtis</span>
+                                            <span class="text-[9px] font-sans text-white/50">Lucknowi shadow handwork</span>
+                                        </div>
+                                        <span class="text-[#FBEAD6] text-xs opacity-0 group-hover/item:opacity-100 transition-opacity">→</span>
+                                    </a>
+
+                                    <a href="/shop?category=Designer+Kurtis" class="group/item flex items-center justify-between px-2.5 py-1.5 rounded-lg hover:bg-white/5 transition-all">
+                                        <div>
+                                            <span class="text-xs font-serif font-bold text-white group-hover/item:text-[#FBEAD6] block">Designer Kurtis</span>
+                                            <span class="text-[9px] font-sans text-white/50">Contemporary party cuts</span>
+                                        </div>
+                                        <span class="text-[#FBEAD6] text-xs opacity-0 group-hover/item:opacity-100 transition-opacity">→</span>
+                                    </a>
+
+                                    <a href="/shop?category=Anarkali+Suits" class="group/item flex items-center justify-between px-2.5 py-1.5 rounded-lg hover:bg-white/5 transition-all">
+                                        <div>
+                                            <span class="text-xs font-serif font-bold text-white group-hover/item:text-[#FBEAD6] block">Anarkali Suits & Sets</span>
+                                            <span class="text-[9px] font-sans text-white/50">Royal flared silhouette</span>
+                                        </div>
+                                        <span class="text-[#FBEAD6] text-xs opacity-0 group-hover/item:opacity-100 transition-opacity">→</span>
+                                    </a>
+
+                                    <a href="/shop?category=Cotton+Kurtis" class="group/item flex items-center justify-between px-2.5 py-1.5 rounded-lg hover:bg-white/5 transition-all">
+                                        <div>
+                                            <span class="text-xs font-serif font-bold text-white group-hover/item:text-[#FBEAD6] block">Cotton Mulmul Kurtis</span>
+                                            <span class="text-[9px] font-sans text-white/50">Everyday breathable comfort</span>
+                                        </div>
+                                        <span class="text-[#FBEAD6] text-xs opacity-0 group-hover/item:opacity-100 transition-opacity">→</span>
+                                    </a>
+
+                                    <a href="/shop?category=Straight+Kurtis" class="group/item flex items-center justify-between px-2.5 py-1.5 rounded-lg hover:bg-white/5 transition-all">
+                                        <div>
+                                            <span class="text-xs font-serif font-bold text-white group-hover/item:text-[#FBEAD6] block">Straight Cut Kurtis</span>
+                                            <span class="text-[9px] font-sans text-white/50">Office & smart casual</span>
+                                        </div>
+                                        <span class="text-[#FBEAD6] text-xs opacity-0 group-hover/item:opacity-100 transition-opacity">→</span>
+                                    </a>
+
+                                    <div class="pt-2 border-t border-white/10 mt-1">
+                                        <a href="/shop?category=Kurtis" class="text-[10px] font-sans font-bold text-[#FBEAD6] hover:underline uppercase tracking-wider flex items-center gap-1">
+                                            View All Kurtis Collection <span>✦</span>
+                                        </a>
+                                    </div>
+                                </div>
+
+                                {{-- Featured Visual Card --}}
+                                <div class="col-span-2 bg-[#252222] rounded-xl p-3 flex flex-col justify-between border border-white/5">
+                                    <div>
+                                        <span class="text-[9px] font-sans font-bold uppercase tracking-wider text-[#E5BCA9] bg-[#E5BCA9]/10 px-2 py-0.5 rounded-full inline-block mb-2">Artisan Pick</span>
+                                        <h4 class="font-serif text-sm font-bold text-[#FBEAD6] leading-tight">Chikankari & Silk Kurtis</h4>
+                                        <p class="text-[10px] font-sans text-white/60 mt-1">Hand-embroidered by master craftswomen.</p>
+                                    </div>
+                                    <div class="pt-3">
+                                        <a href="/shop?category=Chikankari+Kurtis" class="inline-block w-full text-center bg-[#FBEAD6] hover:bg-white text-[#1A1818] font-sans font-bold text-[10px] uppercase tracking-wider py-2 rounded-lg transition-colors">
+                                            Explore
+                                        </a>
+                                    </div>
+                                </div>
+
+                            </div>
+                        </div>
                     </div>
 
-                    <div class="relative group cursor-pointer flex items-center">
+                    {{-- 2. Sarees Hover Dropdown --}}
+                    <div class="relative group cursor-pointer py-3 flex items-center">
                         <a href="/shop?category=Sarees" class="text-[11px] font-sans font-bold tracking-[0.15em] text-white group-hover:text-[#FBEAD6] uppercase transition-colors flex items-center gap-1 whitespace-nowrap">
-                            Sarees <svg class="w-3 h-3 text-white/50 group-hover:text-[#FBEAD6]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                            Sarees <svg class="w-3 h-3 text-white/50 group-hover:text-[#FBEAD6] transition-transform duration-200 group-hover:rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
                         </a>
+
+                        {{-- Mega Dropdown Menu --}}
+                        <div class="absolute top-full left-1/2 -translate-x-1/2 pt-2 w-[480px] hidden group-hover:block transition-all duration-300 z-50">
+                            <div class="bg-[#1C1A1A] border border-white/10 rounded-2xl p-5 shadow-2xl backdrop-blur-xl text-left grid grid-cols-5 gap-4 ring-1 ring-white/5">
+                                
+                                {{-- Subcategories list --}}
+                                <div class="col-span-3 space-y-1">
+                                    <span class="text-[9px] font-sans font-bold tracking-[0.25em] text-[#FBEAD6] uppercase block mb-2 pb-1.5 border-b border-white/10">Luxury Saree Drapes</span>
+                                    
+                                    <a href="/shop?category=Banarasi+Sarees" class="group/item flex items-center justify-between px-2.5 py-1.5 rounded-lg hover:bg-white/5 transition-all">
+                                        <div>
+                                            <span class="text-xs font-serif font-bold text-white group-hover/item:text-[#FBEAD6] block">Banarasi Silk Sarees</span>
+                                            <span class="text-[9px] font-sans text-white/50">Varanasi royal zari weave</span>
+                                        </div>
+                                        <span class="text-[#FBEAD6] text-xs opacity-0 group-hover/item:opacity-100 transition-opacity">→</span>
+                                    </a>
+
+                                    <a href="/shop?category=Silk+Sarees" class="group/item flex items-center justify-between px-2.5 py-1.5 rounded-lg hover:bg-white/5 transition-all">
+                                        <div>
+                                            <span class="text-xs font-serif font-bold text-white group-hover/item:text-[#FBEAD6] block">Pure Kanjivaram Silk</span>
+                                            <span class="text-[9px] font-sans text-white/50">Golden zari border heritage</span>
+                                        </div>
+                                        <span class="text-[#FBEAD6] text-xs opacity-0 group-hover/item:opacity-100 transition-opacity">→</span>
+                                    </a>
+
+                                    <a href="/shop?category=Organza+Sarees" class="group/item flex items-center justify-between px-2.5 py-1.5 rounded-lg hover:bg-white/5 transition-all">
+                                        <div>
+                                            <span class="text-xs font-serif font-bold text-white group-hover/item:text-[#FBEAD6] block">Organza Floral Sarees</span>
+                                            <span class="text-[9px] font-sans text-white/50">Hand-painted sheer elegance</span>
+                                        </div>
+                                        <span class="text-[#FBEAD6] text-xs opacity-0 group-hover/item:opacity-100 transition-opacity">→</span>
+                                    </a>
+
+                                    <a href="/shop?category=Linen+Sarees" class="group/item flex items-center justify-between px-2.5 py-1.5 rounded-lg hover:bg-white/5 transition-all">
+                                        <div>
+                                            <span class="text-xs font-serif font-bold text-white group-hover/item:text-[#FBEAD6] block">Organic Linen Sarees</span>
+                                            <span class="text-[9px] font-sans text-white/50">Modern artisanal drape</span>
+                                        </div>
+                                        <span class="text-[#FBEAD6] text-xs opacity-0 group-hover/item:opacity-100 transition-opacity">→</span>
+                                    </a>
+
+                                    <a href="/shop?category=Cotton+Sarees" class="group/item flex items-center justify-between px-2.5 py-1.5 rounded-lg hover:bg-white/5 transition-all">
+                                        <div>
+                                            <span class="text-xs font-serif font-bold text-white group-hover/item:text-[#FBEAD6] block">Handloom Jamdani Cotton</span>
+                                            <span class="text-[9px] font-sans text-white/50">Airy traditional motifs</span>
+                                        </div>
+                                        <span class="text-[#FBEAD6] text-xs opacity-0 group-hover/item:opacity-100 transition-opacity">→</span>
+                                    </a>
+
+                                    <div class="pt-2 border-t border-white/10 mt-1">
+                                        <a href="/shop?category=Sarees" class="text-[10px] font-sans font-bold text-[#FBEAD6] hover:underline uppercase tracking-wider flex items-center gap-1">
+                                            View All 6-Yard Drapes <span>✦</span>
+                                        </a>
+                                    </div>
+                                </div>
+
+                                {{-- Featured Visual Card --}}
+                                <div class="col-span-2 bg-[#252222] rounded-xl p-3 flex flex-col justify-between border border-white/5">
+                                    <div>
+                                        <span class="text-[9px] font-sans font-bold uppercase tracking-wider text-[#F0C4CB] bg-[#F0C4CB]/10 px-2 py-0.5 rounded-full inline-block mb-2">Royal Heritage</span>
+                                        <h4 class="font-serif text-sm font-bold text-[#FBEAD6] leading-tight">Banarasi & Kanjivaram</h4>
+                                        <p class="text-[10px] font-sans text-white/60 mt-1">Woven with real golden zari threads.</p>
+                                    </div>
+                                    <div class="pt-3">
+                                        <a href="/shop?category=Banarasi+Sarees" class="inline-block w-full text-center bg-[#FBEAD6] hover:bg-white text-[#1A1818] font-sans font-bold text-[10px] uppercase tracking-wider py-2 rounded-lg transition-colors">
+                                            Shop Sarees
+                                        </a>
+                                    </div>
+                                </div>
+
+                            </div>
+                        </div>
                     </div>
                     
                     <a href="/shop" class="text-[11px] font-sans font-bold tracking-[0.15em] text-white hover:text-[#FBEAD6] uppercase transition-colors whitespace-nowrap">Collections</a>
@@ -145,7 +291,8 @@
                x-transition:leave="transition ease-in duration-300"
                x-transition:leave-start="translate-x-0"
                x-transition:leave-end="-translate-x-full"
-               class="fixed top-0 left-0 bottom-0 w-[85%] max-w-md bg-[var(--color-offwhite)] z-50 shadow-2xl flex flex-col justify-between overflow-y-auto">
+               class="fixed top-0 left-0 bottom-0 w-[85%] max-w-md bg-[var(--color-offwhite)] z-50 shadow-2xl flex flex-col justify-between overflow-y-auto"
+               x-data="{ mobileKurtisOpen: false, mobileSareesOpen: false }">
             
             <div>
                 <div class="p-5 flex items-center justify-between border-b border-[var(--color-bisque)]/60 bg-[var(--color-champagne-light)]">
@@ -156,9 +303,43 @@
                         <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
                     </button>
                 </div>
-                <div class="p-6 space-y-4">
+                <div class="p-6 space-y-3">
                     <a href="/" class="block text-sm font-sans font-semibold text-[var(--color-ebony)] uppercase tracking-wider hover:text-[var(--color-rose-antique)]">Home</a>
-                    <a href="/shop" class="block text-sm font-sans font-semibold text-[var(--color-ebony)] uppercase tracking-wider hover:text-[var(--color-rose-antique)]">Shop All</a>
+                    <a href="/shop" class="block text-sm font-sans font-semibold text-[var(--color-ebony)] uppercase tracking-wider hover:text-[var(--color-rose-antique)]">Shop All Collections</a>
+
+                    {{-- Mobile Kurtis Accordion --}}
+                    <div class="border-b border-[var(--color-bisque)]/40 pb-2">
+                        <div class="flex items-center justify-between cursor-pointer py-1.5" @click="mobileKurtisOpen = !mobileKurtisOpen">
+                            <span class="text-sm font-sans font-semibold text-[var(--color-ebony)] uppercase tracking-wider">Kurtis & Suits</span>
+                            <svg class="w-4 h-4 text-[var(--color-rose-antique)] transition-transform duration-200" :class="mobileKurtisOpen ? 'rotate-180' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                        </div>
+                        <div x-show="mobileKurtisOpen" x-transition class="pl-4 pt-2 space-y-2 text-xs font-sans text-[var(--color-ebony)]/80">
+                            <a href="/shop?category=Kurtis" class="block py-1 font-bold text-[var(--color-rose-antique)]">✦ All Kurtis</a>
+                            <a href="/shop?category=Chikankari+Kurtis" class="block py-1 hover:text-[var(--color-rose-antique)]">• Chikankari Kurtis</a>
+                            <a href="/shop?category=Designer+Kurtis" class="block py-1 hover:text-[var(--color-rose-antique)]">• Designer Kurtis</a>
+                            <a href="/shop?category=Anarkali+Suits" class="block py-1 hover:text-[var(--color-rose-antique)]">• Anarkali Suits & Sets</a>
+                            <a href="/shop?category=Cotton+Kurtis" class="block py-1 hover:text-[var(--color-rose-antique)]">• Cotton Mulmul Kurtis</a>
+                            <a href="/shop?category=Straight+Kurtis" class="block py-1 hover:text-[var(--color-rose-antique)]">• Straight Cut Kurtis</a>
+                        </div>
+                    </div>
+
+                    {{-- Mobile Sarees Accordion --}}
+                    <div class="border-b border-[var(--color-bisque)]/40 pb-2">
+                        <div class="flex items-center justify-between cursor-pointer py-1.5" @click="mobileSareesOpen = !mobileSareesOpen">
+                            <span class="text-sm font-sans font-semibold text-[var(--color-ebony)] uppercase tracking-wider">Luxury Sarees</span>
+                            <svg class="w-4 h-4 text-[var(--color-rose-antique)] transition-transform duration-200" :class="mobileSareesOpen ? 'rotate-180' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                        </div>
+                        <div x-show="mobileSareesOpen" x-transition class="pl-4 pt-2 space-y-2 text-xs font-sans text-[var(--color-ebony)]/80">
+                            <a href="/shop?category=Sarees" class="block py-1 font-bold text-[var(--color-rose-antique)]">✦ All Luxury Sarees</a>
+                            <a href="/shop?category=Banarasi+Sarees" class="block py-1 hover:text-[var(--color-rose-antique)]">• Banarasi Silk Sarees</a>
+                            <a href="/shop?category=Silk+Sarees" class="block py-1 hover:text-[var(--color-rose-antique)]">• Pure Kanjivaram Silk</a>
+                            <a href="/shop?category=Organza+Sarees" class="block py-1 hover:text-[var(--color-rose-antique)]">• Organza Floral Sarees</a>
+                            <a href="/shop?category=Linen+Sarees" class="block py-1 hover:text-[var(--color-rose-antique)]">• Organic Linen Sarees</a>
+                            <a href="/shop?category=Cotton+Sarees" class="block py-1 hover:text-[var(--color-rose-antique)]">• Handloom Jamdani Cotton</a>
+                        </div>
+                    </div>
+
+                    <a href="/shop?occasion=Festive" class="block text-sm font-sans font-semibold text-[var(--color-ebony)] uppercase tracking-wider hover:text-[var(--color-rose-antique)]">Festive Wear</a>
                     <a href="/about" class="block text-sm font-sans font-semibold text-[var(--color-ebony)] uppercase tracking-wider hover:text-[var(--color-rose-antique)]">About</a>
                     <a href="/contact" class="block text-sm font-sans font-semibold text-[var(--color-ebony)] uppercase tracking-wider hover:text-[var(--color-rose-antique)]">Contact</a>
                     

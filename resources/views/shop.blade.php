@@ -50,9 +50,13 @@ $allProducts = [
                 Filters
             </button>
 
-            <div class="flex items-center gap-3 text-xs font-sans text-[var(--color-ebony)]/70">
+            <div class="flex items-center gap-3 text-xs font-sans text-[var(--color-ebony)]/70 flex-wrap">
                 <span>Showing <strong class="text-[var(--color-ebony)]" x-text="filteredProducts.length"></strong> Products</span>
-                <button x-show="selectedCategory || selectedFabric || selectedOccasion || selectedSizes.length > 0" style="display:none;" @click="clearFilters()" class="text-[var(--color-rose-antique)] hover:underline font-bold flex items-center gap-1 ml-2">
+                <span x-show="searchQuery" style="display:none;" class="inline-flex items-center gap-1.5 px-3 py-1 bg-[var(--color-champagne-light)] border border-[var(--color-bisque)] rounded-full text-xs font-semibold text-[var(--color-ebony)]">
+                    Search: "<span x-text="searchQuery"></span>"
+                    <button @click="searchQuery = ''; clearFilters()" class="text-[var(--color-rose-antique)] font-bold hover:scale-110">✕</button>
+                </span>
+                <button x-show="searchQuery || selectedCategory || selectedFabric || selectedOccasion || selectedSizes.length > 0" style="display:none;" @click="clearFilters()" class="text-[var(--color-rose-antique)] hover:underline font-bold flex items-center gap-1 ml-2">
                     <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
                     Reset Filters
                 </button>
@@ -263,6 +267,7 @@ function shopPage(products, meta) {
     return {
         products,
         meta,
+        searchQuery:      new URLSearchParams(window.location.search).get('search') || '',
         selectedCategory: new URLSearchParams(window.location.search).get('category') || '',
         selectedFabric:   new URLSearchParams(window.location.search).get('fabric') || '',
         selectedOccasion: new URLSearchParams(window.location.search).get('occasion') || '',
@@ -281,15 +286,35 @@ function shopPage(products, meta) {
         },
 
         clearFilters() {
+            this.searchQuery      = '';
             this.selectedCategory = '';
             this.selectedFabric   = '';
             this.selectedOccasion = '';
             this.selectedSizes    = [];
             this.priceRange       = 25000;
+            // Clear URL search param if present without full reload
+            if (window.history.pushState) {
+                const newurl = window.location.protocol + "//" + window.location.host + window.location.pathname;
+                window.history.pushState({path:newurl},'',newurl);
+            }
         },
 
         get filteredProducts() {
+            const query = (this.searchQuery || '').trim().toLowerCase();
+
             return this.products.filter(p => {
+                // Search query match across product name, category, fabric, occasion, and colors
+                if (query) {
+                    const nameMatch = (p.name || '').toLowerCase().includes(query);
+                    const catMatch = (p.category || '').toLowerCase().includes(query);
+                    const fabricMatch = (p.fabric || '').toLowerCase().includes(query);
+                    const occasionMatch = (p.occasion || '').toLowerCase().includes(query);
+                    const colorMatch = (p.colors || []).some(c => (c.name || '').toLowerCase().includes(query));
+                    if (!nameMatch && !catMatch && !fabricMatch && !occasionMatch && !colorMatch) {
+                        return false;
+                    }
+                }
+
                 if (this.selectedCategory && !p.category.toLowerCase().includes(this.selectedCategory.toLowerCase())) return false;
                 if (this.selectedFabric   && p.fabric   !== this.selectedFabric)   return false;
                 if (this.selectedOccasion && p.occasion !== this.selectedOccasion) return false;

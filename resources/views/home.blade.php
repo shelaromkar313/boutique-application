@@ -7,18 +7,20 @@
 
 <div class="pb-16 bg-[var(--color-offwhite)]">
 
-    {{-- ══ 1. LARGE SEARCH BAR ══ --}}
+    {{-- ══ 1. LARGE FUNCTIONAL SEARCH BAR ══ --}}
     <section class="bg-white/90 backdrop-blur-sm border-b border-[var(--color-bisque)]/30 py-3 sm:py-5 px-3 sm:px-6 shadow-sm">
         <div class="max-w-4xl mx-auto">
-            <div class="relative cursor-pointer group" role="search" aria-label="Open search">
-                <svg class="absolute left-4 sm:left-6 top-1/2 -translate-y-1/2 w-4 h-4 sm:w-5 sm:h-5 text-[var(--color-ebony)]/40 group-hover:text-[var(--color-rose-antique)] transition-colors duration-300 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
-                <div class="w-full pl-10 sm:pl-14 pr-4 sm:pr-24 py-3 sm:py-4 rounded-full border border-[var(--color-bisque)]/70 bg-white shadow-[var(--shadow-soft)] text-xs sm:text-sm font-sans text-[var(--color-ebony)]/50 tracking-wide select-none group-hover:border-[var(--color-rose-antique)] group-hover:shadow-[var(--shadow-luxury)] transition-all duration-300 flex items-center">
-                    Search kurtis, sarees, festive wear...
-                </div>
-                <div class="absolute right-3 top-1/2 -translate-y-1/2 bg-[var(--color-ebony)] text-white group-hover:bg-[var(--color-rose-antique)] px-4 sm:px-5 py-2 rounded-full text-xs font-sans font-semibold tracking-wider uppercase transition-colors duration-300 hidden sm:flex items-center gap-1.5">
+            <form action="/shop" method="GET" class="relative group" role="search" aria-label="Search Boutique Products">
+                <svg class="absolute left-4 sm:left-6 top-1/2 -translate-y-1/2 w-4 h-4 sm:w-5 sm:h-5 text-[var(--color-ebony)]/40 group-focus-within:text-[var(--color-rose-antique)] transition-colors duration-300 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+                <input type="text"
+                       name="search"
+                       placeholder="Search kurtis, sarees, festive wear, fabrics..."
+                       class="w-full pl-10 sm:pl-14 pr-24 sm:pr-28 py-3 sm:py-4 rounded-full border border-[var(--color-bisque)]/70 bg-white shadow-[var(--shadow-soft)] text-xs sm:text-sm font-sans text-[var(--color-ebony)] placeholder-[var(--color-ebony)]/40 tracking-wide focus:outline-none focus:border-[var(--color-rose-antique)] focus:shadow-[var(--shadow-luxury)] transition-all duration-300" />
+                <button type="submit"
+                        class="absolute right-2 sm:right-3 top-1/2 -translate-y-1/2 bg-[var(--color-rose-antique)] hover:bg-[var(--color-ebony)] text-white px-4 sm:px-6 py-2 sm:py-2.5 rounded-full text-xs font-sans font-bold tracking-wider uppercase shadow-md transition-all duration-300 flex items-center gap-1.5 cursor-pointer">
                     <span>Search</span>
-                </div>
-            </div>
+                </button>
+            </form>
         </div>
     </section>
 

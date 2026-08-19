@@ -93,31 +93,202 @@
                             </div>
                         </div>
 
-                        {{-- 2. Payment Method --}}
-                        <div class="bg-white p-6 sm:p-8 rounded-3xl border border-[var(--color-bisque)]/60 shadow-sm space-y-4">
+                        {{-- 2. Payment Method Selection --}}
+                        <div class="bg-white p-6 sm:p-8 rounded-3xl border border-[var(--color-bisque)]/60 shadow-sm space-y-6">
                             <div class="flex items-center gap-3 border-b border-[var(--color-bisque)]/40 pb-3">
                                 <span class="w-7 h-7 rounded-full bg-[var(--color-ebony)] text-white text-xs font-bold flex items-center justify-center">2</span>
-                                <h3 class="font-serif text-lg font-bold text-[var(--color-ebony)]">Select Payment Method</h3>
+                                <div>
+                                    <h3 class="font-serif text-lg font-bold text-[var(--color-ebony)]">Select Payment Method</h3>
+                                    <p class="text-[11px] font-sans text-[var(--color-ebony)]/60">Choose your preferred secure payment mode</p>
+                                </div>
                             </div>
 
+                            {{-- Payment Method Tabs/Buttons --}}
                             <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                                <label :class="paymentMethod === 'upi' ? 'border-[var(--color-rose-antique)] bg-[var(--color-champagne-light)]/60 shadow-sm' : 'border-[var(--color-bisque)]/60 bg-white'" class="flex flex-col items-center p-4 rounded-2xl border-2 cursor-pointer transition-all">
-                                    <input type="radio" name="pay" value="upi" x-model="paymentMethod" class="sr-only" />
-                                    <span class="text-sm font-bold font-serif text-[var(--color-ebony)]">UPI / QR Code</span>
-                                    <span class="text-[10px] font-sans text-[var(--color-ebony)]/60 mt-1">GPay, PhonePe, Paytm</span>
+                                <label :class="paymentMethod === 'upi' ? 'border-[var(--color-rose-antique)] bg-[var(--color-champagne-light)]/70 shadow-sm ring-1 ring-[var(--color-rose-antique)]' : 'border-[var(--color-bisque)]/70 bg-white hover:border-[var(--color-bisque)]'" class="flex sm:flex-col items-center justify-between sm:justify-center p-4 rounded-2xl border-2 cursor-pointer transition-all gap-2">
+                                    <div class="flex items-center sm:flex-col gap-3 sm:gap-1 text-left sm:text-center">
+                                        <div class="w-8 h-8 rounded-full bg-[var(--color-champagne)] flex items-center justify-center text-[var(--color-rose-antique)] text-sm">
+                                            📱
+                                        </div>
+                                        <div>
+                                            <span class="text-sm font-bold font-serif text-[var(--color-ebony)] block">UPI / QR Code</span>
+                                            <span class="text-[10px] font-sans text-[var(--color-ebony)]/60">GPay, PhonePe, Paytm</span>
+                                        </div>
+                                    </div>
+                                    <input type="radio" name="pay" value="upi" x-model="paymentMethod" class="w-4 h-4 text-[var(--color-rose-antique)] focus:ring-[var(--color-rose-antique)]" />
                                 </label>
 
-                                <label :class="paymentMethod === 'card' ? 'border-[var(--color-rose-antique)] bg-[var(--color-champagne-light)]/60 shadow-sm' : 'border-[var(--color-bisque)]/60 bg-white'" class="flex flex-col items-center p-4 rounded-2xl border-2 cursor-pointer transition-all">
-                                    <input type="radio" name="pay" value="card" x-model="paymentMethod" class="sr-only" />
-                                    <span class="text-sm font-bold font-serif text-[var(--color-ebony)]">Cards / Netbanking</span>
-                                    <span class="text-[10px] font-sans text-[var(--color-ebony)]/60 mt-1">All Major Indian Banks</span>
+                                <label :class="paymentMethod === 'card' ? 'border-[var(--color-rose-antique)] bg-[var(--color-champagne-light)]/70 shadow-sm ring-1 ring-[var(--color-rose-antique)]' : 'border-[var(--color-bisque)]/70 bg-white hover:border-[var(--color-bisque)]'" class="flex sm:flex-col items-center justify-between sm:justify-center p-4 rounded-2xl border-2 cursor-pointer transition-all gap-2">
+                                    <div class="flex items-center sm:flex-col gap-3 sm:gap-1 text-left sm:text-center">
+                                        <div class="w-8 h-8 rounded-full bg-[var(--color-champagne)] flex items-center justify-center text-[var(--color-rose-antique)] text-sm">
+                                            💳
+                                        </div>
+                                        <div>
+                                            <span class="text-sm font-bold font-serif text-[var(--color-ebony)] block">Cards / Netbanking</span>
+                                            <span class="text-[10px] font-sans text-[var(--color-ebony)]/60">Credit / Debit / Netbank</span>
+                                        </div>
+                                    </div>
+                                    <input type="radio" name="pay" value="card" x-model="paymentMethod" class="w-4 h-4 text-[var(--color-rose-antique)] focus:ring-[var(--color-rose-antique)]" />
                                 </label>
 
-                                <label :class="paymentMethod === 'cod' ? 'border-[var(--color-rose-antique)] bg-[var(--color-champagne-light)]/60 shadow-sm' : 'border-[var(--color-bisque)]/60 bg-white'" class="flex flex-col items-center p-4 rounded-2xl border-2 cursor-pointer transition-all">
-                                    <input type="radio" name="pay" value="cod" x-model="paymentMethod" class="sr-only" />
-                                    <span class="text-sm font-bold font-serif text-[var(--color-ebony)]">Cash on Delivery</span>
-                                    <span class="text-[10px] font-sans text-[var(--color-ebony)]/60 mt-1">Pay at doorstep</span>
+                                <label :class="paymentMethod === 'cod' ? 'border-[var(--color-rose-antique)] bg-[var(--color-champagne-light)]/70 shadow-sm ring-1 ring-[var(--color-rose-antique)]' : 'border-[var(--color-bisque)]/70 bg-white hover:border-[var(--color-bisque)]'" class="flex sm:flex-col items-center justify-between sm:justify-center p-4 rounded-2xl border-2 cursor-pointer transition-all gap-2">
+                                    <div class="flex items-center sm:flex-col gap-3 sm:gap-1 text-left sm:text-center">
+                                        <div class="w-8 h-8 rounded-full bg-[var(--color-champagne)] flex items-center justify-center text-[var(--color-rose-antique)] text-sm">
+                                            📦
+                                        </div>
+                                        <div>
+                                            <span class="text-sm font-bold font-serif text-[var(--color-ebony)] block">Cash on Delivery</span>
+                                            <span class="text-[10px] font-sans text-[var(--color-ebony)]/60">Pay at doorstep</span>
+                                        </div>
+                                    </div>
+                                    <input type="radio" name="pay" value="cod" x-model="paymentMethod" class="w-4 h-4 text-[var(--color-rose-antique)] focus:ring-[var(--color-rose-antique)]" />
                                 </label>
+                            </div>
+
+                            {{-- DYNAMIC PAYMENT CONTENT CONTAINER --}}
+                            <div class="pt-2 border-t border-[var(--color-bisque)]/40">
+
+                                {{-- A. UPI & QR Code Fill Space --}}
+                                <div x-show="paymentMethod === 'upi'" x-transition:enter="transition ease-out duration-300 transform opacity-0 translate-y-2" x-transition:enter-end="opacity-100 translate-y-0" class="space-y-5">
+                                    <div class="bg-[var(--color-offwhite)] p-5 sm:p-6 rounded-2xl border border-[var(--color-bisque)]/70 space-y-4">
+                                        <div class="flex flex-col md:flex-row items-center gap-6 justify-between">
+                                            
+                                            {{-- QR Code Box --}}
+                                            <div class="flex flex-col items-center text-center bg-white p-4 rounded-2xl border border-[var(--color-bisque)] shadow-sm max-w-[200px] w-full">
+                                                <div class="relative p-2 bg-white rounded-xl border border-gray-100">
+                                                    {{-- Dynamic QR code representation with boutique branding --}}
+                                                    <img :src="'https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=' + encodeURIComponent('upi://pay?pa=estilowear@icici&pn=Estilo%20Wear%20Boutique&am=' + finalTotal + '&cu=INR')" alt="Scan to Pay via UPI" class="w-36 h-36 mx-auto rounded-lg" />
+                                                    <div class="absolute inset-0 flex items-center justify-center pointer-events-none">
+                                                        <span class="w-8 h-8 rounded-full bg-white shadow-md border border-[var(--color-bisque)] flex items-center justify-center text-[10px] font-bold text-[var(--color-rose-antique)]">EW</span>
+                                                    </div>
+                                                </div>
+                                                <span class="text-[10px] font-sans font-bold text-[var(--color-ebony)] mt-2">Scan & Pay ₹<span x-text="finalTotal.toLocaleString('en-IN')"></span></span>
+                                                <span class="text-[9px] text-[var(--color-thyme)] font-semibold flex items-center justify-center gap-1 mt-0.5">
+                                                    <span class="w-1.5 h-1.5 rounded-full bg-[var(--color-thyme)] animate-pulse"></span> Dynamic QR Active
+                                                </span>
+                                            </div>
+
+                                            {{-- UPI App Options & Direct VPA Input --}}
+                                            <div class="flex-1 w-full space-y-3.5 text-xs font-sans">
+                                                <div>
+                                                    <label class="block font-bold text-[var(--color-ebony)] mb-1">Enter UPI ID / VPA</label>
+                                                    <div class="flex gap-2">
+                                                        <input type="text" placeholder="username@oksbi / mobile@upi" class="flex-1 px-3.5 py-2.5 bg-white border border-[var(--color-bisque)] rounded-xl focus:outline-none focus:border-[var(--color-rose-antique)] text-xs" />
+                                                        <button type="button" class="px-4 py-2 bg-[var(--color-ebony)] hover:bg-[var(--color-rose-deep)] text-white text-[11px] font-bold rounded-xl transition-all">Verify</button>
+                                                    </div>
+                                                </div>
+
+                                                <div class="pt-1">
+                                                    <span class="block text-[11px] font-semibold text-[var(--color-ebony)]/70 mb-2">Supported Apps:</span>
+                                                    <div class="grid grid-cols-4 gap-2 text-center">
+                                                        <div class="p-2 bg-white rounded-xl border border-[var(--color-bisque)]/60 font-semibold text-[10px] text-[var(--color-ebony)] flex flex-col items-center gap-1 shadow-xs">
+                                                            <span class="text-sm">🔵</span> GPay
+                                                        </div>
+                                                        <div class="p-2 bg-white rounded-xl border border-[var(--color-bisque)]/60 font-semibold text-[10px] text-[var(--color-ebony)] flex flex-col items-center gap-1 shadow-xs">
+                                                            <span class="text-sm">🟣</span> PhonePe
+                                                        </div>
+                                                        <div class="p-2 bg-white rounded-xl border border-[var(--color-bisque)]/60 font-semibold text-[10px] text-[var(--color-ebony)] flex flex-col items-center gap-1 shadow-xs">
+                                                            <span class="text-sm">🔷</span> Paytm
+                                                        </div>
+                                                        <div class="p-2 bg-white rounded-xl border border-[var(--color-bisque)]/60 font-semibold text-[10px] text-[var(--color-ebony)] flex flex-col items-center gap-1 shadow-xs">
+                                                            <span class="text-sm">⚡</span> BHIM
+                                                        </div>
+                                                    </div>
+                                                </div>
+
+                                                <div class="p-2.5 bg-[var(--color-champagne-light)]/80 rounded-xl border border-[var(--color-bisque)]/60 text-[10px] text-[var(--color-ebony)]/80 flex items-center gap-2">
+                                                    <span>🔒</span>
+                                                    <span>Instant confirmation. No convenience charges applied on UPI orders.</span>
+                                                </div>
+                                            </div>
+
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {{-- B. Cards / Netbanking Fill Space --}}
+                                <div x-show="paymentMethod === 'card'" x-transition:enter="transition ease-out duration-300 transform opacity-0 translate-y-2" x-transition:enter-end="opacity-100 translate-y-0" class="space-y-4">
+                                    <div class="bg-[var(--color-offwhite)] p-5 sm:p-6 rounded-2xl border border-[var(--color-bisque)]/70 space-y-4 text-xs font-sans">
+                                        
+                                        {{-- Accepted Card Brands --}}
+                                        <div class="flex items-center justify-between pb-2 border-b border-[var(--color-bisque)]/50">
+                                            <span class="font-bold text-[var(--color-ebony)] text-xs">Enter Debit / Credit Card Details</span>
+                                            <div class="flex items-center gap-1.5 text-[10px] font-bold text-[var(--color-ebony)]/60 uppercase">
+                                                <span class="px-1.5 py-0.5 bg-white border border-[var(--color-bisque)] rounded">Visa</span>
+                                                <span class="px-1.5 py-0.5 bg-white border border-[var(--color-bisque)] rounded">Master</span>
+                                                <span class="px-1.5 py-0.5 bg-white border border-[var(--color-bisque)] rounded">RuPay</span>
+                                                <span class="px-1.5 py-0.5 bg-white border border-[var(--color-bisque)] rounded">Amex</span>
+                                            </div>
+                                        </div>
+
+                                        {{-- Card Inputs --}}
+                                        <div class="space-y-3">
+                                            <div>
+                                                <label class="block font-bold text-[var(--color-ebony)] mb-1">Card Number</label>
+                                                <div class="relative">
+                                                    <input type="text" maxlength="19" placeholder="4532 •••• •••• 8920" class="w-full px-4 py-2.5 bg-white border border-[var(--color-bisque)] rounded-xl focus:outline-none focus:border-[var(--color-rose-antique)] font-mono text-xs tracking-wider" />
+                                                    <span class="absolute right-3 top-2.5 text-sm">💳</span>
+                                                </div>
+                                            </div>
+
+                                            <div>
+                                                <label class="block font-bold text-[var(--color-ebony)] mb-1">Cardholder Name</label>
+                                                <input type="text" placeholder="e.g. Radhika Sharma" class="w-full px-4 py-2.5 bg-white border border-[var(--color-bisque)] rounded-xl focus:outline-none focus:border-[var(--color-rose-antique)] text-xs uppercase" />
+                                            </div>
+
+                                            <div class="grid grid-cols-2 gap-3">
+                                                <div>
+                                                    <label class="block font-bold text-[var(--color-ebony)] mb-1">Expiry (MM/YY)</label>
+                                                    <input type="text" maxlength="5" placeholder="MM/YY" class="w-full px-4 py-2.5 bg-white border border-[var(--color-bisque)] rounded-xl focus:outline-none focus:border-[var(--color-rose-antique)] text-xs text-center font-mono" />
+                                                </div>
+                                                <div>
+                                                    <label class="block font-bold text-[var(--color-ebony)] mb-1">CVV / CVC</label>
+                                                    <div class="relative">
+                                                        <input type="password" maxlength="4" placeholder="•••" class="w-full px-4 py-2.5 bg-white border border-[var(--color-bisque)] rounded-xl focus:outline-none focus:border-[var(--color-rose-antique)] text-xs text-center font-mono" />
+                                                        <span class="absolute right-3 top-2.5 text-xs text-[var(--color-ebony)]/40">🔒</span>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        {{-- Netbanking Quick Select Accordion/Badge --}}
+                                        <div class="pt-2 border-t border-[var(--color-bisque)]/50">
+                                            <span class="block text-[11px] font-semibold text-[var(--color-ebony)]/70 mb-2">Or Select Popular Netbanking Banks:</span>
+                                            <div class="grid grid-cols-3 sm:grid-cols-5 gap-2 text-center text-[10px]">
+                                                <button type="button" class="p-1.5 bg-white border border-[var(--color-bisque)] rounded-lg hover:border-[var(--color-rose-antique)] font-semibold text-[var(--color-ebony)]">HDFC</button>
+                                                <button type="button" class="p-1.5 bg-white border border-[var(--color-bisque)] rounded-lg hover:border-[var(--color-rose-antique)] font-semibold text-[var(--color-ebony)]">ICICI</button>
+                                                <button type="button" class="p-1.5 bg-white border border-[var(--color-bisque)] rounded-lg hover:border-[var(--color-rose-antique)] font-semibold text-[var(--color-ebony)]">SBI</button>
+                                                <button type="button" class="p-1.5 bg-white border border-[var(--color-bisque)] rounded-lg hover:border-[var(--color-rose-antique)] font-semibold text-[var(--color-ebony)]">Axis</button>
+                                                <button type="button" class="p-1.5 bg-white border border-[var(--color-bisque)] rounded-lg hover:border-[var(--color-rose-antique)] font-semibold text-[var(--color-ebony)]">Kotak</button>
+                                            </div>
+                                        </div>
+
+                                        <div class="p-2.5 bg-white rounded-xl border border-[var(--color-bisque)]/60 text-[10px] text-[var(--color-ebony)]/80 flex items-center gap-2">
+                                            <span>🛡️</span>
+                                            <span>Your card details are protected by 256-bit bank-grade encryption.</span>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {{-- C. Cash on Delivery Space --}}
+                                <div x-show="paymentMethod === 'cod'" x-transition:enter="transition ease-out duration-300 transform opacity-0 translate-y-2" x-transition:enter-end="opacity-100 translate-y-0" class="space-y-4">
+                                    <div class="bg-[var(--color-offwhite)] p-5 sm:p-6 rounded-2xl border border-[var(--color-bisque)]/70 space-y-3 text-xs font-sans">
+                                        <div class="flex items-start gap-3">
+                                            <span class="text-xl">📦</span>
+                                            <div class="space-y-1">
+                                                <h4 class="font-bold text-[var(--color-ebony)]">Cash / UPI on Delivery</h4>
+                                                <p class="text-[11px] text-[var(--color-ebony)]/70 leading-relaxed">
+                                                    You can pay with cash or scan the courier agent's UPI QR code directly at your doorstep when your boutique package arrives.
+                                                </p>
+                                            </div>
+                                        </div>
+                                        <div class="p-3 bg-[var(--color-champagne-light)]/80 rounded-xl border border-[var(--color-bisque)]/60 text-[10px] text-[var(--color-ebony)]/80 flex items-center justify-between">
+                                            <span>COD Convenience Fee:</span>
+                                            <span class="font-bold text-[var(--color-thyme)]">FREE (₹0)</span>
+                                        </div>
+                                    </div>
+                                </div>
+
                             </div>
                         </div>
 
