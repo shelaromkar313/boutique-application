@@ -171,7 +171,19 @@ $relatedProducts = collect($productsData)->filter(function ($p) use ($product) {
                         <p x-show="pincodeMsg" x-text="pincodeMsg" class="text-[11px] font-sans text-green-700 font-bold pt-1"></p>
                     </div>
 
-                    <div class="flex flex-col sm:flex-row flex-wrap items-stretch sm:items-center gap-3 sm:gap-4 pt-4">
+                    <!-- AI Virtual Try-On Banner & Trigger Button -->
+                    <div class="pt-2">
+                        <button type="button" 
+                                @click="$dispatch('open-tryon', { id: product.id, name: product.name, price: product.price, image: product.images[activeImageIndex], category: product.category })" 
+                                class="w-full bg-gradient-to-r from-[var(--color-champagne-light)] via-[var(--color-bisque)]/40 to-[var(--color-champagne-light)] hover:from-[var(--color-bisque)]/60 hover:to-[var(--color-bisque)]/60 text-[var(--color-ebony)] border border-[var(--color-rose-antique)]/40 font-sans text-xs font-bold uppercase tracking-widest py-3.5 px-4 rounded-2xl shadow-sm transition-all hover:scale-[1.01] flex items-center justify-center gap-2 group">
+                            <span class="w-6 h-6 rounded-full bg-[var(--color-rose-antique)] text-white flex items-center justify-center shadow-sm group-hover:rotate-12 transition-transform">
+                                <svg class="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+                            </span>
+                            <span>✨ AI Virtual Try-On — Powered by CatVTON (Free)</span>
+                        </button>
+                    </div>
+
+                    <div class="flex flex-col sm:flex-row flex-wrap items-stretch sm:items-center gap-3 sm:gap-4 pt-2">
                         <div class="flex items-center border border-[var(--color-bisque)] rounded-full px-3 py-3 bg-white w-fit">
                             <button @click="quantity = Math.max(1, quantity - 1)" class="text-xs font-bold px-2 hover:text-[var(--color-rose-antique)]">-</button>
                             <span class="text-xs font-sans font-bold px-3" x-text="quantity"></span>
@@ -186,6 +198,7 @@ $relatedProducts = collect($productsData)->filter(function ($p) use ($product) {
                             <svg :class="$store.shop.isInWishlist(product.id) ? 'fill-[var(--color-rose-antique)] text-[var(--color-rose-antique)]' : 'fill-none'" class="w-5 h-5" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"></path></svg>
                         </button>
                     </div>
+
 
                 </div>
 

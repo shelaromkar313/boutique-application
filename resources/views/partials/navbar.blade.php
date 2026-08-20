@@ -53,42 +53,40 @@
     </div>
 
     <!-- 2. Premium Fixed Header -->
-    <header :class="isScrolled ? 'bg-[#181818]/98 backdrop-blur-md shadow-2xl py-3 border-b border-white/10' : 'bg-[#1a1a1a] py-4 border-b border-white/5'" class="w-full transition-all duration-500 text-white">
-        <div class="max-w-[1400px] mx-auto px-2 sm:px-6 lg:px-8">
-            <div class="flex items-center justify-between gap-1 sm:gap-4">
+    <header :class="isScrolled ? 'bg-[#181818]/98 backdrop-blur-md shadow-2xl py-2.5 border-b border-white/10' : 'bg-[#1a1a1a] py-3.5 border-b border-white/5'" class="w-full transition-all duration-500 text-white">
+        <div class="max-w-[1480px] mx-auto pl-3 pr-4 sm:px-6 lg:px-8">
+            <div class="flex items-center justify-between gap-2 lg:gap-4">
                 
                 <!-- Left: Logo Lockup + Mobile Menu -->
-                <div class="flex items-center gap-1.5 sm:gap-4 flex-none min-w-0">
-                    <button @click="mobileMenuOpen = true" class="lg:hidden p-1 text-white hover:text-[#FBEAD6] transition-colors rounded-full focus:outline-none flex-shrink-0" aria-label="Open Menu">
+                <div class="flex items-center gap-2 sm:gap-3 shrink-0">
+                    <button @click="mobileMenuOpen = true" class="lg:hidden p-1.5 text-white hover:text-[#FBEAD6] transition-colors rounded-full focus:outline-none shrink-0" aria-label="Open Menu">
                         <svg class="w-5 h-5 sm:w-6 sm:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 6h16M4 12h16M4 18h16"></path></svg>
                     </button>
                     
-                    <a href="/" class="flex items-center gap-1.5 sm:gap-3 group shrink-0">
+                    <a href="/" class="flex items-center gap-2 group shrink-0">
                         <!-- Icon Circle -->
-                        <div class="w-8 h-8 sm:w-[42px] sm:h-[42px] overflow-hidden shrink-0 flex items-center justify-center bg-transparent rounded-full border-[0.5px] border-white/30 group-hover:border-[#FBEAD6]/50 transition-colors">
-                            <img src="/storage/logo.jpg" alt="Icon" class="w-[160%] max-w-none mix-blend-screen -mt-[25%]" />
+                        <div class="w-8 h-8 sm:w-10 sm:h-10 overflow-hidden shrink-0 flex items-center justify-center bg-transparent rounded-full border-[0.5px] border-white/30 group-hover:border-[#FBEAD6]/50 transition-colors">
+                            <img src="/storage/logo.jpg" alt="Estilo Wear" class="w-[160%] max-w-none mix-blend-screen -mt-[25%]" />
                         </div>
                         <!-- Typography -->
                         <div class="flex flex-col justify-center">
-                            <span class="text-sm sm:text-[22px] font-serif font-bold tracking-[0.28em] text-[#FBEAD6] leading-none uppercase" style="text-shadow: 0 0 1px rgba(251,234,214,0.3);">Estilo Wear</span>
-                            <span class="text-[6px] sm:text-[9px] font-sans tracking-[0.3em] text-white/80 mt-1 sm:mt-1.5 uppercase pl-0.5">Slay Every Look</span>
+                            <span class="text-sm sm:text-lg lg:text-xl font-serif font-bold tracking-[0.24em] text-[#FBEAD6] leading-none uppercase" style="text-shadow: 0 0 1px rgba(251,234,214,0.3);">Estilo Wear</span>
+                            <span class="text-[6px] sm:text-[8px] font-sans tracking-[0.26em] text-white/80 mt-1 uppercase pl-0.5">Slay Every Look</span>
                         </div>
                     </a>
                 </div>
 
-                <!-- Center: Navigation -->
-                <nav class="hidden lg:flex flex-1 justify-center items-center gap-5 xl:gap-7 ml-4">
-                    <a href="/" class="text-[11px] font-sans font-bold tracking-[0.15em] text-white hover:text-[#FBEAD6] uppercase transition-colors whitespace-nowrap">Home</a>
+                <!-- Center: Navigation Links -->
+                <nav class="hidden lg:flex flex-1 justify-center items-center gap-3 xl:gap-5 2xl:gap-6 px-2 min-w-0">
+                    <a href="/" class="text-[11px] font-sans font-bold tracking-[0.12em] text-white hover:text-[#FBEAD6] uppercase transition-colors whitespace-nowrap">Home</a>
                     
-                    <a href="/shop" class="text-[11px] font-sans font-bold tracking-[0.15em] text-white hover:text-[#FBEAD6] uppercase transition-colors flex items-center gap-1.5 whitespace-nowrap">
-                        New Arrivals <span class="w-1.5 h-1.5 rounded-full bg-white/20"></span>
-                    </a>
+                    <a href="/shop" class="text-[11px] font-sans font-bold tracking-[0.12em] text-white hover:text-[#FBEAD6] uppercase transition-colors whitespace-nowrap">New</a>
                     
-                    <a href="/shop" class="text-[11px] font-sans font-bold tracking-[0.15em] text-white hover:text-[#FBEAD6] uppercase transition-colors whitespace-nowrap">Shop</a>
+                    <a href="/shop" class="text-[11px] font-sans font-bold tracking-[0.12em] text-white hover:text-[#FBEAD6] uppercase transition-colors whitespace-nowrap">Shop</a>
                     
                     {{-- 1. Kurtis Hover Dropdown --}}
-                    <div class="relative group cursor-pointer py-3 flex items-center">
-                        <a href="/shop?category=Kurtis" class="text-[11px] font-sans font-bold tracking-[0.15em] text-white group-hover:text-[#FBEAD6] uppercase transition-colors flex items-center gap-1 whitespace-nowrap">
+                    <div class="relative group cursor-pointer py-2 flex items-center">
+                        <a href="/shop?category=Kurtis" class="text-[11px] font-sans font-bold tracking-[0.12em] text-white group-hover:text-[#FBEAD6] uppercase transition-colors flex items-center gap-1 whitespace-nowrap">
                             Kurtis <svg class="w-3 h-3 text-white/50 group-hover:text-[#FBEAD6] transition-transform duration-200 group-hover:rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
                         </a>
 
@@ -166,8 +164,8 @@
                     </div>
 
                     {{-- 2. Sarees Hover Dropdown --}}
-                    <div class="relative group cursor-pointer py-3 flex items-center">
-                        <a href="/shop?category=Sarees" class="text-[11px] font-sans font-bold tracking-[0.15em] text-white group-hover:text-[#FBEAD6] uppercase transition-colors flex items-center gap-1 whitespace-nowrap">
+                    <div class="relative group cursor-pointer py-2 flex items-center">
+                        <a href="/shop?category=Sarees" class="text-[11px] font-sans font-bold tracking-[0.12em] text-white group-hover:text-[#FBEAD6] uppercase transition-colors flex items-center gap-1 whitespace-nowrap">
                             Sarees <svg class="w-3 h-3 text-white/50 group-hover:text-[#FBEAD6] transition-transform duration-200 group-hover:rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
                         </a>
 
@@ -244,37 +242,78 @@
                         </div>
                     </div>
                     
-                    <a href="/shop" class="text-[11px] font-sans font-bold tracking-[0.15em] text-white hover:text-[#FBEAD6] uppercase transition-colors whitespace-nowrap">Collections</a>
+                    <a href="/shop" class="text-[11px] font-sans font-bold tracking-[0.12em] text-white hover:text-[#FBEAD6] uppercase transition-colors whitespace-nowrap">Collections</a>
                     
-                    <a href="/shop?occasion=Festive" class="text-[11px] font-sans font-bold tracking-[0.15em] text-white hover:text-[#FBEAD6] uppercase transition-colors whitespace-nowrap">Festive</a>
+                    <a href="/shop?occasion=Festive" class="text-[11px] font-sans font-bold tracking-[0.12em] text-white hover:text-[#FBEAD6] uppercase transition-colors whitespace-nowrap">Festive</a>
                     
-                    <a href="/shop?sale=true" class="text-[11px] font-sans font-bold tracking-[0.15em] text-[#E5BCA9] hover:text-white uppercase transition-colors flex items-center gap-1 whitespace-nowrap">
+                    <a href="/shop?sale=true" class="text-[11px] font-sans font-bold tracking-[0.12em] text-[#E5BCA9] hover:text-white uppercase transition-colors flex items-center gap-0.5 whitespace-nowrap">
                         <span class="text-[#E5BCA9] opacity-80">%</span> Sale
                     </a>
                     
-                    <a href="/about" class="text-[11px] font-sans font-bold tracking-[0.15em] text-white hover:text-[#FBEAD6] uppercase transition-colors whitespace-nowrap">About</a>
-                    <a href="/contact" class="text-[11px] font-sans font-bold tracking-[0.15em] text-white hover:text-[#FBEAD6] uppercase transition-colors whitespace-nowrap">Contact</a>
+                    <a href="/about" class="text-[11px] font-sans font-bold tracking-[0.12em] text-white hover:text-[#FBEAD6] uppercase transition-colors whitespace-nowrap">About</a>
+                    <a href="/contact" class="text-[11px] font-sans font-bold tracking-[0.12em] text-white hover:text-[#FBEAD6] uppercase transition-colors whitespace-nowrap">Contact</a>
                 </nav>
 
-                <!-- Right: Icons -->
-                <div class="flex items-center gap-2 sm:gap-4 lg:gap-6 flex-none shrink-0">
-                    <button @click="$store.shop.isSearchOpen = true" class="text-white hover:text-[#FBEAD6] transition-colors" aria-label="Search">
-                        <svg class="w-[18px] h-[18px] sm:w-5 sm:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+                {{-- Right action icons — NO overflow:hidden (that was clipping the cart) --}}
+                <div class="flex items-center gap-1 sm:gap-2 lg:gap-3 shrink-0 mr-1">
+
+                    <!-- AI Try-On (desktop only) -->
+                    <button type="button"
+                            @click="$dispatch('open-tryon', { id: 'est-001', name: 'Gulzar Chikankari Anarkali Set', price: 1899, image: '/storage/products/est-001-chikankari-anarkali.jpg', category: 'dresses' })"
+                            class="hidden md:flex items-center gap-1.5 bg-gradient-to-r from-[var(--color-rose-antique)]/25 to-[var(--color-rose-deep)]/25 hover:from-[var(--color-rose-antique)]/40 hover:to-[var(--color-rose-deep)]/40 border border-[var(--color-rose-antique)]/50 text-[#FBEAD6] text-[10px] font-sans font-bold uppercase tracking-wider px-2.5 sm:px-3 py-1.5 rounded-full transition-all hover:scale-105 shadow-sm whitespace-nowrap">
+                        <span class="text-amber-300 animate-pulse">✨</span>
+                        <span class="hidden xl:inline">AI Fitting Room</span>
+                        <span class="xl:hidden">Try-On</span>
                     </button>
-                    
-                    <a href="/wishlist" class="text-white hover:text-[#FBEAD6] transition-colors relative" aria-label="Wishlist">
-                        <svg class="w-[18px] h-[18px] sm:w-5 sm:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"></path></svg>
-                        <span x-show="$store.shop.wishlist.length > 0" class="absolute -top-2 -right-2 w-[16px] h-[16px] sm:w-[18px] sm:h-[18px] bg-[#F0C4CB] text-[#1A1818] text-[9px] font-bold rounded-full flex items-center justify-center" x-text="$store.shop.wishlist.length"></span>
+
+                    <!-- Search -->
+                    <button @click="$store.shop.isSearchOpen = true"
+                            class="w-8 h-8 sm:w-9 sm:h-9 rounded-full flex items-center justify-center text-white/90 hover:text-[#FBEAD6] hover:bg-white/10 transition-colors"
+                            aria-label="Search" title="Search catalog">
+                        <svg class="w-4 h-4 sm:w-[18px] sm:h-[18px]" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.75">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+                        </svg>
+                    </button>
+
+                    <!-- Wishlist -->
+                    <a href="/wishlist"
+                       class="w-8 h-8 sm:w-9 sm:h-9 rounded-full flex items-center justify-center text-white/90 hover:text-[#FBEAD6] hover:bg-white/10 transition-colors relative"
+                       aria-label="Wishlist" title="View Wishlist">
+                        <svg class="w-4 h-4 sm:w-[18px] sm:h-[18px]" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.75">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/>
+                        </svg>
+                        <span x-show="$store.shop.wishlist.length > 0"
+                              class="absolute -top-1 -right-1 w-4 h-4 bg-[#F0C4CB] text-[#1A1818] text-[9px] font-bold rounded-full flex items-center justify-center ring-2 ring-[#1a1a1a]"
+                              x-text="$store.shop.wishlist.length"></span>
                     </a>
 
-                    <a href="/login" class="text-white hover:text-[#FBEAD6] transition-colors" aria-label="Profile">
-                        <svg class="w-[18px] h-[18px] sm:w-5 sm:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path></svg>
+                    <!-- Profile / Account — hidden on mobile (already in drawer menu) -->
+                    <a href="/login"
+                       class="hidden sm:flex w-9 h-9 rounded-full items-center justify-center text-white/90 hover:text-[#FBEAD6] hover:bg-white/10 transition-colors"
+                       aria-label="My Account" title="My Account / Login">
+                        <svg class="w-[18px] h-[18px]" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.75">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
+                        </svg>
                     </a>
 
-                    <button @click="$store.shop.isCartOpen = true" class="text-white hover:text-[#FBEAD6] transition-colors relative" aria-label="Cart">
-                        <svg class="w-[18px] h-[18px] sm:w-5 sm:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"></path></svg>
-                        <span x-show="$store.shop.cartCount > 0" class="absolute -top-2 -right-2 w-[16px] h-[16px] sm:w-[18px] sm:h-[18px] bg-[#F0C4CB] text-[#1A1818] text-[9px] font-bold rounded-full flex items-center justify-center" x-text="$store.shop.cartCount"></span>
+                    <!-- ✅ Cart — solid rose fill, never shrinks, always fully visible -->
+                    <button @click="$store.shop.isCartOpen = true"
+                            class="relative shrink-0 w-9 h-9 rounded-full flex items-center justify-center
+                                   bg-[var(--color-rose-antique)] hover:bg-[var(--color-rose-deep)]
+                                   text-white shadow-lg
+                                   transition-all duration-200 hover:scale-105 active:scale-95"
+                            aria-label="Shopping Cart" title="View Shopping Cart">
+                        <svg class="w-[18px] h-[18px]" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"/>
+                        </svg>
+                        <span x-show="$store.shop.cartCount > 0"
+                              class="absolute -top-1.5 -right-1.5 min-w-[18px] h-[18px] px-1
+                                     bg-[#FBEAD6] text-[#1A1818] text-[9px] font-bold
+                                     rounded-full flex items-center justify-center
+                                     ring-2 ring-[#1a1a1a] shadow-sm pointer-events-none"
+                              x-text="$store.shop.cartCount"></span>
                     </button>
+
                 </div>
             </div>
         </div>

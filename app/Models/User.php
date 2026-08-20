@@ -22,9 +22,35 @@ class User extends Authenticatable implements JWTSubject
     protected $fillable = [
         'name',
         'email',
+        'phone',
         'password',
         'role',
+        'referral_code',
+        'commission_rate',
+        'earnings',
+        'balance',
+        'upi_id',
     ];
+
+    public function isAdmin(): bool
+    {
+        return $this->role === 'admin';
+    }
+
+    public function isSalesAssociate(): bool
+    {
+        return in_array($this->role, ['sales_associate', 'sales_executive', 'associate']);
+    }
+
+    public function isCustomer(): bool
+    {
+        return $this->role === 'customer' || empty($this->role);
+    }
+
+    public function referralSales()
+    {
+        return $this->hasMany(\App\Models\ReferralSale::class, 'associate_id');
+    }
 
     /**
      * The attributes that should be hidden for serialization.

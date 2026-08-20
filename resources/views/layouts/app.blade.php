@@ -185,6 +185,7 @@
     @include('partials.cart-drawer')
     @include('partials.search-modal')
     @include('partials.size-guide-modal')
+    @include('partials.virtual-tryon-modal')
     @include('partials.toast')
     
 </body>

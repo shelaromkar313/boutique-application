@@ -4,10 +4,8 @@ namespace App\Http\Controllers;
 
 use App\Models\Order;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Storage;
-use Razorpay\Razorpay;
-use Razorpay\Crypto\Hash;
+use Razorpay\Api\Api as RazorpayApi;
 
 class PaymentController extends Controller
 {
@@ -34,9 +32,9 @@ class PaymentController extends Controller
         $discount = $request->input('discount', 0);
         $total = $subtotal + $shipping - $discount;
 
-        $razorpay = new Razorpay(env('RAZORPAY_KEY_ID', ''), env('RAZORPAY_KEY_SECRET', ''));
+        $razorpay = new RazorpayApi(env('RAZORPAY_KEY_ID', ''), env('RAZORPAY_KEY_SECRET', ''));
 
-        $order = $razorpay->orders->create([
+        $order = $razorpay->order->create([
             'receipt'     => 'ORD-' . strtoupper(substr(uniqid(), 0, 10)),
             'amount'      => (int) round($total * 100),
             'currency'    => 'INR',
@@ -73,7 +71,7 @@ class PaymentController extends Controller
         // Verify Razorpay signature:
         // HMAC-SHA256(order_id + "|" + payment_id, key_secret) == signature
         $payload = $request->input('razorpay_order_id') . '|' . $request->input('razorpay_payment_id');
-        $expectedSignature = Hash::make($payload, $keySecret);
+        $expectedSignature = hash_hmac('sha256', $payload, $keySecret);
 
         if (! hash_equals($expectedSignature, $request->input('razorpay_signature'))) {
             return response()->json(['error' => 'Invalid signature'], 400);

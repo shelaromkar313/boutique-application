@@ -2,7 +2,9 @@
 
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\CategoryController;
+use App\Http\Controllers\PaymentController;
 use App\Http\Controllers\ProductController;
+use App\Http\Controllers\TryOnController;
 use Illuminate\Support\Facades\Route;
 
 Route::group([
@@ -21,6 +23,10 @@ Route::get('products', [ProductController::class, 'index']);
 Route::get('products/{identifier}', [ProductController::class, 'show']);
 Route::get('categories', [CategoryController::class, 'index']);
 
+// Virtual Try-On endpoints
+Route::get('virtual-tryon/models', [TryOnController::class, 'getDemoModels']);
+Route::post('virtual-tryon/process', [TryOnController::class, 'tryOn']);
+
 // Admin-only endpoints
 Route::middleware(['auth:api', 'admin'])->prefix('admin')->group(function () {
     Route::get('products', [ProductController::class, 'index']);
@@ -37,3 +43,4 @@ Route::middleware('auth:api')->prefix('payment')->group(function () {
     Route::post('verify', [PaymentController::class, 'verify']);
     Route::get('order', [PaymentController::class, 'getOrder']);
 });
+

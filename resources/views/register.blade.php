@@ -13,21 +13,26 @@
             <p class="text-xs font-sans text-[var(--color-ebony)]/60">Unlock curated boutique previews, couture sizing assistance & VIP rewards.</p>
         </div>
 
-        <form action="/login" method="POST" class="space-y-4 text-xs font-sans">
+        <form action="/register" method="POST" class="space-y-4 text-xs font-sans">
             @csrf
             <div>
                 <label class="block font-bold text-[var(--color-ebony)] mb-1">Full Name</label>
-                <input type="text" name="name" placeholder="Priyanka Sharma" required class="w-full px-4 py-3 bg-[var(--color-offwhite)] border border-[var(--color-bisque)] rounded-full focus:outline-none focus:border-[var(--color-rose-antique)] transition-colors" />
+                <input type="text" name="name" placeholder="Priyanka Sharma" required class="w-full px-4 py-3 bg-[var(--color-offwhite)] border border-[var(--color-bisque)] rounded-xl focus:outline-none focus:border-[var(--color-rose-antique)] transition-colors" />
+            </div>
+
+            <div>
+                <label class="block font-bold text-[var(--color-ebony)] mb-1">Mobile Phone Number</label>
+                <input type="tel" name="phone" placeholder="9876543212" maxlength="10" class="w-full px-4 py-3 bg-[var(--color-offwhite)] border border-[var(--color-bisque)] rounded-xl focus:outline-none focus:border-[var(--color-rose-antique)] transition-colors font-bold tracking-wider" />
             </div>
 
             <div>
                 <label class="block font-bold text-[var(--color-ebony)] mb-1">Email Address</label>
-                <input type="email" name="email" placeholder="priyanka@example.com" required class="w-full px-4 py-3 bg-[var(--color-offwhite)] border border-[var(--color-bisque)] rounded-full focus:outline-none focus:border-[var(--color-rose-antique)] transition-colors" />
+                <input type="email" name="email" placeholder="priyanka@example.com" required class="w-full px-4 py-3 bg-[var(--color-offwhite)] border border-[var(--color-bisque)] rounded-xl focus:outline-none focus:border-[var(--color-rose-antique)] transition-colors" />
             </div>
 
             <div>
                 <label class="block font-bold text-[var(--color-ebony)] mb-1">Password</label>
-                <input type="password" name="password" placeholder="••••••••" required class="w-full px-4 py-3 bg-[var(--color-offwhite)] border border-[var(--color-bisque)] rounded-full focus:outline-none focus:border-[var(--color-rose-antique)] transition-colors" />
+                <input type="password" name="password" placeholder="••••••••" required class="w-full px-4 py-3 bg-[var(--color-offwhite)] border border-[var(--color-bisque)] rounded-xl focus:outline-none focus:border-[var(--color-rose-antique)] transition-colors" />
             </div>
 
             <div>
