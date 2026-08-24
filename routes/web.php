@@ -73,9 +73,9 @@ Route::prefix('sales')->group(function () {
 });
 
 // ─────────────────────────────────────────────────────────────────────────────
-// 4. Admin Management Suite
+// 4. Admin Management Suite (Protected by Admin Middleware)
 // ─────────────────────────────────────────────────────────────────────────────
-Route::prefix('admin')->group(function () {
+Route::prefix('admin')->middleware('admin')->group(function () {
     Route::get('/', [AdminController::class, 'index']);
     Route::get('/dashboard', [AdminController::class, 'index']);
 
@@ -84,16 +84,20 @@ Route::prefix('admin')->group(function () {
     Route::post('/products/{id}', [AdminController::class, 'updateProduct']);
     Route::delete('/products/{id}', [AdminController::class, 'deleteProduct']);
     Route::post('/categories', [AdminController::class, 'storeCategory']);
+    Route::delete('/categories/{id}', [AdminController::class, 'deleteCategory']);
     Route::post('/reviews/{id}', [AdminController::class, 'updateReview']);
     Route::delete('/reviews/{id}', [AdminController::class, 'deleteReview']);
 
     // 4.4 Orders Processing
     Route::post('/orders/{id}/status', [AdminController::class, 'updateOrderStatus']);
 
-    // 4.6 Marketing Associates
+    // 4.6 Marketing Associates & Payouts
     Route::post('/associates/{id}', [AdminController::class, 'updateAssociate']);
+    Route::post('/associates/{id}/payout', [AdminController::class, 'approvePayout']);
 
     // 4.8 Offers & Coupons
     Route::post('/coupons', [AdminController::class, 'storeCoupon']);
     Route::post('/coupons/{id}/toggle', [AdminController::class, 'toggleCoupon']);
+    Route::delete('/coupons/{id}', [AdminController::class, 'deleteCoupon']);
 });
+

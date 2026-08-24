@@ -641,5 +641,33 @@
         </div>
     </div>
 
+    {{-- MODAL 3: ADD CATEGORY --}}
+    <div x-show="showAddCategoryModal" style="display: none;" class="fixed inset-0 z-50 flex items-center justify-center p-4">
+        <div x-show="showAddCategoryModal" x-transition.opacity @click="showAddCategoryModal = false" class="fixed inset-0 bg-black/60 backdrop-blur-sm"></div>
+        <div class="relative w-full max-w-md bg-white rounded-3xl p-8 shadow-2xl z-10 border border-[var(--color-bisque)] space-y-4">
+            <h3 class="font-serif text-xl font-bold text-[var(--color-ebony)]">Add New Category</h3>
+            <form action="/admin/categories" method="POST" class="space-y-3">
+                @csrf
+                <div>
+                    <label class="block text-xs font-sans font-bold uppercase tracking-wider mb-1">Category Name</label>
+                    <input type="text" name="name" placeholder="e.g. Velvet Lehengas" required class="w-full bg-[var(--color-offwhite)] border border-[var(--color-bisque)] rounded-xl px-4 py-2.5 text-xs font-sans" />
+                </div>
+                <div class="flex gap-3 pt-3">
+                    <button type="button" @click="showAddCategoryModal = false" class="flex-1 bg-gray-100 text-xs font-bold py-2.5 rounded-xl">Cancel</button>
+                    <button type="submit" class="flex-1 bg-[var(--color-ebony)] text-white text-xs font-bold py-2.5 rounded-xl shadow-md">Create Category</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
 </div>
+
+@if(session('jwt_token'))
+<script>
+    try {
+        localStorage.setItem('admin_jwt_token', '{{ session('jwt_token') }}');
+    } catch(e) {}
+</script>
+@endif
 @endsection
+

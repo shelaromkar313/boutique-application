@@ -7,7 +7,9 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Str;
+use Tymon\JWTAuth\Facades\JWTAuth;
 
 class AuthController extends Controller
 {
@@ -21,10 +23,15 @@ class AuthController extends Controller
     }
 
     /**
-     * Handle multi-role authentication (Email or Phone + Password/OTP).
+     * Handle multi-role authentication (Web form or JSON API).
      */
     public function login(Request $request)
     {
+        // If request is from API / Expects JSON, route to apiLogin
+        if ($request->expectsJson() || $request->is('api/*')) {
+            return $this->apiLogin($request);
+        }
+
         $role     = $request->input('role', 'customer');
         $authType = $request->input('auth_type', 'email');
         $email    = trim($request->input('email', ''));
@@ -52,7 +59,6 @@ class AuthController extends Controller
                 return back()->withErrors(['otp' => 'Invalid or expired OTP. Please try again.'])->withInput();
             }
 
-            // Mark OTP as used
             if ($otpRecord) {
                 \DB::table('otp_codes')->where('id', $otpRecord->id)->update(['is_used' => true]);
             }
@@ -65,7 +71,6 @@ class AuthController extends Controller
                 if ($role === 'admin') {
                     return back()->withErrors(['phone' => 'Admin phone login requires a pre-registered administrator number.'])->withInput();
                 }
-                // Auto-create customer on first phone login
                 $user = User::create([
                     'name'     => 'Guest Shopper (' . substr($phone, -4) . ')',
                     'phone'    => $phone,
@@ -76,6 +81,8 @@ class AuthController extends Controller
             }
 
             Auth::login($user, true);
+            $token = Auth::guard('api')->login($user);
+            session(['jwt_token' => $token]);
             $this->logLogin($user, 'phone_otp', $request);
             return $this->redirectBasedOnRole($user);
         }
@@ -86,16 +93,12 @@ class AuthController extends Controller
             : User::where('phone', $phone)->first();
 
         if (!$user || !Hash::check($password, $user->password)) {
-            // Demo shortcut — create users if missing (dev convenience)
-            if ($email === 'admin@estilo.com' && $password === 'Admin@123') {
+            // Demo shortcut
+            if ($email === 'admin@estilo.com' && in_array($password, ['Admin@123', 'password123'])) {
                 $user = User::firstOrCreate(['email' => 'admin@estilo.com'], [
                     'name' => 'Boutique Admin', 'role' => 'admin',
                     'password' => Hash::make('Admin@123'), 'phone' => '9000000001',
                 ]);
-            } elseif ($email === 'admin@estilo.com' && $password === 'password123') {
-                // Legacy demo password support
-                $user = User::where('email', 'admin@estilo.com')->first();
-                if ($user) { $user->update(['password' => Hash::make('Admin@123')]); }
             } elseif ($email === 'associate@estilo.com' && in_array($password, ['Partner@123', 'password123'])) {
                 $user = User::firstOrCreate(['email' => 'associate@estilo.com'], [
                     'name' => 'Pooja Verma', 'role' => 'sales_associate',
@@ -113,12 +116,143 @@ class AuthController extends Controller
         }
 
         Auth::login($user, $request->has('remember'));
+        $token = Auth::guard('api')->login($user);
+        session(['jwt_token' => $token]);
+
         $this->logLogin($user, 'email', $request);
         return $this->redirectBasedOnRole($user);
     }
 
     /**
-     * Customer registration.
+     * API Login Endpoint (Returns JWT Bearer Token).
+     */
+    public function apiLogin(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'email'    => 'required_without:phone|email',
+            'phone'    => 'required_without:email|string',
+            'password' => 'required|string',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json(['errors' => $validator->errors()], 422);
+        }
+
+        $credentials = $request->only('email', 'password');
+        if (empty($credentials['email']) && $request->filled('phone')) {
+            $userByPhone = User::where('phone', $request->phone)->first();
+            if ($userByPhone) {
+                $credentials = ['email' => $userByPhone->email, 'password' => $request->password];
+            }
+        }
+
+        if (! $token = Auth::guard('api')->attempt($credentials)) {
+            // Seed check for demo admin/partner
+            if ($request->email === 'admin@estilo.com' && $request->password === 'Admin@123') {
+                $admin = User::firstOrCreate(['email' => 'admin@estilo.com'], [
+                    'name' => 'Boutique Admin', 'role' => 'admin',
+                    'password' => Hash::make('Admin@123'), 'phone' => '9000000001',
+                ]);
+                $token = Auth::guard('api')->login($admin);
+                return $this->respondWithToken($token, $admin);
+            }
+
+            return response()->json(['error' => 'Invalid credentials'], 401);
+        }
+
+        $user = Auth::guard('api')->user();
+        $this->logLogin($user, 'api_jwt', $request);
+
+        return $this->respondWithToken($token, $user);
+    }
+
+    /**
+     * API Register Endpoint (Returns JWT Token).
+     */
+    public function register(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'name'     => 'required|string|max:255',
+            'email'    => 'required|email|unique:users,email',
+            'phone'    => 'nullable|string|max:20',
+            'password' => 'required|string|min:6',
+            'role'     => 'nullable|string|in:customer,sales_associate',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json(['errors' => $validator->errors()], 422);
+        }
+
+        $role = $request->input('role', 'customer');
+        $userData = [
+            'name'     => $request->name,
+            'email'    => $request->email,
+            'phone'    => $request->phone,
+            'password' => Hash::make($request->password),
+            'role'     => $role,
+        ];
+
+        if ($role === 'sales_associate') {
+            $userData['referral_code'] = 'ESTILO-' . strtoupper(Str::random(4)) . rand(10, 99);
+            $userData['commission_rate'] = 10.00;
+            $userData['earnings'] = 0.00;
+            $userData['balance'] = 0.00;
+        }
+
+        $user = User::create($userData);
+        $token = Auth::guard('api')->login($user);
+
+        return response()->json([
+            'message' => 'User registered successfully',
+            'user'    => $user,
+            'token'   => $this->respondWithToken($token, $user)->original,
+        ], 201);
+    }
+
+    /**
+     * Get the authenticated User profile via JWT.
+     */
+    public function me()
+    {
+        $user = Auth::guard('api')->user();
+        if (!$user) {
+            return response()->json(['error' => 'Unauthenticated'], 401);
+        }
+        return response()->json([
+            'user' => $user,
+            'is_admin' => $user->isAdmin(),
+            'is_sales' => $user->isSalesAssociate(),
+        ]);
+    }
+
+    /**
+     * Refresh a JWT token.
+     */
+    public function refresh()
+    {
+        try {
+            $token = Auth::guard('api')->refresh();
+            return $this->respondWithToken($token);
+        } catch (\Throwable $e) {
+            return response()->json(['error' => 'Token refresh failed: ' . $e->getMessage()], 401);
+        }
+    }
+
+    /**
+     * API Logout.
+     */
+    public function apiLogout()
+    {
+        try {
+            Auth::guard('api')->logout();
+            return response()->json(['message' => 'Successfully logged out']);
+        } catch (\Throwable $e) {
+            return response()->json(['message' => 'Session terminated']);
+        }
+    }
+
+    /**
+     * Customer registration for Web UI.
      */
     public function registerCustomer(Request $request)
     {
@@ -138,11 +272,14 @@ class AuthController extends Controller
         ]);
 
         Auth::login($user);
+        $token = Auth::guard('api')->login($user);
+        session(['jwt_token' => $token]);
+
         return redirect('/')->with('success', '✨ Welcome to Estilo Wear Couture, ' . $user->name . '!');
     }
 
     /**
-     * Sales Associate registration.
+     * Sales Associate registration for Web UI.
      */
     public function registerSales(Request $request)
     {
@@ -170,6 +307,9 @@ class AuthController extends Controller
         ]);
 
         Auth::login($user);
+        $token = Auth::guard('api')->login($user);
+        session(['jwt_token' => $token]);
+
         return redirect('/sales/dashboard')->with('success', '🎉 Welcome to the Estilo Partner Program! Your referral code is ' . $refCode);
     }
 
@@ -178,6 +318,10 @@ class AuthController extends Controller
      */
     public function logout(Request $request)
     {
+        try {
+            Auth::guard('api')->logout();
+        } catch (\Throwable $e) {}
+
         Auth::logout();
         $request->session()->invalidate();
         $request->session()->regenerateToken();
@@ -190,7 +334,7 @@ class AuthController extends Controller
     protected function redirectBasedOnRole(User $user)
     {
         if ($user->isAdmin()) {
-            return redirect('/admin/dashboard')->with('success', '👑 Welcome back, Administrator!');
+            return redirect('/admin')->with('success', '👑 Welcome back, Administrator!');
         }
 
         if ($user->isSalesAssociate()) {
@@ -198,6 +342,26 @@ class AuthController extends Controller
         }
 
         return redirect('/')->with('success', '✨ Welcome back, ' . $user->name . '!');
+    }
+
+    /**
+     * Format JWT token response structure.
+     */
+    protected function respondWithToken($token, ?User $user = null)
+    {
+        $user = $user ?? Auth::guard('api')->user();
+        return response()->json([
+            'access_token' => $token,
+            'token_type'   => 'bearer',
+            'expires_in'   => Auth::guard('api')->factory()->getTTL() * 60,
+            'user'         => [
+                'id'       => $user->id,
+                'name'     => $user->name,
+                'email'    => $user->email,
+                'role'     => $user->role,
+                'phone'    => $user->phone,
+            ]
+        ]);
     }
 
     /**
@@ -215,8 +379,8 @@ class AuthController extends Controller
                 'logged_in_at' => now(),
             ]);
         } catch (\Throwable $e) {
-            // Non-critical — never block login because of audit failure
             logger()->warning('Login audit failed: ' . $e->getMessage());
         }
     }
 }
+

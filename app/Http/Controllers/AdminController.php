@@ -241,4 +241,36 @@ class AdminController extends Controller
         $coupon->update(['is_active' => !$coupon->is_active]);
         return back()->with('success', "Coupon status updated.");
     }
+
+    public function deleteCoupon($id)
+    {
+        $coupon = Coupon::findOrFail($id);
+        $coupon->delete();
+        return back()->with('success', "Coupon deleted successfully.");
+    }
+
+    public function deleteCategory($id)
+    {
+        $cat = Category::findOrFail($id);
+        $cat->delete();
+        return back()->with('success', "Category removed.");
+    }
+
+    public function approvePayout(Request $request, $id)
+    {
+        $associate = User::findOrFail($id);
+        $amount = (float) $request->input('amount', $associate->balance);
+
+        if ($amount > 0 && $amount <= $associate->balance) {
+            $associate->decrement('balance', $amount);
+            ReferralSale::where('associate_id', $associate->id)
+                ->where('status', 'pending')
+                ->update(['status' => 'paid']);
+
+            return back()->with('success', "Payout of ₹" . number_format($amount, 2) . " processed successfully for {$associate->name}.");
+        }
+
+        return back()->withErrors(['payout' => 'Invalid payout amount.']);
+    }
 }
+
