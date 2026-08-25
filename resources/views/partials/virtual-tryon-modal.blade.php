@@ -1,9 +1,262 @@
+<script>
+function virtualTryOn() {
+    return {
+        isOpen: false,
+        activeTab: 'models',
+        productId: '',
+        productName: '',
+        productPrice: 0,
+        garmentImage: '',
+        category: 'upper_body',
+        userImage: null,
+        resultImage: null,
+        isLoading: false,
+        tryOnError: null,
+        retryable: false,
+        retryCountdown: 0,
+        sliderPos: 50,
+        cameraStream: null,
+        loadingTip: 'Initializing CatVTON (ICLR 2025) diffusion model...',
+        
+        demoModels: [
+            {
+                id: 'model-1',
+                name: 'Aanya (Standard)',
+                height: "5'6\"",
+                size: 'S / M',
+                image: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=700&q=80'
+            },
+            {
+                id: 'model-2',
+                name: 'Rhea (Petite)',
+                height: "5'3\"",
+                size: 'XS / S',
+                image: 'https://images.unsplash.com/photo-1517841905240-472988babdf9?auto=format&fit=crop&w=700&q=80'
+            },
+            {
+                id: 'model-3',
+                name: 'Priya (Curvy)',
+                height: "5'7\"",
+                size: 'L / XL',
+                image: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&w=700&q=80'
+            },
+            {
+                id: 'model-4',
+                name: 'Mira (Tall)',
+                height: "5'9\"",
+                size: 'M / L',
+                image: 'https://images.unsplash.com/photo-1524504388940-b1c1722653e1?auto=format&fit=crop&w=700&q=80'
+            }
+        ],
+        selectedModel: null,
+
+        openModal(detail) {
+            if (!detail) return;
+            this.productId = detail.id || '';
+            this.productName = detail.name || 'Designer Outfit';
+            this.productPrice = detail.price || 0;
+            this.garmentImage = detail.image || '';
+            this.resultImage = null;
+            this.tryOnError = null;
+            this.retryable = false;
+            this.sliderPos = 50;
+            this.isOpen = true;
+
+            // Auto-detect cloth category
+            if (detail.category) {
+                const catLower = String(detail.category).toLowerCase();
+                if (catLower.includes('dress') || catLower.includes('gown') || catLower.includes('lehenga') || catLower.includes('saree') || catLower.includes('overall')) {
+                    this.category = 'dresses';
+                } else if (catLower.includes('bottom') || catLower.includes('pant') || catLower.includes('skirt') || catLower.includes('lower')) {
+                    this.category = 'lower_body';
+                } else {
+                    this.category = 'upper_body';
+                }
+            } else {
+                this.category = 'upper_body';
+            }
+
+            // Default to first demo model if no image selected
+            if (!this.userImage && this.demoModels.length > 0) {
+                this.selectDemoModel(this.demoModels[0]);
+            }
+        },
+
+        closeModal() {
+            this.stopCamera();
+            this.isOpen = false;
+        },
+
+        selectDemoModel(model) {
+            this.selectedModel = model;
+            this.resultImage = null;
+            const img = new Image();
+            img.crossOrigin = 'anonymous';
+            img.onload = () => {
+                const canvas = document.createElement('canvas');
+                canvas.width = img.naturalWidth || 700;
+                canvas.height = img.naturalHeight || 900;
+                const ctx = canvas.getContext('2d');
+                ctx.drawImage(img, 0, 0);
+                try {
+                    this.userImage = canvas.toDataURL('image/jpeg', 0.92);
+                } catch (e) {
+                    this.userImage = model.image;
+                }
+            };
+            img.onerror = () => {
+                this.userImage = model.image;
+            };
+            this.userImage = model.image;
+            img.src = model.image;
+        },
+
+        handleFileUpload(event) {
+            const file = event.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    this.userImage = e.target.result;
+                    this.resultImage = null;
+                    this.selectedModel = null;
+                };
+                reader.readAsDataURL(file);
+            }
+        },
+
+        async startCamera() {
+            try {
+                this.cameraStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'user' } });
+                if (this.$refs.videoElement) {
+                    this.$refs.videoElement.srcObject = this.cameraStream;
+                }
+            } catch (err) {
+                console.warn('Camera access denied or unavailable:', err);
+                alert('Could not access camera. Please upload a photo instead.');
+                this.activeTab = 'upload';
+            }
+        },
+
+        stopCamera() {
+            if (this.cameraStream) {
+                this.cameraStream.getTracks().forEach(track => track.stop());
+                this.cameraStream = null;
+            }
+        },
+
+        capturePhoto() {
+            const video = this.$refs.videoElement;
+            if (!video) return;
+            const canvas = document.createElement('canvas');
+            canvas.width = video.videoWidth || 640;
+            canvas.height = video.videoHeight || 480;
+            const ctx = canvas.getContext('2d');
+            ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+            this.userImage = canvas.toDataURL('image/jpeg');
+            this.resultImage = null;
+            this.stopCamera();
+            this.activeTab = 'upload';
+        },
+
+        async generateTryOn() {
+            if (!this.userImage || !this.garmentImage) return;
+
+            this.isLoading = true;
+            this.resultImage = null;
+            this.tryOnError = null;
+            this.retryCountdown = 0;
+
+            const tips = [
+                '🐈 Initializing CatVTON (ICLR 2025) diffusion engine...',
+                '🧠 Computing DensePose & SCHP body human parsing masks...',
+                '👗 Concatenating garment latents with UNet spatial attention...',
+                '✨ Generating photorealistic couture fitting and lighting...',
+                '🎨 Blending fabric drapery, contours & pose fidelity...',
+                '🪄 Finalizing high-resolution output from CatVTON model...',
+                '⏳ Almost there — finishing rendering...',
+            ];
+            let tipIdx = 0;
+            this.loadingTip = tips[0];
+            const tipInterval = setInterval(() => {
+                tipIdx = (tipIdx + 1) % tips.length;
+                this.loadingTip = tips[tipIdx];
+            }, 5000);
+
+            try {
+                const response = await fetch('/api/virtual-tryon/process', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json',
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || ''
+                    },
+                    body: JSON.stringify({
+                        person_image: this.userImage,
+                        garment_image: this.garmentImage,
+                        category: this.category || 'upper_body',
+                        product_name: this.productName
+                    })
+                });
+
+                const data = await response.json();
+                if (data.success && data.result_url) {
+                    this.resultImage = data.result_url + '?t=' + Date.now();
+                } else {
+                    this.tryOnError = data.message || 'AI engine unavailable. Please retry.';
+                    this.retryable = data.retryable === true;
+                    if (this.retryable) {
+                        this.retryCountdown = 30;
+                        const cd = setInterval(() => {
+                            this.retryCountdown--;
+                            if (this.retryCountdown <= 0) clearInterval(cd);
+                        }, 1000);
+                    }
+                }
+            } catch (err) {
+                console.error('Virtual try-on error:', err);
+                this.tryOnError = 'Network error — check your connection and retry.';
+                this.retryable = true;
+                this.retryCountdown = 10;
+                const cd = setInterval(() => { this.retryCountdown--; if (this.retryCountdown <= 0) clearInterval(cd); }, 1000);
+            } finally {
+                clearInterval(tipInterval);
+                this.isLoading = false;
+            }
+        },
+
+        addToCartFromTryOn() {
+            if (Alpine.store('shop')) {
+                Alpine.store('shop').addToCart({
+                    id: this.productId,
+                    name: this.productName,
+                    price: this.productPrice,
+                    image: this.garmentImage,
+                    color: 'As Tried On',
+                    size: 'M',
+                    qty: 1
+                });
+                this.closeModal();
+            }
+        }
+    };
+}
+window.virtualTryOn = virtualTryOn;
+if (window.Alpine) {
+    Alpine.data('virtualTryOn', virtualTryOn);
+} else {
+    document.addEventListener('alpine:init', () => {
+        Alpine.data('virtualTryOn', virtualTryOn);
+    });
+}
+</script>
+
 <!-- Virtual Try-On Fitting Room Modal -->
 <div x-data="virtualTryOn()" 
      x-show="isOpen" 
      x-cloak 
-     style="display: none;"
+     style="display: none !important;"
      @open-tryon.window="openModal($event.detail)"
+     @keydown.escape.window="closeModal()"
      class="fixed inset-0 z-50 overflow-y-auto"
      aria-labelledby="modal-title" 
      role="dialog" 
@@ -329,252 +582,3 @@
         </div>
     </div>
 </div>
-
-<script>
-function virtualTryOn() {
-    return {
-        isOpen: false,
-        activeTab: 'models',
-        productId: '',
-        productName: '',
-        productPrice: 0,
-        garmentImage: '',
-        category: 'upper_body',
-        userImage: null,
-        resultImage: null,
-        isLoading: false,
-        tryOnError: null,
-        retryable: false,
-        retryCountdown: 0,
-        sliderPos: 50,
-        cameraStream: null,
-        loadingTip: 'Initializing CatVTON (ICLR 2025) diffusion model...',
-        
-        demoModels: [
-            {
-                id: 'model-1',
-                name: 'Aanya (Standard)',
-                height: "5'6\"",
-                size: 'S / M',
-                image: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=700&q=80'
-            },
-            {
-                id: 'model-2',
-                name: 'Rhea (Petite)',
-                height: "5'3\"",
-                size: 'XS / S',
-                image: 'https://images.unsplash.com/photo-1517841905240-472988babdf9?auto=format&fit=crop&w=700&q=80'
-            },
-            {
-                id: 'model-3',
-                name: 'Priya (Curvy)',
-                height: "5'7\"",
-                size: 'L / XL',
-                image: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&w=700&q=80'
-            },
-            {
-                id: 'model-4',
-                name: 'Mira (Tall)',
-                height: "5'9\"",
-                size: 'M / L',
-                image: 'https://images.unsplash.com/photo-1524504388940-b1c1722653e1?auto=format&fit=crop&w=700&q=80'
-            }
-        ],
-        selectedModel: null,
-
-        openModal(detail) {
-            this.productId = detail.id || '';
-            this.productName = detail.name || 'Designer Outfit';
-            this.productPrice = detail.price || 0;
-            this.garmentImage = detail.image || '';
-            this.resultImage = null;
-            this.tryOnError = null;
-            this.retryable = false;
-            this.sliderPos = 50;
-            this.isOpen = true;
-
-            // Auto-detect cloth category
-            if (detail.category) {
-                const catLower = String(detail.category).toLowerCase();
-                if (catLower.includes('dress') || catLower.includes('gown') || catLower.includes('lehenga') || catLower.includes('saree') || catLower.includes('overall')) {
-                    this.category = 'dresses';
-                } else if (catLower.includes('bottom') || catLower.includes('pant') || catLower.includes('skirt') || catLower.includes('lower')) {
-                    this.category = 'lower_body';
-                } else {
-                    this.category = 'upper_body';
-                }
-            } else {
-                this.category = 'upper_body';
-            }
-
-            // Default to first demo model if no image selected
-            if (!this.userImage && this.demoModels.length > 0) {
-                this.selectDemoModel(this.demoModels[0]);
-            }
-        },
-
-        closeModal() {
-            this.stopCamera();
-            this.isOpen = false;
-        },
-
-        selectDemoModel(model) {
-            this.selectedModel = model;
-            this.resultImage = null;
-            // Convert Unsplash URL to base64 via canvas to avoid CORS/server fetch issues
-            const img = new Image();
-            img.crossOrigin = 'anonymous';
-            img.onload = () => {
-                const canvas = document.createElement('canvas');
-                canvas.width = img.naturalWidth || 700;
-                canvas.height = img.naturalHeight || 900;
-                const ctx = canvas.getContext('2d');
-                ctx.drawImage(img, 0, 0);
-                try {
-                    this.userImage = canvas.toDataURL('image/jpeg', 0.92);
-                } catch (e) {
-                    // CORS blocked — keep URL, server will fetch it
-                    this.userImage = model.image;
-                }
-            };
-            img.onerror = () => {
-                // Fallback: just use the URL, server will try to fetch it
-                this.userImage = model.image;
-            };
-            // Set immediately for UI preview while canvas loads
-            this.userImage = model.image;
-            img.src = model.image;
-        },
-
-        handleFileUpload(event) {
-            const file = event.target.files[0];
-            if (file) {
-                const reader = new FileReader();
-                reader.onload = (e) => {
-                    this.userImage = e.target.result;
-                    this.resultImage = null;
-                    this.selectedModel = null;
-                };
-                reader.readAsDataURL(file);
-            }
-        },
-
-        async startCamera() {
-            try {
-                this.cameraStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'user' } });
-                if (this.$refs.videoElement) {
-                    this.$refs.videoElement.srcObject = this.cameraStream;
-                }
-            } catch (err) {
-                console.warn('Camera access denied or unavailable:', err);
-                alert('Could not access camera. Please upload a photo instead.');
-                this.activeTab = 'upload';
-            }
-        },
-
-        stopCamera() {
-            if (this.cameraStream) {
-                this.cameraStream.getTracks().forEach(track => track.stop());
-                this.cameraStream = null;
-            }
-        },
-
-        capturePhoto() {
-            const video = this.$refs.videoElement;
-            if (!video) return;
-            const canvas = document.createElement('canvas');
-            canvas.width = video.videoWidth || 640;
-            canvas.height = video.videoHeight || 480;
-            const ctx = canvas.getContext('2d');
-            ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-            this.userImage = canvas.toDataURL('image/jpeg');
-            this.resultImage = null;
-            this.stopCamera();
-            this.activeTab = 'upload';
-        },
-
-        async generateTryOn() {
-            if (!this.userImage || !this.garmentImage) return;
-
-            this.isLoading = true;
-            this.resultImage = null;
-            this.tryOnError = null;
-            this.retryCountdown = 0;
-
-            const tips = [
-                '🐈 Initializing CatVTON (ICLR 2025) diffusion engine...',
-                '🧠 Computing DensePose & SCHP body human parsing masks...',
-                '👗 Concatenating garment latents with UNet spatial attention...',
-                '✨ Generating photorealistic couture fitting and lighting...',
-                '🎨 Blending fabric drapery, contours & pose fidelity...',
-                '🪄 Finalizing high-resolution output from CatVTON model...',
-                '⏳ Almost there — finishing rendering...',
-            ];
-            let tipIdx = 0;
-            this.loadingTip = tips[0];
-            const tipInterval = setInterval(() => {
-                tipIdx = (tipIdx + 1) % tips.length;
-                this.loadingTip = tips[tipIdx];
-            }, 5000);
-
-            try {
-                const response = await fetch('/api/virtual-tryon/process', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Accept': 'application/json',
-                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || ''
-                    },
-                    body: JSON.stringify({
-                        person_image: this.userImage,
-                        garment_image: this.garmentImage,
-                        category: this.category || 'upper_body',
-                        product_name: this.productName
-                    })
-                });
-
-                const data = await response.json();
-                if (data.success && data.result_url) {
-                    this.resultImage = data.result_url + '?t=' + Date.now();
-                } else {
-                    this.tryOnError = data.message || 'AI engine unavailable. Please retry.';
-                    this.retryable = data.retryable === true;
-                    // Auto retry countdown (30s) if retryable
-                    if (this.retryable) {
-                        this.retryCountdown = 30;
-                        const cd = setInterval(() => {
-                            this.retryCountdown--;
-                            if (this.retryCountdown <= 0) clearInterval(cd);
-                        }, 1000);
-                    }
-                }
-            } catch (err) {
-                console.error('Virtual try-on error:', err);
-                this.tryOnError = 'Network error — check your connection and retry.';
-                this.retryable = true;
-                this.retryCountdown = 10;
-                const cd = setInterval(() => { this.retryCountdown--; if (this.retryCountdown <= 0) clearInterval(cd); }, 1000);
-            } finally {
-                clearInterval(tipInterval);
-                this.isLoading = false;
-            }
-        },
-
-
-        addToCartFromTryOn() {
-            if (Alpine.store('shop')) {
-                Alpine.store('shop').addToCart({
-                    id: this.productId,
-                    name: this.productName,
-                    price: this.productPrice,
-                    image: this.garmentImage,
-                    color: 'As Tried On',
-                    size: 'M',
-                    qty: 1
-                });
-                this.closeModal();
-            }
-        }
-    };
-}
-</script>
