@@ -59,6 +59,8 @@ Route::get('/register', function () { return view('register'); });
 Route::post('/register', [AuthController::class, 'registerCustomer']);
 Route::get('/sales/register', function () { return view('sales.register'); });
 Route::post('/sales/register', [AuthController::class, 'registerSales']);
+Route::get('/profile', [AuthController::class, 'showProfile'])->name('profile');
+Route::post('/profile', [AuthController::class, 'updateCustomerProfile']);
 Route::match(['get', 'post'], '/logout', [AuthController::class, 'logout'])->name('logout');
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -78,6 +80,7 @@ Route::prefix('sales')->group(function () {
 Route::prefix('admin')->middleware('admin')->group(function () {
     Route::get('/', [AdminController::class, 'index']);
     Route::get('/dashboard', [AdminController::class, 'index']);
+    Route::post('/profile', [AdminController::class, 'updateProfile']);
 
     // 4.3 Inventory & Products
     Route::post('/products', [AdminController::class, 'storeProduct']);

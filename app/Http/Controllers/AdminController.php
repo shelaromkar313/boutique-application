@@ -10,17 +10,28 @@ use App\Models\ReferralSale;
 use App\Models\Review;
 use App\Models\User;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
 
 class AdminController extends Controller
 {
     /**
-     * 4.2 Comprehensive Admin Management Portal (Unified & Tabbed)
+     * Comprehensive Admin Management Portal (Unified & Tabbed)
      */
     public function index(Request $request)
     {
         $tab = $request->query('tab', 'overview');
+        $admin = Auth::user();
+        if (!$admin || !$admin->isAdmin()) {
+            $admin = User::firstOrCreate(['email' => 'admin@estilo.com'], [
+                'name' => 'Boutique Administrator',
+                'role' => 'admin',
+                'password' => Hash::make('Admin@123'),
+                'phone' => '9000000001',
+            ]);
+        }
 
         $products = Product::latest()->get();
         $categories = Category::all();
@@ -49,6 +60,7 @@ class AdminController extends Controller
 
         return view('admin-dashboard', compact(
             'tab',
+            'admin',
             'products',
             'categories',
             'orders',
@@ -68,15 +80,47 @@ class AdminController extends Controller
     }
 
     /**
-     * 4.3 Add New Product
+     * Update Administrator Profile
+     */
+    public function updateProfile(Request $request)
+    {
+        $admin = Auth::user();
+        if (!$admin) {
+            return redirect('/login?role=admin');
+        }
+
+        $request->validate([
+            'name'     => 'required|string|max:255',
+            'email'    => 'required|email|unique:users,email,' . $admin->id,
+            'phone'    => 'nullable|string|max:20',
+            'password' => 'nullable|min:6',
+        ]);
+
+        $data = [
+            'name'  => $request->name,
+            'email' => $request->email,
+            'phone' => $request->phone,
+        ];
+
+        if ($request->filled('password')) {
+            $data['password'] = Hash::make($request->password);
+        }
+
+        $admin->update($data);
+
+        return redirect('/admin?tab=overview')->with('success', 'Administrator profile details updated successfully!');
+    }
+
+    /**
+     * Add New Product
      */
     public function storeProduct(Request $request)
     {
         $request->validate([
-            'name' => 'required|string|max:255',
-            'category' => 'required|string',
-            'fabric' => 'required|string',
-            'price' => 'required|numeric|min:1',
+            'name'        => 'required|string|max:255',
+            'category'    => 'required|string',
+            'fabric'      => 'required|string',
+            'price'       => 'required|numeric|min:1',
             'description' => 'required|string',
         ]);
 
@@ -97,64 +141,80 @@ class AdminController extends Controller
         $sizes = array_filter(array_map('trim', explode(',', $request->input('sizes', 'XS, S, M, L, XL, XXL'))));
 
         Product::create([
-            'est_id' => $estId,
-            'sku' => $sku,
-            'name' => $request->name,
-            'category' => $request->category,
-            'main_category' => $request->input('main_category', 'Women Couture'),
-            'sub_category' => $request->input('sub_category', $request->category),
-            'fabric' => $request->fabric,
-            'occasion' => $request->input('occasion', 'Festive / Wedding'),
-            'price' => $request->price,
-            'old_price' => $request->price * 1.25,
-            'discount' => 20,
-            'rating' => 5.0,
-            'review_count' => 1,
-            'in_stock' => $request->has('in_stock'),
+            'est_id'         => $estId,
+            'sku'            => $sku,
+            'name'           => $request->name,
+            'category'       => $request->category,
+            'main_category'  => $request->input('main_category', 'Women Couture'),
+            'sub_category'   => $request->input('sub_category', $request->category),
+            'fabric'         => $request->fabric,
+            'occasion'       => $request->input('occasion', 'Festive / Wedding'),
+            'price'          => $request->price,
+            'old_price'      => $request->price * 1.25,
+            'discount'       => 20,
+            'rating'         => 5.0,
+            'review_count'   => 1,
+            'in_stock'       => $request->has('in_stock'),
             'is_new_arrival' => true,
-            'is_featured' => $request->has('is_featured'),
-            'colors' => $colors,
-            'sizes' => $sizes,
-            'description' => $request->description,
-            'details' => ['Craft' => 'Handloom Artisanal', 'Origin' => 'Lucknow / Varanasi'],
-            'care' => 'Dry Clean Only. Steam iron on reverse.',
-            'images' => $images,
+            'is_featured'    => $request->has('is_featured'),
+            'colors'         => $colors,
+            'sizes'          => $sizes,
+            'description'    => $request->description,
+            'details'        => ['Craft' => 'Handloom Artisanal', 'Origin' => 'Lucknow / Varanasi'],
+            'care'           => 'Dry Clean Only. Steam iron on reverse.',
+            'images'         => $images,
         ]);
 
         return redirect('/admin?tab=inventory')->with('success', '✨ New Couture Outfit added successfully to catalog!');
     }
 
     /**
-     * 4.3 Update Product & Stock
+     * Update Product & Stock
      */
     public function updateProduct(Request $request, $id)
     {
         $product = Product::findOrFail($id);
 
-        $product->update([
-            'name' => $request->input('name', $product->name),
-            'price' => $request->input('price', $product->price),
-            'fabric' => $request->input('fabric', $product->fabric),
-            'in_stock' => $request->has('in_stock'),
+        $data = [
+            'name'        => $request->input('name', $product->name),
+            'category'    => $request->input('category', $product->category),
+            'price'       => $request->input('price', $product->price),
+            'fabric'      => $request->input('fabric', $product->fabric),
+            'in_stock'    => $request->has('in_stock'),
             'is_featured' => $request->has('is_featured'),
             'description' => $request->input('description', $product->description),
-        ]);
+        ];
 
-        return back()->with('success', 'Product details and stock quantity updated successfully!');
+        if ($request->hasFile('image')) {
+            $path = $request->file('image')->store('products', 'public');
+            $data['images'] = ['/storage/' . $path];
+        }
+
+        if ($request->filled('colors')) {
+            $data['colors'] = array_filter(array_map('trim', explode(',', $request->input('colors'))));
+        }
+
+        if ($request->filled('sizes')) {
+            $data['sizes'] = array_filter(array_map('trim', explode(',', $request->input('sizes'))));
+        }
+
+        $product->update($data);
+
+        return redirect('/admin?tab=inventory')->with('success', "✨ Product '{$product->name}' updated successfully!");
     }
 
     /**
-     * 4.3 Delete Product
+     * Delete Product
      */
     public function deleteProduct($id)
     {
         $product = Product::findOrFail($id);
         $product->delete();
-        return back()->with('success', 'Product deleted from inventory.');
+        return redirect('/admin?tab=inventory')->with('success', 'Product removed from catalog.');
     }
 
     /**
-     * 4.3 Manage Product Category
+     * Manage Product Category
      */
     public function storeCategory(Request $request)
     {
@@ -163,99 +223,64 @@ class AdminController extends Controller
             'name' => $request->name,
             'slug' => Str::slug($request->name),
         ]);
-        return back()->with('success', 'New Category created successfully!');
-    }
-
-    /**
-     * 4.3 Reviews Moderation: Edit Ratings & Reviews
-     */
-    public function updateReview(Request $request, $id)
-    {
-        $review = Review::findOrFail($id);
-        $review->update([
-            'rating' => $request->input('rating', $review->rating),
-            'comment' => $request->input('comment', $review->comment),
-            'is_approved' => $request->has('is_approved'),
-        ]);
-        return back()->with('success', 'Customer review & rating updated successfully.');
-    }
-
-    public function deleteReview($id)
-    {
-        Review::findOrFail($id)->delete();
-        return back()->with('success', 'Review removed.');
-    }
-
-    /**
-     * 4.4 Process Customer Orders (Update Status)
-     */
-    public function updateOrderStatus(Request $request, $id)
-    {
-        $order = Order::findOrFail($id);
-        $status = $request->input('status', 'confirmed');
-        $order->update(['status' => $status]);
-        return back()->with('success', "Order #{$order->order_no} status updated to " . strtoupper($status));
-    }
-
-    /**
-     * 4.6 Update Marketing Associate Commission & Salary Details
-     */
-    public function updateAssociate(Request $request, $id)
-    {
-        $associate = User::findOrFail($id);
-        $associate->update([
-            'commission_rate' => $request->input('commission_rate', $associate->commission_rate),
-            'balance' => $request->input('balance', $associate->balance),
-        ]);
-        return back()->with('success', "Commission rate for {$associate->name} updated to {$associate->commission_rate}%.");
-    }
-
-    /**
-     * 4.8 Create Offers & Discount Coupons
-     */
-    public function storeCoupon(Request $request)
-    {
-        $request->validate([
-            'code' => 'required|string|unique:coupons,code',
-            'title' => 'required|string',
-            'discount_value' => 'required|numeric|min:1',
-        ]);
-
-        Coupon::create([
-            'code' => strtoupper($request->code),
-            'title' => $request->title,
-            'discount_type' => $request->input('discount_type', 'percentage'),
-            'discount_value' => $request->discount_value,
-            'min_order_value' => $request->input('min_order_value', 0),
-            'campaign_type' => $request->input('campaign_type', 'festival'),
-            'valid_until' => $request->input('valid_until', now()->addMonths(3)),
-            'is_active' => true,
-        ]);
-
-        return back()->with('success', "Coupon '{$request->code}' generated and published successfully!");
-    }
-
-    public function toggleCoupon($id)
-    {
-        $coupon = Coupon::findOrFail($id);
-        $coupon->update(['is_active' => !$coupon->is_active]);
-        return back()->with('success', "Coupon status updated.");
-    }
-
-    public function deleteCoupon($id)
-    {
-        $coupon = Coupon::findOrFail($id);
-        $coupon->delete();
-        return back()->with('success', "Coupon deleted successfully.");
+        return redirect('/admin?tab=inventory')->with('success', 'New Category created successfully!');
     }
 
     public function deleteCategory($id)
     {
         $cat = Category::findOrFail($id);
         $cat->delete();
-        return back()->with('success', "Category removed.");
+        return redirect('/admin?tab=inventory')->with('success', 'Category removed.');
     }
 
+    /**
+     * Reviews Moderation: Edit Ratings & Reviews
+     */
+    public function updateReview(Request $request, $id)
+    {
+        $review = Review::findOrFail($id);
+        $review->update([
+            'rating'      => $request->input('rating', $review->rating),
+            'comment'     => $request->input('comment', $review->comment),
+            'is_approved' => $request->has('is_approved'),
+        ]);
+        return redirect('/admin?tab=reviews')->with('success', 'Customer review & rating updated successfully.');
+    }
+
+    public function deleteReview($id)
+    {
+        Review::findOrFail($id)->delete();
+        return redirect('/admin?tab=reviews')->with('success', 'Review removed.');
+    }
+
+    /**
+     * Process Customer Orders (Update Status)
+     */
+    public function updateOrderStatus(Request $request, $id)
+    {
+        $order = Order::findOrFail($id);
+        $status = $request->input('status', 'confirmed');
+        $order->update(['status' => $status]);
+        return redirect('/admin?tab=orders')->with('success', "Order #{$order->order_no} status updated to " . strtoupper($status));
+    }
+
+    /**
+     * Update Marketing Associate Commission & Balance Details
+     */
+    public function updateAssociate(Request $request, $id)
+    {
+        $associate = User::findOrFail($id);
+        $associate->update([
+            'commission_rate' => $request->input('commission_rate', $associate->commission_rate),
+            'balance'         => $request->input('balance', $associate->balance),
+            'upi_id'          => $request->input('upi_id', $associate->upi_id),
+        ]);
+        return redirect('/admin?tab=associates')->with('success', "Settings for {$associate->name} updated successfully.");
+    }
+
+    /**
+     * Approve Payout for Associate
+     */
     public function approvePayout(Request $request, $id)
     {
         $associate = User::findOrFail($id);
@@ -263,14 +288,54 @@ class AdminController extends Controller
 
         if ($amount > 0 && $amount <= $associate->balance) {
             $associate->decrement('balance', $amount);
+            $associate->increment('earnings', $amount);
             ReferralSale::where('associate_id', $associate->id)
                 ->where('status', 'pending')
                 ->update(['status' => 'paid']);
 
-            return back()->with('success', "Payout of ₹" . number_format($amount, 2) . " processed successfully for {$associate->name}.");
+            return redirect('/admin?tab=associates')->with('success', "✨ Payout of ₹" . number_format($amount, 2) . " processed successfully for {$associate->name} ({$associate->upi_id}).");
         }
 
-        return back()->withErrors(['payout' => 'Invalid payout amount.']);
+        return redirect('/admin?tab=associates')->withErrors(['payout' => 'Invalid payout amount.']);
+    }
+
+    /**
+     * Create Offers & Discount Coupons
+     */
+    public function storeCoupon(Request $request)
+    {
+        $request->validate([
+            'code'           => 'required|string|unique:coupons,code',
+            'title'          => 'required|string',
+            'discount_value' => 'required|numeric|min:1',
+        ]);
+
+        Coupon::create([
+            'code'            => strtoupper($request->code),
+            'title'           => $request->title,
+            'discount_type'   => $request->input('discount_type', 'percentage'),
+            'discount_value'  => $request->discount_value,
+            'min_order_value' => $request->input('min_order_value', 0),
+            'campaign_type'   => $request->input('campaign_type', 'festival'),
+            'valid_until'     => $request->input('valid_until', now()->addMonths(3)),
+            'is_active'       => true,
+        ]);
+
+        return redirect('/admin?tab=offers')->with('success', "Coupon '{$request->code}' generated and published successfully!");
+    }
+
+    public function toggleCoupon($id)
+    {
+        $coupon = Coupon::findOrFail($id);
+        $coupon->update(['is_active' => !$coupon->is_active]);
+        return redirect('/admin?tab=offers')->with('success', "Coupon '{$coupon->code}' status updated.");
+    }
+
+    public function deleteCoupon($id)
+    {
+        $coupon = Coupon::findOrFail($id);
+        $code = $coupon->code;
+        $coupon->delete();
+        return redirect('/admin?tab=offers')->with('success', "Coupon '{$code}' deleted successfully.");
     }
 }
-

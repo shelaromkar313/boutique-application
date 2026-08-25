@@ -287,13 +287,18 @@
                               x-text="$store.shop.wishlist.length"></span>
                     </a>
 
-                    <!-- Profile / Account — hidden on mobile (already in drawer menu) -->
-                    <a href="/login"
-                       class="hidden sm:flex w-9 h-9 rounded-full items-center justify-center text-white/90 hover:text-[#FBEAD6] hover:bg-white/10 transition-colors"
-                       aria-label="My Account" title="My Account / Login">
-                        <svg class="w-[18px] h-[18px]" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.75">
+                    <!-- Profile / Account — dynamic routing based on authenticated user session -->
+                    <a href="{{ Auth::check() ? (Auth::user()->isAdmin() ? '/admin?tab=profile' : (in_array(Auth::user()->role, ['sales_associate','associate','sales_executive']) ? '/sales/dashboard' : '/profile')) : '/login' }}"
+                       class="hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-full text-white/90 hover:text-[#FBEAD6] hover:bg-white/10 transition-colors border border-white/10"
+                       aria-label="My Account" title="{{ Auth::check() ? (Auth::user()->name . ' (My Account)') : 'My Account / Login' }}">
+                        <svg class="w-4 h-4 text-white/80" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.75">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
                         </svg>
+                        @if(Auth::check())
+                            <span class="text-[11px] font-sans font-bold tracking-wider hidden xl:inline text-[#FBEAD6] max-w-[90px] truncate">{{ explode(' ', Auth::user()->name)[0] }}</span>
+                        @else
+                            <span class="text-[11px] font-sans font-bold tracking-wider hidden xl:inline text-white/80">Sign In</span>
+                        @endif
                     </a>
 
                     <!-- ✅ Cart — solid rose fill, never shrinks, always fully visible -->
@@ -382,9 +387,14 @@
                     <a href="/about" class="block text-sm font-sans font-semibold text-[var(--color-ebony)] uppercase tracking-wider hover:text-[var(--color-rose-antique)]">About</a>
                     <a href="/contact" class="block text-sm font-sans font-semibold text-[var(--color-ebony)] uppercase tracking-wider hover:text-[var(--color-rose-antique)]">Contact</a>
                     
-                    <div class="h-px bg-[var(--color-bisque)]/40 my-2"></div>
-                    
-                    <a href="/login" class="block text-sm font-sans font-semibold text-[var(--color-ebony)] uppercase tracking-wider hover:text-[var(--color-rose-antique)]">Profile / Login</a>
+                    <a href="{{ Auth::check() ? (Auth::user()->isAdmin() ? '/admin?tab=profile' : (in_array(Auth::user()->role, ['sales_associate','associate','sales_executive']) ? '/sales/dashboard' : '/profile')) : '/login' }}" class="flex items-center justify-between text-sm font-sans font-semibold text-[var(--color-ebony)] uppercase tracking-wider hover:text-[var(--color-rose-antique)]">
+                        <span>{{ Auth::check() ? ('My Account (' . Auth::user()->name . ')') : 'Account / Sign In' }}</span>
+                        @if(Auth::check())
+                            <span class="text-[10px] bg-[var(--color-champagne-light)] text-[var(--color-ebony)] px-2 py-0.5 rounded-full font-bold">
+                                {{ Auth::user()->isAdmin() ? 'Admin' : (in_array(Auth::user()->role, ['sales_associate','associate','sales_executive']) ? 'Partner' : 'Member') }}
+                            </span>
+                        @endif
+                    </a>
                     
                     <a href="/wishlist" class="flex items-center justify-between text-sm font-sans font-semibold text-[var(--color-ebony)] uppercase tracking-wider hover:text-[var(--color-rose-antique)]">
                         <span>Wishlist</span>

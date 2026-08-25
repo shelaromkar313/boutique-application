@@ -87,24 +87,30 @@ class="min-h-[85vh] flex items-center justify-center py-8 px-3 sm:px-6 bg-gradie
                             :class="activeRole === 'customer'
                                 ? 'bg-[var(--color-ebony)] text-white shadow'
                                 : 'text-[var(--color-ebony)]/60 hover:text-[var(--color-ebony)]'"
-                            class="py-2 rounded-lg text-center font-sans text-[11px] sm:text-xs font-bold uppercase tracking-wide transition-all leading-tight">
-                        <span class="text-base block mb-0.5">👗</span>
+                            class="py-2.5 rounded-lg text-center font-sans text-[11px] sm:text-xs font-bold uppercase tracking-wide transition-all flex flex-col items-center justify-center gap-1">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
+                        </svg>
                         Customer
                     </button>
                     <button type="button" @click="selectRole('sales_associate')"
                             :class="activeRole === 'sales_associate'
                                 ? 'bg-amber-700 text-white shadow'
                                 : 'text-[var(--color-ebony)]/60 hover:text-[var(--color-ebony)]'"
-                            class="py-2 rounded-lg text-center font-sans text-[11px] sm:text-xs font-bold uppercase tracking-wide transition-all leading-tight">
-                        <span class="text-base block mb-0.5">💼</span>
+                            class="py-2.5 rounded-lg text-center font-sans text-[11px] sm:text-xs font-bold uppercase tracking-wide transition-all flex flex-col items-center justify-center gap-1">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"/>
+                        </svg>
                         Sales
                     </button>
                     <button type="button" @click="selectRole('admin')"
                             :class="activeRole === 'admin'
                                 ? 'bg-slate-900 text-amber-200 shadow'
                                 : 'text-[var(--color-ebony)]/60 hover:text-[var(--color-ebony)]'"
-                            class="py-2 rounded-lg text-center font-sans text-[11px] sm:text-xs font-bold uppercase tracking-wide transition-all leading-tight">
-                        <span class="text-base block mb-0.5">👑</span>
+                            class="py-2.5 rounded-lg text-center font-sans text-[11px] sm:text-xs font-bold uppercase tracking-wide transition-all flex flex-col items-center justify-center gap-1">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/>
+                        </svg>
                         Admin
                     </button>
                 </div>
@@ -116,7 +122,7 @@ class="min-h-[85vh] flex items-center justify-center py-8 px-3 sm:px-6 bg-gradie
                          'bg-amber-50 border-amber-200 text-amber-900': activeRole === 'sales_associate',
                          'bg-slate-900 text-slate-200 border-slate-700': activeRole === 'admin'
                      }">
-                    <span class="font-bold" x-text="activeRole === 'customer' ? '🛍️ Customer — Orders & Virtual Try-On' : (activeRole === 'sales_associate' ? '💰 Sales Partner — 12% Commission & Links' : '⚙️ Admin — Full Atelier Management')"></span>
+                    <span class="font-bold" x-text="activeRole === 'customer' ? 'Customer — Orders & Virtual Try-On' : (activeRole === 'sales_associate' ? 'Sales Partner — Commission & Links' : 'Administrator — Full Store Management')"></span>
                 </div>
 
                 {{-- ── 2. Auth Method Toggle ── --}}

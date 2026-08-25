@@ -14,10 +14,22 @@ class EnsureAdminRole
      */
     public function handle(Request $request, Closure $next): Response
     {
-        // Check API guard (JWT token)
-        $user = Auth::guard('api')->user() ?? Auth::guard('web')->user();
+        $user = Auth::user();
 
-        if (! $user || $user->role !== 'admin') {
+        if (! $user) {
+            if ($request->expectsJson() || $request->is('api/*')) {
+                return response()->json([
+                    'error' => 'Unauthenticated.',
+                    'message' => 'Please log in to continue.',
+                ], 401);
+            }
+
+            return redirect('/login?role=admin')->withErrors([
+                'email' => 'Please log in with an Administrator account to access the Admin Console.'
+            ]);
+        }
+
+        if (! $user->isAdmin()) {
             if ($request->expectsJson() || $request->is('api/*')) {
                 return response()->json([
                     'error' => 'Unauthorized. Administrator access required.',
@@ -25,8 +37,8 @@ class EnsureAdminRole
                 ], 403);
             }
 
-            return redirect('/login?role=admin')->withErrors([
-                'email' => 'Please log in with an Administrator account to access the Admin Console.'
+            return redirect('/')->withErrors([
+                'auth' => 'Access denied. Administrator privileges required.'
             ]);
         }
 

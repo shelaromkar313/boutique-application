@@ -9,18 +9,14 @@ use App\Http\Controllers\TryOnController;
 use Illuminate\Support\Facades\Route;
 
 // ─────────────────────────────────────────────────────────────────────────────
-// JWT Authentication Endpoints
+// Session-Based Authentication Endpoints
 // ─────────────────────────────────────────────────────────────────────────────
-Route::group([
-    'middleware' => 'api',
-    'prefix' => 'auth',
-], function ($router) {
+Route::prefix('auth')->group(function () {
     Route::post('register', [AuthController::class, 'register']);
     Route::post('login', [AuthController::class, 'apiLogin']);
-    Route::post('logout', [AuthController::class, 'apiLogout'])->middleware('auth:api');
-    Route::post('refresh', [AuthController::class, 'refresh'])->middleware('auth:api');
-    Route::get('me', [AuthController::class, 'me'])->middleware('auth:api');
-    Route::post('me', [AuthController::class, 'me'])->middleware('auth:api');
+    Route::post('logout', [AuthController::class, 'apiLogout'])->middleware('auth');
+    Route::get('me', [AuthController::class, 'me'])->middleware('auth');
+    Route::post('me', [AuthController::class, 'me'])->middleware('auth');
 });
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -34,9 +30,9 @@ Route::get('virtual-tryon/models', [TryOnController::class, 'getDemoModels']);
 Route::post('virtual-tryon/process', [TryOnController::class, 'tryOn']);
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Admin-Only REST Suite (Protected by JWT auth:api + admin role)
+// Admin-Only REST Suite (Protected by Session auth + admin role)
 // ─────────────────────────────────────────────────────────────────────────────
-Route::middleware(['auth:api', 'admin'])->prefix('admin')->group(function () {
+Route::middleware(['auth', 'admin'])->prefix('admin')->group(function () {
     // 1. Dashboard Overview Stats & KPIs
     Route::get('dashboard-stats', [AdminApiController::class, 'dashboardStats']);
 
@@ -81,10 +77,8 @@ Route::middleware(['auth:api', 'admin'])->prefix('admin')->group(function () {
 // ─────────────────────────────────────────────────────────────────────────────
 // Payment Endpoints
 // ─────────────────────────────────────────────────────────────────────────────
-Route::middleware('auth:api')->prefix('payment')->group(function () {
+Route::middleware('auth')->prefix('payment')->group(function () {
     Route::post('create-order', [PaymentController::class, 'createOrder']);
     Route::post('verify', [PaymentController::class, 'verify']);
     Route::get('order', [PaymentController::class, 'getOrder']);
 });
-
-
