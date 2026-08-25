@@ -158,6 +158,10 @@
                     return this.wishlist.some(i => i.id == id);
                 }
             });
+
+            if (window.virtualTryOn) {
+                Alpine.data('virtualTryOn', window.virtualTryOn);
+            }
         });
     </script>
 
