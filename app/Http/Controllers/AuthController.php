@@ -100,7 +100,7 @@ class AuthController extends Controller
             // Demo shortcut
             if ($email === 'admin@estilo.com' && in_array($password, ['Admin@123', 'password123'])) {
                 $user = User::firstOrCreate(['email' => 'admin@estilo.com'], [
-                    'name' => 'Boutique Admin', 'role' => 'admin',
+                    'name' => 'Admin', 'role' => 'admin',
                     'password' => Hash::make('Admin@123'), 'phone' => '9000000001',
                 ]);
             } elseif ($email === 'associate@estilo.com' && in_array($password, ['Partner@123', 'password123'])) {
@@ -157,7 +157,7 @@ class AuthController extends Controller
         if (!$user || !Hash::check($request->password, $user->password)) {
             if ($request->email === 'admin@estilo.com' && in_array($request->password, ['Admin@123', 'password123'])) {
                 $user = User::firstOrCreate(['email' => 'admin@estilo.com'], [
-                    'name' => 'Boutique Admin', 'role' => 'admin',
+                    'name' => 'Admin', 'role' => 'admin',
                     'password' => Hash::make('Admin@123'), 'phone' => '9000000001',
                 ]);
             } elseif ($request->email === 'associate@estilo.com' && in_array($request->password, ['Partner@123', 'password123'])) {
