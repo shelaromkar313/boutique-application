@@ -161,6 +161,9 @@
         });
     </script>
 
+    <!-- Alpine x-cloak: MUST be defined before Alpine loads to prevent flash of modal on every page -->
+    <style>[x-cloak] { display: none !important; }</style>
+
     <!-- AlpineJS & Plugins -->
     <script defer src="https://cdn.jsdelivr.net/npm/@alpinejs/collapse@3.x.x/dist/cdn.min.js"></script>
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.13.3/dist/cdn.min.js"></script>

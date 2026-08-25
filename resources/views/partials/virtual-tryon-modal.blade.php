@@ -2,6 +2,7 @@
 <div x-data="virtualTryOn()" 
      x-show="isOpen" 
      x-cloak 
+     style="display: none;"
      @open-tryon.window="openModal($event.detail)"
      class="fixed inset-0 z-50 overflow-y-auto"
      aria-labelledby="modal-title" 
