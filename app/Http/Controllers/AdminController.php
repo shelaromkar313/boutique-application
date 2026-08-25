@@ -26,7 +26,7 @@ class AdminController extends Controller
         $admin = Auth::user();
         if (!$admin || !$admin->isAdmin()) {
             $admin = User::firstOrCreate(['email' => 'admin@estilo.com'], [
-                'name' => 'Boutique Administrator',
+                'name' => 'Administrator',
                 'role' => 'admin',
                 'password' => Hash::make('Admin@123'),
                 'phone' => '9000000001',

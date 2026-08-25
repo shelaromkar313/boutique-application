@@ -295,7 +295,17 @@
                             <path stroke-linecap="round" stroke-linejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
                         </svg>
                         @if(Auth::check())
-                            <span class="text-[11px] font-sans font-bold tracking-wider hidden xl:inline text-[#FBEAD6] max-w-[90px] truncate">{{ explode(' ', Auth::user()->name)[0] }}</span>
+                            @php
+                                $userName = Auth::user()->name;
+                                if (Auth::user()->isAdmin() || str_starts_with(strtolower($userName), 'boutique admin')) {
+                                    $displayName = 'Admin';
+                                } elseif (str_starts_with(strtolower($userName), 'boutique')) {
+                                    $displayName = trim(substr($userName, 8)) ?: 'Account';
+                                } else {
+                                    $displayName = explode(' ', $userName)[0];
+                                }
+                            @endphp
+                            <span class="text-[11px] font-sans font-bold tracking-wider hidden xl:inline text-[#FBEAD6] max-w-[90px] truncate">{{ $displayName }}</span>
                         @else
                             <span class="text-[11px] font-sans font-bold tracking-wider hidden xl:inline text-white/80">Sign In</span>
                         @endif
