@@ -146,24 +146,44 @@ class DatabaseSeeder extends Seeder
             ]
         );
 
-        // 6. Seed Sample Product Reviews
+        // 6. Seed Sample Product Reviews (Including sample low rating for admin moderation testing)
         \App\Models\Review::updateOrCreate(
-            ['product_est_id' => 'est-001', 'user_name' => 'Ananya S.'],
+            ['product_est_id' => 'est-001', 'user_name' => 'Ananya Sharma'],
             [
                 'rating' => 5,
-                'comment' => 'The Chikankari handwork is breathtaking! The fitting room preview was surprisingly accurate for my height.',
+                'comment' => 'The Chikankari handwork is breathtaking! The fitting preview was surprisingly accurate for my height.',
                 'is_approved' => true,
                 'created_at' => now()->subDays(3),
             ]
         );
 
         \App\Models\Review::updateOrCreate(
-            ['product_est_id' => 'est-012', 'user_name' => 'Kavita R.'],
+            ['product_est_id' => 'est-002', 'user_name' => 'Kavita Roy'],
             [
                 'rating' => 5,
-                'comment' => 'Pure silk fabric with genuine zari sheen. Received so many compliments at my cousin’s wedding!',
+                'comment' => 'Pure silk fabric with genuine gold zari sheen. Received endless compliments at my cousin’s wedding!',
                 'is_approved' => true,
                 'created_at' => now()->subDays(7),
+            ]
+        );
+
+        \App\Models\Review::updateOrCreate(
+            ['product_est_id' => 'est-003', 'user_name' => 'Pooja Deshmukh'],
+            [
+                'rating' => 4,
+                'comment' => 'Very lightweight organza drape and delicate floral painting. Lovely for summer evenings.',
+                'is_approved' => true,
+                'created_at' => now()->subDays(5),
+            ]
+        );
+
+        \App\Models\Review::updateOrCreate(
+            ['product_est_id' => 'est-001', 'user_name' => 'Meera Patel'],
+            [
+                'rating' => 2,
+                'comment' => 'Delivery took 4 days and dupatta length was a bit long for my liking.',
+                'is_approved' => true,
+                'created_at' => now()->subDays(2),
             ]
         );
     }

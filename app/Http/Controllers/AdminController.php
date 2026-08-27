@@ -238,23 +238,84 @@ class AdminController extends Controller
     }
 
     /**
-     * Reviews Moderation: Edit Ratings & Reviews
+     * Reviews Moderation: Edit Ratings (1-5 Stars) & Reviews (Modify Bad/Low Reviews)
      */
     public function updateReview(Request $request, $id)
     {
+        $request->validate([
+            'rating'    => 'required|integer|min:1|max:5',
+            'comment'   => 'required|string|max:2000',
+            'user_name' => 'nullable|string|max:255',
+        ]);
+
         $review = Review::findOrFail($id);
         $review->update([
-            'rating'      => $request->input('rating', $review->rating),
-            'comment'     => $request->input('comment', $review->comment),
-            'is_approved' => $request->has('is_approved'),
+            'user_name'   => $request->input('user_name', $review->user_name),
+            'rating'      => (int) $request->input('rating', $review->rating),
+            'comment'     => trim($request->input('comment', $review->comment)),
+            'is_approved' => $request->has('is_approved') ? $request->boolean('is_approved') : $review->is_approved,
         ]);
-        return redirect('/admin?tab=reviews')->with('success', 'Customer review & rating updated successfully.');
+
+        // Recalculate product overall star rating
+        $product = Product::where('est_id', $review->product_est_id)->first();
+        if ($product && method_exists($product, 'updateRatingStats')) {
+            $product->updateRatingStats();
+        }
+
+        return redirect('/admin?tab=reviews')->with('success', "✨ Review #{$review->id} updated successfully! Rating set to {$review->rating} Stars.");
     }
 
+    /**
+     * Quick Action: Boost a low/bad rating to 5 Stars and approve it
+     */
+    public function boostReview($id)
+    {
+        $review = Review::findOrFail($id);
+        $review->rating = 5;
+        $review->is_approved = true;
+        $review->save();
+
+        $product = Product::where('est_id', $review->product_est_id)->first();
+        if ($product && method_exists($product, 'updateRatingStats')) {
+            $product->updateRatingStats();
+        }
+
+        return redirect('/admin?tab=reviews')->with('success', "⭐ Review #{$review->id} boosted to 5 Stars & Approved!");
+    }
+
+    /**
+     * Quick Action: Toggle Review Public Approval Visibility
+     */
+    public function toggleReview($id)
+    {
+        $review = Review::findOrFail($id);
+        $review->is_approved = !$review->is_approved;
+        $review->save();
+
+        $product = Product::where('est_id', $review->product_est_id)->first();
+        if ($product && method_exists($product, 'updateRatingStats')) {
+            $product->updateRatingStats();
+        }
+
+        $status = $review->is_approved ? 'Approved & Live' : 'Hidden from Store';
+        return redirect('/admin?tab=reviews')->with('success', "Review #{$review->id} is now {$status}.");
+    }
+
+    /**
+     * Delete Review
+     */
     public function deleteReview($id)
     {
-        Review::findOrFail($id)->delete();
-        return redirect('/admin?tab=reviews')->with('success', 'Review removed.');
+        $review = Review::findOrFail($id);
+        $estId = $review->product_est_id;
+        $review->delete();
+
+        $product = Product::where('est_id', $estId)->first();
+        if ($product && method_exists($product, 'updateRatingStats')) {
+            $product->updateRatingStats();
+        }
+
+        return redirect('/admin?tab=reviews')->with('success', 'Review removed from database.');
     }
 
     /**

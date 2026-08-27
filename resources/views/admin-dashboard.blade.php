@@ -45,6 +45,15 @@
     openPayoutModal(assoc) {
         this.selectedAssociate = assoc;
         this.payoutModal = true;
+    },
+
+    editReviewModal: false,
+    selectedReview: { rating: 5, comment: '', user_name: '', is_approved: true },
+    reviewFilter: 'all',
+
+    openEditReview(rev) {
+        this.selectedReview = Object.assign({}, rev);
+        this.editReviewModal = true;
     }
 }">
 
@@ -664,41 +673,176 @@
             </div>
         </div>
 
-        {{-- TAB 8: RATINGS & REVIEWS MODERATION --}}
+        {{-- TAB 8: RATINGS & REVIEWS MODERATION (Edit 1-5 Stars & Modify Bad Reviews) --}}
         <div x-show="activeTab === 'reviews'" class="space-y-6">
             <div class="bg-white rounded-3xl border border-[var(--color-bisque)] p-6 sm:p-8 shadow-sm space-y-6">
-                <div class="border-b border-[var(--color-bisque)]/60 pb-3">
-                    <h2 class="font-serif text-xl sm:text-2xl font-bold text-[var(--color-ebony)]">Customer Reviews & Ratings Moderation</h2>
-                    <p class="text-xs font-sans text-[var(--color-ebony)]/60">Edit ratings, manage customer feedback, and approve public testimonial visibility.</p>
+                
+                {{-- Header & Subtext --}}
+                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-[var(--color-bisque)]/60 pb-5">
+                    <div>
+                        <span class="text-[10px] font-sans font-bold uppercase tracking-widest text-[var(--color-rose-antique)]">Feedback Management Suite</span>
+                        <h2 class="font-serif text-xl sm:text-2xl font-bold text-[var(--color-ebony)] flex items-center gap-2">
+                            Customer Ratings & Reviews Moderation
+                        </h2>
+                        <p class="text-xs font-sans text-[var(--color-ebony)]/60 mt-0.5">
+                            Modify customer ratings (1 to 5 Stars), edit/rewrite negative feedback, and control public visibility on product pages.
+                        </p>
+                    </div>
                 </div>
 
-                <div class="space-y-4">
-                    @forelse($reviews as $rev)
-                    <div class="p-4 rounded-2xl bg-[var(--color-offwhite)] border border-[var(--color-bisque)] space-y-2">
-                        <div class="flex items-center justify-between">
-                            <div class="flex items-center gap-2">
-                                <span class="font-bold text-xs text-[var(--color-ebony)]">{{ $rev->user_name }}</span>
-                                <span class="text-[10px] text-[var(--color-rose-antique)] font-mono">Product ID: {{ $rev->product_est_id }}</span>
-                            </div>
-                            <div class="flex text-amber-400 text-xs">
-                                @for($i = 0; $i < $rev->rating; $i++) ★ @endfor
-                            </div>
-                        </div>
-                        <p class="text-xs font-sans text-[var(--color-ebony)]/80">"{{ $rev->comment }}"</p>
-                        
-                        <div class="pt-2 border-t border-[var(--color-bisque)]/40 flex items-center justify-between">
-                            <span class="text-[10px] text-emerald-700 font-bold">✓ {{ $rev->is_approved ? 'Approved & Live' : 'Pending Moderation' }}</span>
-                            <form action="/admin/reviews/{{ $rev->id }}" method="POST" onsubmit="return confirm('Remove review?');">
-                                @csrf
-                                @method('DELETE')
-                                <button type="submit" class="text-[10px] text-rose-600 hover:underline">Remove</button>
-                            </form>
+                {{-- Review Metric KPI Badges --}}
+                <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
+                    <div class="p-4 rounded-2xl bg-[var(--color-champagne-light)]/40 border border-[var(--color-bisque)]/60 flex items-center gap-3">
+                        <div class="w-10 h-10 rounded-xl bg-white shadow-xs flex items-center justify-center text-lg">📝</div>
+                        <div>
+                            <span class="text-[10px] font-sans font-bold text-[var(--color-ebony)]/60 uppercase tracking-wider block">Total Reviews</span>
+                            <span class="font-serif text-xl font-bold text-[var(--color-ebony)]">{{ $reviews->count() }}</span>
                         </div>
                     </div>
+
+                    <div class="p-4 rounded-2xl bg-amber-50 border border-amber-200/80 flex items-center gap-3">
+                        <div class="w-10 h-10 rounded-xl bg-amber-100 flex items-center justify-center text-lg">⭐</div>
+                        <div>
+                            <span class="text-[10px] font-sans font-bold text-amber-900/80 uppercase tracking-wider block">5-Star Royal Reviews</span>
+                            <span class="font-serif text-xl font-bold text-amber-950">{{ $reviews->where('rating', 5)->count() }}</span>
+                        </div>
+                    </div>
+
+                    <div class="p-4 rounded-2xl bg-rose-50 border border-rose-200/80 flex items-center gap-3">
+                        <div class="w-10 h-10 rounded-xl bg-rose-100 flex items-center justify-center text-lg">⚠️</div>
+                        <div>
+                            <span class="text-[10px] font-sans font-bold text-rose-900/80 uppercase tracking-wider block">Low Ratings (≤ 3★)</span>
+                            <span class="font-serif text-xl font-bold text-rose-950">{{ $reviews->where('rating', '<=', 3)->count() }}</span>
+                        </div>
+                    </div>
+
+                    <div class="p-4 rounded-2xl bg-emerald-50 border border-emerald-200/80 flex items-center gap-3">
+                        <div class="w-10 h-10 rounded-xl bg-emerald-100 flex items-center justify-center text-lg">✓</div>
+                        <div>
+                            <span class="text-[10px] font-sans font-bold text-emerald-900/80 uppercase tracking-wider block">Approved & Live</span>
+                            <span class="font-serif text-xl font-bold text-emerald-950">{{ $reviews->where('is_approved', true)->count() }}</span>
+                        </div>
+                    </div>
+                </div>
+
+                {{-- Filter Pills Bar --}}
+                <div class="flex items-center gap-2 overflow-x-auto pb-1 text-xs font-sans font-bold">
+                    <button type="button" @click="reviewFilter = 'all'" :class="reviewFilter === 'all' ? 'bg-[var(--color-ebony)] text-white shadow-sm' : 'bg-gray-100 text-[var(--color-ebony)]/70 hover:bg-gray-200'" class="px-4 py-2 rounded-xl transition-all">
+                        All Reviews ({{ $reviews->count() }})
+                    </button>
+                    <button type="button" @click="reviewFilter = 'low'" :class="reviewFilter === 'low' ? 'bg-rose-600 text-white shadow-sm' : 'bg-rose-50 text-rose-700 hover:bg-rose-100'" class="px-4 py-2 rounded-xl transition-all flex items-center gap-1.5">
+                        <span>⚠️ Low Ratings (1-3★)</span>
+                        <span class="bg-rose-200 text-rose-900 text-[10px] px-1.5 py-0.2 rounded-full" :class="reviewFilter === 'low' ? 'bg-white/30 text-white' : ''">{{ $reviews->where('rating', '<=', 3)->count() }}</span>
+                    </button>
+                    <button type="button" @click="reviewFilter = '5star'" :class="reviewFilter === '5star' ? 'bg-amber-500 text-white shadow-sm' : 'bg-amber-50 text-amber-800 hover:bg-amber-100'" class="px-4 py-2 rounded-xl transition-all">
+                        ⭐ 5 Stars Only ({{ $reviews->where('rating', 5)->count() }})
+                    </button>
+                    <button type="button" @click="reviewFilter = 'pending'" :class="reviewFilter === 'pending' ? 'bg-slate-800 text-white shadow-sm' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'" class="px-4 py-2 rounded-xl transition-all">
+                        Hidden / Unapproved ({{ $reviews->where('is_approved', false)->count() }})
+                    </button>
+                </div>
+
+                {{-- Reviews List / Table --}}
+                <div class="space-y-4">
+                    @forelse($reviews as $rev)
+                    @php
+                        $isLow = $rev->rating <= 3;
+                    @endphp
+                    <div class="p-5 rounded-2xl border transition-all duration-200 space-y-3 {{ $isLow ? 'bg-rose-50/40 border-rose-200' : 'bg-[var(--color-offwhite)]/60 border-[var(--color-bisque)]' }}"
+                         x-show="reviewFilter === 'all' || (reviewFilter === 'low' && {{ $rev->rating }} <= 3) || (reviewFilter === '5star' && {{ $rev->rating }} === 5) || (reviewFilter === 'pending' && !{{ $rev->is_approved ? 'true' : 'false' }})">
+                        
+                        {{-- Top Meta Row --}}
+                        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-black/5 pb-3">
+                            <div class="flex items-center gap-2.5 flex-wrap">
+                                <div class="w-7 h-7 rounded-full bg-[var(--color-ebony)] text-white flex items-center justify-center font-bold text-xs">
+                                    {{ strtoupper(substr($rev->user_name ?? 'C', 0, 1)) }}
+                                </div>
+                                <span class="font-bold text-xs text-[var(--color-ebony)]">{{ $rev->user_name }}</span>
+                                <span class="text-[10px] font-mono bg-white px-2 py-0.5 rounded-md border border-[var(--color-bisque)] text-[var(--color-rose-antique)] font-semibold">
+                                    Product: {{ $rev->product_est_id }}
+                                </span>
+                                @if($isLow)
+                                <span class="text-[9px] bg-rose-100 text-rose-800 font-bold uppercase tracking-wider px-2 py-0.5 rounded-full flex items-center gap-1">
+                                    ⚠️ Low Rating Detected ({{ $rev->rating }}★)
+                                </span>
+                                @endif
+                                <span class="text-[10px] text-gray-400 font-sans">{{ $rev->created_at ? $rev->created_at->format('d M Y, h:i A') : 'Recent' }}</span>
+                            </div>
+
+                            {{-- Star Rating Display --}}
+                            <div class="flex items-center gap-1.5">
+                                <div class="flex text-amber-400 text-sm">
+                                    @for($i = 1; $i <= 5; $i++)
+                                        @if($i <= $rev->rating)
+                                            <span class="text-amber-400">★</span>
+                                        @else
+                                            <span class="text-gray-300">★</span>
+                                        @endif
+                                    @endfor
+                                </div>
+                                <span class="font-bold text-xs text-[var(--color-ebony)] font-mono">({{ $rev->rating }}/5)</span>
+                            </div>
+                        </div>
+
+                        {{-- Review Comment Body --}}
+                        <div class="bg-white/80 p-3.5 rounded-xl border border-black/5">
+                            <p class="text-xs font-sans text-[var(--color-ebony)]/90 leading-relaxed italic">
+                                "{{ $rev->comment }}"
+                            </p>
+                        </div>
+
+                        {{-- Bottom Action Row --}}
+                        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-1">
+                            <div class="flex items-center gap-2">
+                                <span class="px-2.5 py-1 rounded-full text-[10px] font-bold {{ $rev->is_approved ? 'bg-emerald-100 text-emerald-800' : 'bg-gray-200 text-gray-700' }}">
+                                    {{ $rev->is_approved ? '✓ Approved & Live on Store' : '○ Hidden from Store' }}
+                                </span>
+                            </div>
+
+                            <div class="flex items-center gap-2 flex-wrap">
+                                {{-- Quick 1-Click Boost to 5 Stars (Useful for bad ratings) --}}
+                                @if($rev->rating < 5)
+                                <form action="/admin/reviews/{{ $rev->id }}/boost" method="POST" class="inline m-0">
+                                    @csrf
+                                    <button type="submit" class="px-2.5 py-1.5 bg-amber-100 hover:bg-amber-200 text-amber-900 border border-amber-300 rounded-lg text-xs font-bold transition-all flex items-center gap-1" title="Instantly change to 5 Stars & Approve">
+                                        <span>⭐ Boost to 5★</span>
+                                    </button>
+                                </form>
+                                @endif
+
+                                {{-- Edit Modal Trigger (Edit Stars 1-5 and Rewrite Comment) --}}
+                                <button type="button" @click="openEditReview({{ json_encode($rev) }})" class="px-3 py-1.5 bg-blue-50 hover:bg-blue-100 text-blue-700 border border-blue-200 rounded-lg text-xs font-bold transition-colors flex items-center gap-1">
+                                    <span>✏️ Edit Rating & Review</span>
+                                </button>
+
+                                {{-- Toggle Live / Hide --}}
+                                <form action="/admin/reviews/{{ $rev->id }}/toggle" method="POST" class="inline m-0">
+                                    @csrf
+                                    <button type="submit" class="px-2.5 py-1.5 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg text-xs font-bold transition-colors">
+                                        {{ $rev->is_approved ? 'Hide' : 'Approve' }}
+                                    </button>
+                                </form>
+
+                                {{-- Delete --}}
+                                <form action="/admin/reviews/{{ $rev->id }}" method="POST" class="inline m-0" onsubmit="return confirm('Permanently delete review #{{ $rev->id }}?');">
+                                    @csrf
+                                    @method('DELETE')
+                                    <button type="submit" class="px-2 py-1.5 bg-rose-50 hover:bg-rose-100 text-rose-700 rounded-lg text-xs font-bold transition-colors" title="Delete Review">
+                                        🗑️
+                                    </button>
+                                </form>
+                            </div>
+                        </div>
+
+                    </div>
                     @empty
-                    <div class="p-6 text-center text-xs text-[var(--color-ebony)]/60">No pending reviews.</div>
+                    <div class="p-12 text-center text-xs text-[var(--color-ebony)]/60 bg-[var(--color-offwhite)] rounded-2xl">
+                        <span class="text-3xl block mb-2">⭐</span>
+                        No customer reviews submitted yet.
+                    </div>
                     @endforelse
                 </div>
+
             </div>
         </div>
 
@@ -1141,6 +1285,87 @@
                     </button>
                 </form>
             </div>
+        </div>
+    {{-- MODAL 8: EDIT RATING & REVIEW (OVERRIDE BAD/LOW RATINGS) --}}
+    <div x-show="editReviewModal" style="display: none;" class="fixed inset-0 z-50 flex items-center justify-center p-4 overflow-y-auto">
+        <div x-show="editReviewModal" x-transition.opacity @click="editReviewModal = false" class="fixed inset-0 bg-black/60 backdrop-blur-sm"></div>
+        <div class="relative w-full max-w-lg bg-white rounded-3xl p-6 sm:p-8 shadow-2xl z-10 border border-[var(--color-bisque)] my-8 space-y-5">
+            
+            <div class="flex items-center justify-between border-b border-[var(--color-bisque)]/60 pb-3">
+                <div class="flex items-center gap-2.5">
+                    <span class="w-8 h-8 rounded-xl bg-amber-100 text-amber-900 flex items-center justify-center text-base">✏️</span>
+                    <div>
+                        <h3 class="font-serif text-lg font-bold text-[var(--color-ebony)]">Edit Customer Review & Rating</h3>
+                        <span class="text-[10px] font-sans text-gray-500">Modify low stars, refine feedback comments, and set public status</span>
+                    </div>
+                </div>
+                <button type="button" @click="editReviewModal = false" class="text-gray-400 hover:text-gray-600 text-lg">✕</button>
+            </div>
+
+            <form :action="'/admin/reviews/' + selectedReview.id" method="POST" class="space-y-4">
+                @csrf
+                
+                {{-- Product and ID Info --}}
+                <div class="p-3 bg-gray-50 rounded-xl border border-gray-200 flex items-center justify-between text-xs font-sans">
+                    <span class="text-gray-600">Product Est ID: <strong class="text-[var(--color-ebony)]" x-text="selectedReview.product_est_id"></strong></span>
+                    <span class="text-gray-500 font-mono">Review #<span x-text="selectedReview.id"></span></span>
+                </div>
+
+                {{-- Customer Name --}}
+                <div>
+                    <label class="block text-xs font-sans font-bold uppercase tracking-wider mb-1 text-[var(--color-ebony)]">Customer Name</label>
+                    <input type="text" name="user_name" x-model="selectedReview.user_name" required class="w-full bg-[var(--color-offwhite)] border border-[var(--color-bisque)] rounded-xl px-4 py-2.5 text-xs font-sans font-bold" />
+                </div>
+
+                {{-- Interactive Star Rating Selector (1 to 5 Stars) --}}
+                <div>
+                    <label class="block text-xs font-sans font-bold uppercase tracking-wider mb-1.5 text-[var(--color-ebony)]">
+                        Star Rating (1 to 5 Stars)
+                    </label>
+                    <div class="flex items-center gap-2 p-3 bg-amber-50/60 rounded-xl border border-amber-200">
+                        <template x-for="star in [1, 2, 3, 4, 5]" :key="star">
+                            <button type="button" 
+                                    @click="selectedReview.rating = star" 
+                                    class="text-2xl transition-transform hover:scale-125 focus:outline-none"
+                                    :title="star + ' Star(s)'">
+                                <span :class="star <= selectedReview.rating ? 'text-amber-400' : 'text-gray-300'">★</span>
+                            </button>
+                        </template>
+                        <span class="text-xs font-sans font-bold text-amber-900 ml-2" x-text="selectedReview.rating + ' Star(s) Selected'"></span>
+                        <input type="hidden" name="rating" :value="selectedReview.rating" />
+                    </div>
+                    <span class="text-[10px] text-gray-500 mt-1 block">Tip: If a customer left a 1★ or 2★ review, you can elevate it to 4★ or 5★ here.</span>
+                </div>
+
+                {{-- Review Comment Textarea --}}
+                <div>
+                    <label class="block text-xs font-sans font-bold uppercase tracking-wider mb-1 text-[var(--color-ebony)]">
+                        Review Comment (Editable)
+                    </label>
+                    <textarea name="comment" 
+                              x-model="selectedReview.comment" 
+                              rows="4" 
+                              required 
+                              placeholder="Write or edit customer feedback..."
+                              class="w-full bg-[var(--color-offwhite)] border border-[var(--color-bisque)] rounded-xl p-3 text-xs font-sans focus:outline-none focus:border-[var(--color-rose-antique)]"></textarea>
+                    <span class="text-[10px] text-gray-500">Edit or rewrite negative words into positive couture feedback.</span>
+                </div>
+
+                {{-- Live Visibility Checkbox --}}
+                <div class="flex items-center gap-2 p-3 bg-emerald-50/50 rounded-xl border border-emerald-200/60">
+                    <input type="checkbox" name="is_approved" id="edit_is_approved" :checked="selectedReview.is_approved" class="w-4 h-4 rounded text-emerald-600 focus:ring-emerald-500" />
+                    <label for="edit_is_approved" class="text-xs font-sans font-bold text-emerald-900 cursor-pointer">
+                        Approve & Display Live on Product Storefront Page
+                    </label>
+                </div>
+
+                <div class="flex gap-3 pt-2">
+                    <button type="button" @click="editReviewModal = false" class="flex-1 bg-gray-100 text-xs font-bold py-3 rounded-xl">Cancel</button>
+                    <button type="submit" class="flex-1 bg-[var(--color-ebony)] hover:bg-[var(--color-rose-deep)] text-white text-xs font-bold py-3 rounded-xl shadow-md transition-colors">
+                        Save Rating & Review
+                    </button>
+                </div>
+            </form>
         </div>
     </div>
 

@@ -79,6 +79,33 @@ class Product extends Model
     }
 
     /**
+     * Customer reviews relationship
+     */
+    public function reviews()
+    {
+        return $this->hasMany(Review::class, 'product_est_id', 'est_id');
+    }
+
+    /**
+     * Recalculate average star rating and review count from approved reviews
+     */
+    public function updateRatingStats(): void
+    {
+        $approvedReviews = Review::where('product_est_id', $this->est_id)
+            ->where('is_approved', true)
+            ->get();
+
+        if ($approvedReviews->count() > 0) {
+            $this->rating = round($approvedReviews->avg('rating'), 1);
+            $this->review_count = $approvedReviews->count();
+        } else {
+            $this->rating = 5.0;
+            $this->review_count = 0;
+        }
+        $this->save();
+    }
+
+    /**
      * Calculate associate margin profit
      */
     public function getAssociateMarginAttribute(): float

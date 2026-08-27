@@ -77,6 +77,19 @@ $relatedProducts = collect($productsData)->filter(function ($p) use ($product) {
     return $p['id'] !== $product['id'] && ($p['mainCategory'] ?? '') === ($product['mainCategory'] ?? '');
 })->take(4);
 
+// Load Customer Reviews from DB
+$reviews = \App\Models\Review::where('product_est_id', $product['id'])->where('is_approved', true)->latest()->get();
+$totalReviewsCount = $reviews->count() > 0 ? $reviews->count() : ($product['reviewCount'] ?? 1);
+$avgRating = $reviews->count() > 0 ? round($reviews->avg('rating'), 1) : ($product['rating'] ?? 5.0);
+
+$ratingBreakdown = [
+    5 => $reviews->where('rating', 5)->count(),
+    4 => $reviews->where('rating', 4)->count(),
+    3 => $reviews->where('rating', 3)->count(),
+    2 => $reviews->where('rating', 2)->count(),
+    1 => $reviews->where('rating', 1)->count(),
+];
+
 @endphp
 
 @section('title', $product['name'] . ' | ESTILO WEAR')
@@ -92,7 +105,22 @@ $relatedProducts = collect($productsData)->filter(function ($p) use ($product) {
     pincode: '',
     pincodeMsg: null,
     isWishlisted: false,
+    showReviewForm: false,
+    newRating: 5,
+    hoverRating: 0,
     
+    get starLabel() {
+        const r = this.hoverRating || this.newRating;
+        const labels = {
+            1: '1 Star — Needs Improvement',
+            2: '2 Stars — Fair Quality',
+            3: '3 Stars — Good & Comfortable',
+            4: '4 Stars — Very Beautiful Fitting',
+            5: '5 Stars — Royal, Exceptional & Flawless!'
+        };
+        return labels[r] || '5 Stars';
+    },
+
     checkPincode() {
         if(this.pincode.length === 6) {
             this.pincodeMsg = 'Express delivery available to ' + this.pincode + ' by ' + new Date(Date.now() + 86400000 * 3).toDateString();
@@ -284,6 +312,229 @@ $relatedProducts = collect($productsData)->filter(function ($p) use ($product) {
                         @endif
                     </ul>
                     <p class="pt-2 text-[var(--color-ebony)]/60 border-t border-[var(--color-bisque)]/30"><strong>Care Instructions:</strong> {{ $product['care'] ?? 'Dry Clean Only.' }}</p>
+                </div>
+
+            </div>
+
+        </div>
+
+        {{-- ══════════════════════════════════════════════════════════════════ --}}
+        {{-- 4. LUXURY RATINGS & REVIEWS SECTION (Max 5 Stars)                  --}}
+        {{-- ══════════════════════════════════════════════════════════════════ --}}
+        <div id="reviews-section" class="mt-16 sm:mt-24 pt-12 border-t border-[var(--color-bisque)]">
+            
+            {{-- Notification message if submitted --}}
+            @if(session('success'))
+            <div class="mb-8 p-4 rounded-2xl bg-emerald-50 border border-emerald-300 text-emerald-900 flex items-center justify-between text-xs font-sans font-bold shadow-sm">
+                <span>{{ session('success') }}</span>
+                <button onclick="this.parentElement.remove()" class="text-emerald-700 font-bold">✕</button>
+            </div>
+            @endif
+
+            @if($errors->any())
+            <div class="mb-8 p-4 rounded-2xl bg-rose-50 border border-rose-300 text-rose-900 text-xs font-sans space-y-1 shadow-sm">
+                @foreach($errors->all() as $err)
+                    <p>⚠️ {{ $err }}</p>
+                @endforeach
+            </div>
+            @endif
+
+            {{-- Section Header & Overall Rating Breakdown --}}
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start mb-12">
+                
+                {{-- Overall Rating Score --}}
+                <div class="bg-white p-8 rounded-3xl border border-[var(--color-bisque)] text-center space-y-3 shadow-sm">
+                    <span class="text-[10px] font-sans font-bold uppercase tracking-widest text-[var(--color-rose-antique)]">Verified Customer Experience</span>
+                    <div class="font-serif text-5xl font-bold text-[var(--color-ebony)]">
+                        {{ $avgRating }}<span class="text-2xl text-[var(--color-ebony)]/40 font-sans">/5</span>
+                    </div>
+                    <div class="flex justify-center text-amber-400 text-xl gap-1">
+                        @for($i = 1; $i <= 5; $i++)
+                            @if($i <= round($avgRating))
+                                <span class="text-amber-400">★</span>
+                            @else
+                                <span class="text-gray-300">★</span>
+                            @endif
+                        @endfor
+                    </div>
+                    <p class="text-xs font-sans text-[var(--color-ebony)]/60">
+                        Based on <strong>{{ $totalReviewsCount }}</strong> verified artisan reviews
+                    </p>
+                    <button type="button" @click="showReviewForm = !showReviewForm" class="w-full mt-2 bg-[var(--color-ebony)] hover:bg-[var(--color-rose-deep)] text-white text-xs font-sans font-bold uppercase tracking-widest py-3 px-6 rounded-full transition-all shadow-md">
+                        <span x-text="showReviewForm ? '✕ Close Review Form' : '★ Write a Review'"></span>
+                    </button>
+                </div>
+
+                {{-- Rating Distribution Breakdown Bar --}}
+                <div class="lg:col-span-2 bg-white p-8 rounded-3xl border border-[var(--color-bisque)] space-y-3 shadow-sm">
+                    <h3 class="font-serif text-lg font-bold text-[var(--color-ebony)]">Rating Breakdown</h3>
+                    
+                    <div class="space-y-2 text-xs font-sans">
+                        @foreach([5, 4, 3, 2, 1] as $star)
+                        @php
+                            $cnt = $ratingBreakdown[$star] ?? 0;
+                            $pct = $totalReviewsCount > 0 ? round(($cnt / $totalReviewsCount) * 100) : ($star === 5 ? 90 : 2);
+                        @endphp
+                        <div class="flex items-center gap-3">
+                            <span class="w-12 font-bold text-[var(--color-ebony)] flex items-center gap-1">{{ $star }} ★</span>
+                            <div class="flex-1 h-2.5 rounded-full bg-gray-100 overflow-hidden">
+                                <div class="h-full bg-gradient-to-r from-amber-300 to-amber-500 rounded-full" style="width: {{ $pct }}%"></div>
+                            </div>
+                            <span class="w-10 text-right text-gray-500 font-mono text-[11px]">{{ $cnt }}</span>
+                        </div>
+                        @endforeach
+                    </div>
+                </div>
+
+            </div>
+
+            {{-- Interactive "Write a Review" Form Modal / Expandable Card --}}
+            <div x-show="showReviewForm" 
+                 x-transition:enter="transition ease-out duration-300"
+                 x-transition:enter-start="opacity-0 -translate-y-4"
+                 x-transition:enter-end="opacity-100 translate-y-0"
+                 class="mb-12 bg-white rounded-3xl border-2 border-[var(--color-rose-antique)]/40 p-6 sm:p-10 shadow-lg space-y-6">
+                
+                <div class="border-b border-[var(--color-bisque)]/60 pb-4">
+                    <h3 class="font-serif text-xl sm:text-2xl font-bold text-[var(--color-ebony)]">Share Your Experience</h3>
+                    <p class="text-xs font-sans text-[var(--color-ebony)]/60 mt-1">Rate this outfit from 1 to 5 stars and let other patrons know about fabric drape, silhouette, and craft.</p>
+                </div>
+
+                <form action="/product/{{ $product['id'] }}/review" method="POST" class="space-y-5">
+                    @csrf
+
+                    {{-- 1 to 5 Stars Interactive Selector --}}
+                    <div>
+                        <label class="block text-xs font-sans font-bold uppercase tracking-wider text-[var(--color-ebony)] mb-2">
+                            Select Rating (1 to 5 Stars Max) *
+                        </label>
+                        <div class="flex items-center gap-2">
+                            <template x-for="star in [1, 2, 3, 4, 5]" :key="star">
+                                <button type="button" 
+                                        @click="newRating = star"
+                                        @mouseenter="hoverRating = star"
+                                        @mouseleave="hoverRating = 0"
+                                        class="text-3xl sm:text-4xl transition-transform hover:scale-125 focus:outline-none focus:scale-125"
+                                        :title="star + ' Star(s)'">
+                                    <span :class="(hoverRating || newRating) >= star ? 'text-amber-400' : 'text-gray-300'">★</span>
+                                </button>
+                            </template>
+                            <span class="text-xs font-sans font-bold text-[var(--color-rose-antique)] ml-3" x-text="starLabel"></span>
+                            <input type="hidden" name="rating" :value="newRating" />
+                        </div>
+                    </div>
+
+                    {{-- Customer Name --}}
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-xs font-sans font-bold uppercase tracking-wider text-[var(--color-ebony)] mb-1.5">
+                                Your Name *
+                            </label>
+                            <input type="text" 
+                                   name="user_name" 
+                                   value="{{ Auth::check() ? Auth::user()->name : old('user_name') }}" 
+                                   placeholder="e.g. Radhika Sharma" 
+                                   required 
+                                   class="w-full bg-[var(--color-offwhite)] border border-[var(--color-bisque)] rounded-xl px-4 py-3 text-xs font-sans focus:outline-none focus:border-[var(--color-rose-antique)]" />
+                        </div>
+                        <div>
+                            <label class="block text-xs font-sans font-bold uppercase tracking-wider text-[var(--color-ebony)] mb-1.5">
+                                Verified Email (Optional)
+                            </label>
+                            <input type="email" 
+                                   name="email" 
+                                   value="{{ Auth::check() ? Auth::user()->email : '' }}" 
+                                   placeholder="your.email@domain.com" 
+                                   class="w-full bg-[var(--color-offwhite)] border border-[var(--color-bisque)] rounded-xl px-4 py-3 text-xs font-sans focus:outline-none focus:border-[var(--color-rose-antique)]" />
+                        </div>
+                    </div>
+
+                    {{-- Review Comment --}}
+                    <div>
+                        <label class="block text-xs font-sans font-bold uppercase tracking-wider text-[var(--color-ebony)] mb-1.5">
+                            Detailed Review & Feedback *
+                        </label>
+                        <textarea name="comment" 
+                                  rows="4" 
+                                  required 
+                                  placeholder="Describe the softness of the fabric, color vibrancy, zari shine, fitting accuracy..."
+                                  class="w-full bg-[var(--color-offwhite)] border border-[var(--color-bisque)] rounded-xl p-4 text-xs font-sans focus:outline-none focus:border-[var(--color-rose-antique)] leading-relaxed"></textarea>
+                    </div>
+
+                    <div class="flex items-center justify-end gap-3 pt-2">
+                        <button type="button" @click="showReviewForm = false" class="px-5 py-3 rounded-full bg-gray-100 hover:bg-gray-200 text-xs font-sans font-bold text-gray-700 transition-colors">
+                            Cancel
+                        </button>
+                        <button type="submit" class="bg-[var(--color-ebony)] hover:bg-[var(--color-rose-deep)] text-white text-xs font-sans font-bold uppercase tracking-widest px-8 py-3.5 rounded-full shadow-md transition-all hover:scale-105">
+                            Submit Review
+                        </button>
+                    </div>
+                </form>
+
+            </div>
+
+            {{-- List of Approved Customer Reviews --}}
+            <div class="space-y-6">
+                <div class="flex items-center justify-between">
+                    <h3 class="font-serif text-xl sm:text-2xl font-bold text-[var(--color-ebony)]">
+                        Customer Reviews ({{ $reviews->count() }})
+                    </h3>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    @forelse($reviews as $rev)
+                    <div class="bg-white p-6 sm:p-7 rounded-3xl border border-[var(--color-bisque)] shadow-sm space-y-4 flex flex-col justify-between hover:border-[var(--color-rose-antique)]/40 transition-colors">
+                        
+                        <div class="space-y-3">
+                            <div class="flex items-center justify-between">
+                                <div class="flex items-center gap-3">
+                                    <div class="w-10 h-10 rounded-full bg-[var(--color-ebony)] text-amber-200 flex items-center justify-center font-bold text-sm shadow-inner">
+                                        {{ strtoupper(substr($rev->user_name ?? 'C', 0, 1)) }}
+                                    </div>
+                                    <div>
+                                        <div class="flex items-center gap-1.5">
+                                            <span class="font-bold text-xs text-[var(--color-ebony)]">{{ $rev->user_name }}</span>
+                                            <span class="text-[9px] bg-emerald-100 text-emerald-800 font-bold uppercase tracking-wider px-2 py-0.5 rounded-full">✓ Verified</span>
+                                        </div>
+                                        <span class="text-[10px] text-gray-400 font-sans block">{{ $rev->created_at ? $rev->created_at->format('d M Y') : 'Verified Patron' }}</span>
+                                    </div>
+                                </div>
+
+                                {{-- Stars --}}
+                                <div class="flex text-amber-400 text-sm">
+                                    @for($i = 1; $i <= 5; $i++)
+                                        @if($i <= $rev->rating)
+                                            <span class="text-amber-400">★</span>
+                                        @else
+                                            <span class="text-gray-300">★</span>
+                                        @endif
+                                    @endfor
+                                </div>
+                            </div>
+
+                            <p class="text-xs font-sans text-[var(--color-ebony)]/80 leading-relaxed font-light">
+                                "{{ $rev->comment }}"
+                            </p>
+                        </div>
+
+                        <div class="pt-3 border-t border-[var(--color-bisque)]/40 flex items-center justify-between text-[10px] font-sans text-gray-400">
+                            <span>Item: {{ $product['name'] }}</span>
+                            <span class="text-emerald-700 font-semibold">Handloom Certified</span>
+                        </div>
+
+                    </div>
+                    @empty
+                    <div class="col-span-2 p-12 text-center bg-white rounded-3xl border border-[var(--color-bisque)] space-y-3">
+                        <span class="text-4xl block">✨</span>
+                        <h4 class="font-serif text-base font-bold text-[var(--color-ebony)]">Be the First to Review</h4>
+                        <p class="text-xs font-sans text-[var(--color-ebony)]/60 max-w-md mx-auto">
+                            Share your thoughts with our artisanal community. Rate from 1 to 5 stars and help other patrons discover luxury couture.
+                        </p>
+                        <button type="button" @click="showReviewForm = true" class="mt-2 inline-flex items-center gap-1.5 bg-[var(--color-ebony)] text-white text-xs font-sans font-bold uppercase tracking-wider px-6 py-2.5 rounded-full">
+                            ★ Write First Review
+                        </button>
+                    </div>
+                    @endforelse
                 </div>
 
             </div>

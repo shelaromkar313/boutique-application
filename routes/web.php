@@ -49,6 +49,10 @@ Route::get('/product/{id}', function (Request $request, $id) {
     return view('product', ['id' => $id]);
 });
 
+// Customer Ratings & Reviews (1 to 5 Stars Max)
+Route::post('/product/{id}/review', [\App\Http\Controllers\ReviewController::class, 'store'])->name('product.review.store');
+Route::get('/api/product/{id}/reviews', [\App\Http\Controllers\ReviewController::class, 'index']);
+
 // Virtual Try-On API
 Route::get('/api/virtual-tryon/models', [TryOnController::class, 'getDemoModels']);
 Route::post('/api/virtual-tryon/process', [TryOnController::class, 'tryOn']);
@@ -91,7 +95,11 @@ Route::prefix('admin')->middleware('admin')->group(function () {
     Route::delete('/products/{id}', [AdminController::class, 'deleteProduct']);
     Route::post('/categories', [AdminController::class, 'storeCategory']);
     Route::delete('/categories/{id}', [AdminController::class, 'deleteCategory']);
+
+    // Ratings & Reviews Moderation (Edit low ratings, change comments, approve/boost)
     Route::post('/reviews/{id}', [AdminController::class, 'updateReview']);
+    Route::post('/reviews/{id}/boost', [AdminController::class, 'boostReview']);
+    Route::post('/reviews/{id}/toggle', [AdminController::class, 'toggleReview']);
     Route::delete('/reviews/{id}', [AdminController::class, 'deleteReview']);
 
     // 4.4 Orders Processing
