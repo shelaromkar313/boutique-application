@@ -30,13 +30,20 @@
                 </p>
             </div>
             
-            <div class="flex items-center gap-3 w-full md:w-auto">
+            <div class="flex flex-wrap items-center gap-3 w-full md:w-auto">
                 <a href="/sales/earnings" class="flex-1 md:flex-none text-center bg-white border border-[var(--color-bisque)] hover:bg-[var(--color-offwhite)] text-[var(--color-ebony)] font-sans text-xs font-bold uppercase tracking-wider px-5 py-3 rounded-full transition-colors">
-                    📊 Monthly Reports & Payouts
+                    📊 Reports
                 </a>
                 <button @click="payoutModal = true" class="flex-1 md:flex-none bg-[var(--color-ebony)] hover:bg-[var(--color-rose-deep)] text-white font-sans text-xs font-bold uppercase tracking-wider px-5 py-3 rounded-full transition-all shadow-md">
-                    💸 Request Payout (₹{{ number_format($associate->balance, 0) }})
+                    💸 Payout (₹{{ number_format($associate->balance, 0) }})
                 </button>
+                <form action="{{ route('logout') }}" method="POST" class="inline m-0">
+                    @csrf
+                    <button type="submit" class="w-full md:w-auto bg-rose-50 hover:bg-rose-100 border border-rose-200 text-rose-800 font-sans text-xs font-bold uppercase tracking-wider px-4 py-3 rounded-full transition-colors flex items-center justify-center gap-1.5" title="Sign Out of Sales Account">
+                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/></svg>
+                        Logout
+                    </button>
+                </form>
             </div>
         </div>
 
@@ -89,22 +96,29 @@
                 @php
                     $img = is_array($prod->images) ? ($prod->images[0] ?? '/storage/hero/hero-main.jpg') : $prod->images;
                     $refLink = url('/product/' . ($prod->est_id ?? $prod->id) . '?ref=' . ($associate->referral_code ?? 'ESTILO-SA01'));
-                    $waText = urlencode("✨ Discover this handcrafted " . $prod->name . " from Estilo Wear! Use my link for authentic handloom luxury couture: " . $refLink);
-                    $commissionAmount = round($prod->price * (($associate->commission_rate ?? 12) / 100), 0);
+                    $custSellingPrice = (float) ($prod->sales_price ?: ($prod->price + 50));
+                    $profitMargin = max(0, $custSellingPrice - (float) $prod->price);
+                    if ($profitMargin == 0) {
+                        $profitMargin = round($prod->price * (($associate->commission_rate ?? 10) / 100), 0);
+                    }
+                    $waText = urlencode("✨ Discover this handcrafted " . $prod->name . " from Estilo Wear for ₹" . number_format($custSellingPrice, 0) . "! Shop directly using my curated link: " . $refLink);
                 @endphp
                 
                 <div class="bg-[var(--color-offwhite)] rounded-2xl border border-[var(--color-bisque)]/80 overflow-hidden flex flex-col justify-between p-4 space-y-4 hover:shadow-md transition-shadow"
                      x-show="!searchQuery || '{{ strtolower($prod->name) }}'.includes(searchQuery.toLowerCase()) || '{{ strtolower($prod->fabric) }}'.includes(searchQuery.toLowerCase())">
                     
                     <div class="flex gap-3">
-                        <img src="{{ $img }}" alt="{{ $prod->name }}" class="w-20 h-24 object-cover rounded-xl shrink-0" />
+                        <img src="{{ $img }}" alt="{{ $prod->name }}" class="w-20 h-24 object-cover rounded-xl shrink-0 border border-[var(--color-bisque)]" />
                         <div class="space-y-1">
                             <span class="text-[9px] font-sans font-bold uppercase tracking-wider text-[var(--color-rose-antique)]">{{ $prod->category }}</span>
                             <h4 class="font-serif text-sm font-bold text-[var(--color-ebony)] leading-snug line-clamp-2">{{ $prod->name }}</h4>
-                            <div class="flex items-center gap-2">
-                                <span class="font-serif font-bold text-sm text-[var(--color-ebony)]">₹{{ number_format($prod->price, 0) }}</span>
-                                <span class="text-[10px] font-sans font-bold bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded-full">
-                                    +₹{{ $commissionAmount }} Your Profit
+                            <div class="space-y-0.5 pt-1">
+                                <div class="flex items-center gap-2 text-xs">
+                                    <span class="text-[10px] text-gray-500">Base: ₹{{ number_format($prod->price, 0) }}</span>
+                                    <span class="font-serif font-bold text-[var(--color-ebony)]">Link Price: ₹{{ number_format($custSellingPrice, 0) }}</span>
+                                </div>
+                                <span class="inline-block text-[10px] font-sans font-bold bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded-full border border-emerald-200">
+                                    💰 +₹{{ number_format($profitMargin, 0) }} Your Profit / Sale
                                 </span>
                             </div>
                         </div>

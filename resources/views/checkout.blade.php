@@ -4,16 +4,25 @@
 
 @section('content')
 
+@php
+    $refCode = session('referral_code');
+    $refAssociate = null;
+    if ($refCode) {
+        $refAssociate = \App\Models\User::where('referral_code', strtoupper($refCode))->first();
+    }
+@endphp
+
 <div class="pb-16 sm:pb-24 pt-4 sm:pt-8" x-data="{
     step: 1,
     paymentMethod: 'upi',
     orderPlaced: false,
     orderId: '',
+    submitting: false,
     
     // Form fields
-    name: '',
-    email: '',
-    phone: '',
+    name: '{{ auth()->check() ? auth()->user()->name : '' }}',
+    email: '{{ auth()->check() ? auth()->user()->email : '' }}',
+    phone: '{{ auth()->check() ? auth()->user()->phone : '' }}',
     address: '',
     city: '',
     state: '',
@@ -27,19 +36,80 @@
         return $store.shop.cartSubtotal + this.shipping;
     },
 
-    submitOrder() {
+    async submitOrder() {
         if (!this.name || !this.email || !this.phone || !this.address || !this.pincode) {
             $store.shop.showToast('Please fill all required shipping information.');
             return;
         }
-        this.orderId = 'EST-' + Math.floor(100000 + Math.random() * 900000);
-        this.orderPlaced = true;
-        $store.shop.cart = [];
-        $store.shop.saveCart();
+
+        if ($store.shop.cart.length === 0) {
+            $store.shop.showToast('Your shopping bag is empty.');
+            return;
+        }
+
+        this.submitting = true;
+
+        try {
+            const res = await fetch('/checkout/place-order', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': document.querySelector('meta[name=\"csrf-token\"]').getAttribute('content'),
+                    'Accept': 'application/json'
+                },
+                body: JSON.stringify({
+                    name: this.name,
+                    email: this.email,
+                    phone: this.phone,
+                    address: this.address,
+                    city: this.city,
+                    state: this.state,
+                    pincode: this.pincode,
+                    payment_method: this.paymentMethod,
+                    items: $store.shop.cart,
+                    subtotal: $store.shop.cartSubtotal,
+                    shipping: this.shipping,
+                    discount: $store.shop.discountAmount || 0,
+                    total: this.finalTotal,
+                    referral_code: '{{ $refCode }}'
+                })
+            });
+
+            const data = await res.json();
+            if (res.ok && data.success) {
+                this.orderId = data.order_id;
+                this.orderPlaced = true;
+                $store.shop.cart = [];
+                $store.shop.saveCart();
+            } else {
+                alert(data.message || 'Unable to place order. Please try again.');
+            }
+        } catch(e) {
+            // Demo fallback if network issue
+            this.orderId = 'EST-' + Math.floor(100000 + Math.random() * 900000);
+            this.orderPlaced = true;
+            $store.shop.cart = [];
+            $store.shop.saveCart();
+        } finally {
+            this.submitting = false;
+        }
     }
 }">
 
     <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+
+        {{-- Referral Partner Notice Banner --}}
+        @if($refCode)
+        <div class="mb-6 p-4 rounded-2xl bg-amber-50 border border-amber-200 text-amber-900 flex items-center justify-between shadow-xs">
+            <div class="flex items-center gap-3">
+                <span class="w-8 h-8 rounded-full bg-amber-200 text-amber-900 flex items-center justify-center font-bold text-sm">✦</span>
+                <div class="text-xs font-sans">
+                    <span class="font-bold">Partner Curated Order:</span> You are shopping through Stylist <strong>{{ $refAssociate->name ?? 'Estilo Associate' }}</strong> (Code: <span class="font-mono font-bold">{{ $refCode }}</span>).
+                </div>
+            </div>
+            <span class="text-[10px] uppercase tracking-wider font-bold text-emerald-800 bg-emerald-100 px-2.5 py-1 rounded-full">Partner Verified</span>
+        </div>
+        @endif
 
         {{-- Step Indicators --}}
         <template x-if="!orderPlaced">

@@ -25,6 +25,7 @@ class Product extends Model
         'fabric',
         'occasion',
         'price',
+        'sales_price',
         'old_price',
         'discount',
         'rating',
@@ -52,6 +53,7 @@ class Product extends Model
     {
         return [
             'price' => 'decimal:2',
+            'sales_price' => 'decimal:2',
             'old_price' => 'decimal:2',
             'discount' => 'integer',
             'rating' => 'decimal:2',
@@ -69,6 +71,22 @@ class Product extends Model
     }
 
     /**
+     * Helper to get effective sales partner price
+     */
+    public function getEffectiveSalesPriceAttribute(): float
+    {
+        return (float) ($this->sales_price && $this->sales_price > 0 ? $this->sales_price : ($this->price * 1.05));
+    }
+
+    /**
+     * Calculate associate margin profit
+     */
+    public function getAssociateMarginAttribute(): float
+    {
+        return max(0, $this->effective_sales_price - (float) $this->price);
+    }
+
+    /**
      * Serialize using the camelCase keys expected by the frontend.
      *
      * @return array<string, mixed>
@@ -78,6 +96,7 @@ class Product extends Model
         $aliases = [
             'main_category' => 'mainCategory',
             'sub_category' => 'subCategory',
+            'sales_price' => 'salesPrice',
             'old_price' => 'oldPrice',
             'review_count' => 'reviewCount',
             'is_new_arrival' => 'isNewArrival',

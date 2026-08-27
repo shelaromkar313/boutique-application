@@ -11,30 +11,15 @@ use Illuminate\Support\Facades\Auth;
 class SalesAssociateController extends Controller
 {
     /**
-     * Get or create current active associate.
+     * Get current active sales associate or null.
      */
     protected function getAssociate()
     {
         $user = Auth::user();
-        if (!$user || !$user->isSalesAssociate()) {
-            // Auto fallback for demo session
-            $user = User::where('role', 'sales_associate')->first();
-            if (!$user) {
-                $user = User::create([
-                    'name' => 'Pooja Verma',
-                    'email' => 'associate@estilo.com',
-                    'phone' => '9876543211',
-                    'password' => bcrypt('password123'),
-                    'role' => 'sales_associate',
-                    'referral_code' => 'ESTILO-SA01',
-                    'commission_rate' => 12.00,
-                    'earnings' => 14580.00,
-                    'balance' => 6420.00,
-                    'upi_id' => 'pooja.verma@okhdfcbank',
-                ]);
-            }
+        if ($user && $user->isSalesAssociate()) {
+            return $user;
         }
-        return $user;
+        return null;
     }
 
     /**
@@ -43,6 +28,10 @@ class SalesAssociateController extends Controller
     public function dashboard(Request $request)
     {
         $associate = $this->getAssociate();
+        if (!$associate) {
+            return redirect('/login?role=sales_associate')->with('info', 'Please sign in to access your Sales Partner Dashboard.');
+        }
+
         $products = Product::all();
         $sales = ReferralSale::where('associate_id', $associate->id)->latest()->take(10)->get();
 
@@ -68,6 +57,10 @@ class SalesAssociateController extends Controller
     public function earnings(Request $request)
     {
         $associate = $this->getAssociate();
+        if (!$associate) {
+            return redirect('/login?role=sales_associate')->with('info', 'Please sign in to access your Earnings Reports.');
+        }
+
         $allSales = ReferralSale::where('associate_id', $associate->id)->latest()->get();
 
         $monthlyBreakdown = ReferralSale::where('associate_id', $associate->id)
@@ -94,6 +87,10 @@ class SalesAssociateController extends Controller
     public function updateProfile(Request $request)
     {
         $associate = $this->getAssociate();
+        if (!$associate) {
+            return redirect('/login?role=sales_associate');
+        }
+
         $request->validate([
             'name' => 'required|string|max:255',
             'phone' => 'required|string|max:20',
@@ -115,6 +112,10 @@ class SalesAssociateController extends Controller
     public function requestPayout(Request $request)
     {
         $associate = $this->getAssociate();
+        if (!$associate) {
+            return redirect('/login?role=sales_associate');
+        }
+
         $amount = (float) $request->input('amount', $associate->balance);
 
         return back()->with('success', "✨ Payout request of ₹" . number_format($amount, 2) . " submitted for UPI: " . ($associate->upi_id ?: 'Registered Account') . ". Processing within 24 business hours.");

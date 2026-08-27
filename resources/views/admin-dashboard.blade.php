@@ -292,7 +292,8 @@
                                 <th class="p-3">Outfit</th>
                                 <th class="p-3">Category</th>
                                 <th class="p-3">Fabric</th>
-                                <th class="p-3">Price (₹)</th>
+                                <th class="p-3">Customer Price</th>
+                                <th class="p-3">Sales Partner Price</th>
                                 <th class="p-3">Stock Status</th>
                                 <th class="p-3 text-right">Actions</th>
                             </tr>
@@ -304,6 +305,8 @@
                                 $imgArr = is_string($imgArr) ? json_decode($imgArr, true) : $imgArr;
                                 $img = (is_array($imgArr) && count($imgArr)) ? $imgArr[0] : '/storage/hero/hero-main.jpg';
                                 $inStock = (bool) $prod->getRawOriginal('in_stock');
+                                $salesPr = $prod->sales_price ?: ($prod->price + 50);
+                                $margin = max(0, $salesPr - $prod->price);
                             @endphp
                             <tr class="hover:bg-[var(--color-offwhite)] transition-colors"
                                 x-show="!search || '{{ strtolower($prod->name) }}'.includes(search.toLowerCase()) || '{{ strtolower($prod->category) }}'.includes(search.toLowerCase()) || '{{ strtolower($prod->fabric) }}'.includes(search.toLowerCase())">
@@ -317,6 +320,10 @@
                                 <td class="p-3 font-semibold text-[var(--color-rose-antique)]">{{ $prod->category }}</td>
                                 <td class="p-3 text-[var(--color-ebony)]/70">{{ $prod->fabric }}</td>
                                 <td class="p-3 font-serif font-bold text-sm">₹{{ number_format($prod->price, 0) }}</td>
+                                <td class="p-3">
+                                    <div class="font-serif font-bold text-sm text-[var(--color-ebony)]">₹{{ number_format($salesPr, 0) }}</div>
+                                    <span class="text-[9px] font-sans font-bold text-emerald-700 bg-emerald-50 px-1.5 py-0.5 rounded border border-emerald-200">+₹{{ number_format($margin, 0) }} Partner Profit</span>
+                                </td>
                                 <td class="p-3">
                                     <span class="px-2.5 py-1 rounded-full text-[10px] font-bold {{ $inStock ? 'bg-emerald-100 text-emerald-800' : 'bg-rose-100 text-rose-800' }}">
                                         {{ $inStock ? '● In Stock' : '○ Out of Stock' }}
@@ -825,18 +832,26 @@
 
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
-                        <label class="block text-xs font-sans font-bold text-[var(--color-ebony)] uppercase tracking-wider mb-1">Price (₹)</label>
-                        <input type="number" name="price" placeholder="2499" required class="w-full bg-[var(--color-offwhite)] border border-[var(--color-bisque)] rounded-xl px-4 py-2.5 text-xs font-sans font-bold" />
+                        <label class="block text-xs font-sans font-bold text-[var(--color-ebony)] uppercase tracking-wider mb-1">Customer / Normal Price (₹)</label>
+                        <input type="number" name="price" placeholder="1000" required class="w-full bg-[var(--color-offwhite)] border border-[var(--color-bisque)] rounded-xl px-4 py-2.5 text-xs font-sans font-bold" />
+                        <span class="text-[10px] text-gray-500">Regular website price</span>
                     </div>
+                    <div>
+                        <label class="block text-xs font-sans font-bold text-emerald-800 uppercase tracking-wider mb-1">Sales Partner Price (₹)</label>
+                        <input type="number" name="sales_price" placeholder="1050" class="w-full bg-emerald-50/50 border border-emerald-300 rounded-xl px-4 py-2.5 text-xs font-sans font-bold text-emerald-900" />
+                        <span class="text-[10px] text-emerald-700">Price when shared by associate (diff = profit)</span>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
                         <label class="block text-xs font-sans font-bold text-[var(--color-ebony)] uppercase tracking-wider mb-1">Available Sizes (Comma Separated)</label>
                         <input type="text" name="sizes" value="XS, S, M, L, XL, XXL" class="w-full bg-[var(--color-offwhite)] border border-[var(--color-bisque)] rounded-xl px-4 py-2.5 text-xs font-sans" />
                     </div>
-                </div>
-
-                <div>
-                    <label class="block text-xs font-sans font-bold text-[var(--color-ebony)] uppercase tracking-wider mb-1">Color Palette (Comma Separated)</label>
-                    <input type="text" name="colors" value="Rose Blush, Royal Navy, Golden Ochre" class="w-full bg-[var(--color-offwhite)] border border-[var(--color-bisque)] rounded-xl px-4 py-2.5 text-xs font-sans" />
+                    <div>
+                        <label class="block text-xs font-sans font-bold text-[var(--color-ebony)] uppercase tracking-wider mb-1">Color Palette (Comma Separated)</label>
+                        <input type="text" name="colors" value="Rose Blush, Royal Navy, Golden Ochre" class="w-full bg-[var(--color-offwhite)] border border-[var(--color-bisque)] rounded-xl px-4 py-2.5 text-xs font-sans" />
+                    </div>
                 </div>
 
                 <div>
@@ -895,18 +910,24 @@
 
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
-                        <label class="block text-xs font-sans font-bold text-[var(--color-ebony)] uppercase tracking-wider mb-1">Price (₹)</label>
+                        <label class="block text-xs font-sans font-bold text-[var(--color-ebony)] uppercase tracking-wider mb-1">Customer Price (₹)</label>
                         <input type="number" name="price" x-model="selectedProduct.price" required class="w-full bg-[var(--color-offwhite)] border border-[var(--color-bisque)] rounded-xl px-4 py-2.5 text-xs font-sans font-bold" />
                     </div>
+                    <div>
+                        <label class="block text-xs font-sans font-bold text-emerald-800 uppercase tracking-wider mb-1">Sales Partner Price (₹)</label>
+                        <input type="number" name="sales_price" x-model="selectedProduct.sales_price || selectedProduct.salesPrice" class="w-full bg-emerald-50/50 border border-emerald-300 rounded-xl px-4 py-2.5 text-xs font-sans font-bold text-emerald-900" />
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
                         <label class="block text-xs font-sans font-bold text-[var(--color-ebony)] uppercase tracking-wider mb-1">Available Sizes (Comma Separated)</label>
                         <input type="text" name="sizes" x-model="selectedProduct.sizes_str" class="w-full bg-[var(--color-offwhite)] border border-[var(--color-bisque)] rounded-xl px-4 py-2.5 text-xs font-sans" />
                     </div>
-                </div>
-
-                <div>
-                    <label class="block text-xs font-sans font-bold text-[var(--color-ebony)] uppercase tracking-wider mb-1">Color Palette (Comma Separated)</label>
-                    <input type="text" name="colors" x-model="selectedProduct.colors_str" class="w-full bg-[var(--color-offwhite)] border border-[var(--color-bisque)] rounded-xl px-4 py-2.5 text-xs font-sans" />
+                    <div>
+                        <label class="block text-xs font-sans font-bold text-[var(--color-ebony)] uppercase tracking-wider mb-1">Color Palette (Comma Separated)</label>
+                        <input type="text" name="colors" x-model="selectedProduct.colors_str" class="w-full bg-[var(--color-offwhite)] border border-[var(--color-bisque)] rounded-xl px-4 py-2.5 text-xs font-sans" />
+                    </div>
                 </div>
 
                 <div>
