@@ -105,7 +105,7 @@
     </section>
 
     {{-- ══ MAIN CONTENT SECTIONS ══ --}}
-    <div class="space-y-12 sm:space-y-20 pt-10 sm:pt-20">
+    <div class="space-y-6 sm:space-y-10 pt-6 sm:pt-10">
 
         {{-- ── 1. Featured Categories Horizontal Slider ── --}}
         <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8"
@@ -116,7 +116,7 @@
                          el.scrollBy({ left: dir === 'left' ? -amt : amt, behavior: 'smooth' });
                      }
                  }">
-            <div class="flex flex-col sm:flex-row items-start sm:items-end justify-between mb-6 sm:mb-10 gap-3">
+            <div class="flex flex-col sm:flex-row items-start sm:items-end justify-between mb-4 sm:mb-6 gap-3">
                 <div>
                     <span class="text-xs font-sans font-bold text-[var(--color-rose-antique)] uppercase tracking-[0.3em]">Curated Collections</span>
                     <h2 class="font-serif text-2xl sm:text-4xl font-bold text-[var(--color-ebony)] mt-1">Explore Boutique Categories</h2>
@@ -161,7 +161,7 @@
         </section>
 
         {{-- ── 2. Trending Collection Horizontal Slider ── --}}
-        <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 bg-[var(--color-champagne-light)]/30 py-10 sm:py-16 rounded-2xl sm:rounded-3xl border border-[var(--color-bisque)]/40 relative group"
+        <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 bg-[var(--color-champagne-light)]/30 py-6 sm:py-10 rounded-2xl sm:rounded-3xl border border-[var(--color-bisque)]/40 relative group"
                  x-data="{
                      scroll(dir) {
                          const el = this.$refs.trendingSlider;
@@ -169,7 +169,7 @@
                          el.scrollBy({ left: dir === 'left' ? -amt : amt, behavior: 'smooth' });
                      }
                  }">
-            <div class="flex flex-col sm:flex-row items-start sm:items-end justify-between mb-8 sm:mb-10 gap-3">
+            <div class="flex flex-col sm:flex-row items-start sm:items-end justify-between mb-5 sm:mb-7 gap-3">
                 <div>
                     <span class="text-xs font-sans font-bold text-[var(--color-rose-antique)] uppercase tracking-[0.3em]">Handpicked Styles</span>
                     <h2 class="font-serif text-2xl sm:text-4xl font-bold text-[var(--color-ebony)] mt-1">Trending This Season</h2>
@@ -243,7 +243,7 @@
                          el.scrollBy({ left: dir === 'left' ? -amt : amt, behavior: 'smooth' });
                      }
                  }">
-            <div class="flex flex-col sm:flex-row items-start sm:items-end justify-between mb-8 sm:mb-10 gap-3">
+            <div class="flex flex-col sm:flex-row items-start sm:items-end justify-between mb-5 sm:mb-7 gap-3">
                 <div>
                     <span class="text-xs font-sans font-bold text-[var(--color-rose-antique)] uppercase tracking-[0.3em]">Six Yards of Royalty</span>
                     <h2 class="font-serif text-2xl sm:text-4xl font-bold text-[var(--color-ebony)] mt-1">Luxury Banarasi & Silk Sarees</h2>
@@ -281,7 +281,7 @@
         </section>
 
         {{-- ── 4. Shop By Heritage Fabric Horizontal Slider ── --}}
-        <section class="bg-[var(--color-bisque)]/20 py-10 sm:py-16"
+        <section class="bg-[var(--color-bisque)]/20 py-6 sm:py-10"
                  x-data="{
                      scroll(dir) {
                          const el = this.$refs.fabricSlider;
@@ -290,7 +290,7 @@
                      }
                  }">
             <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                <div class="flex flex-col sm:flex-row items-start sm:items-end justify-between mb-7 sm:mb-10 gap-3">
+                <div class="flex flex-col sm:flex-row items-start sm:items-end justify-between mb-5 sm:mb-7 gap-3">
                     <div>
                         <span class="text-xs font-sans font-bold text-[var(--color-rose-antique)] uppercase tracking-[0.3em]">Tactile Luxury</span>
                         <h2 class="font-serif text-2xl sm:text-3xl font-bold text-[var(--color-ebony)] mt-1">Shop By Heritage Fabric</h2>
@@ -331,7 +331,7 @@
                          el.scrollBy({ left: dir === 'left' ? -amt : amt, behavior: 'smooth' });
                      }
                  }">
-            <div class="flex flex-col sm:flex-row items-start sm:items-end justify-between mb-8 sm:mb-10 gap-3">
+            <div class="flex flex-col sm:flex-row items-start sm:items-end justify-between mb-5 sm:mb-7 gap-3">
                 <div>
                     <span class="text-xs font-sans font-bold text-[var(--color-rose-antique)] uppercase tracking-[0.3em]">Style For Every Event</span>
                     <h2 class="font-serif text-2xl sm:text-3xl font-bold text-[var(--color-ebony)] mt-1">Shop By Occasion</h2>
@@ -373,7 +373,7 @@
                          el.scrollBy({ left: dir === 'left' ? -amt : amt, behavior: 'smooth' });
                      }
                  }">
-            <div class="flex flex-col sm:flex-row items-start sm:items-end justify-between mb-8 sm:mb-10 gap-3">
+            <div class="flex flex-col sm:flex-row items-start sm:items-end justify-between mb-5 sm:mb-7 gap-3">
                 <div>
                     <span class="text-xs font-sans font-bold text-[var(--color-rose-antique)] uppercase tracking-[0.3em]">Fresh Off The Looms</span>
                     <h2 class="font-serif text-2xl sm:text-4xl font-bold text-[var(--color-ebony)] mt-1">New Arrivals Collection</h2>
@@ -410,7 +410,7 @@
         </section>
 
         {{-- ── 7. Client Testimonials & Reviews (Enhanced Horizontal Slider) ── --}}
-        <section class="bg-[var(--color-champagne-light)]/50 py-10 sm:py-16 border-y border-[var(--color-bisque)]/50"
+        <section class="bg-[var(--color-champagne-light)]/50 py-6 sm:py-10 border-y border-[var(--color-bisque)]/50"
                  x-data="{
                      scroll(dir) {
                          const el = this.$refs.reviewsSlider;
@@ -419,7 +419,7 @@
                      }
                  }">
             <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                <div class="flex flex-col sm:flex-row items-start sm:items-end justify-between mb-8 sm:mb-12 gap-3">
+                <div class="flex flex-col sm:flex-row items-start sm:items-end justify-between mb-5 sm:mb-7 gap-3">
                     <div>
                         <div class="inline-flex items-center gap-2 text-xs font-sans font-bold text-[var(--color-rose-antique)] uppercase tracking-[0.3em]">
                             <span>★ 4.9 / 5.0 Rating</span>
@@ -506,7 +506,7 @@
                          el.scrollBy({ left: dir === 'left' ? -amt : amt, behavior: 'smooth' });
                      }
                  }">
-            <div class="flex flex-col sm:flex-row items-start sm:items-end justify-between mb-7 sm:mb-10 gap-3">
+            <div class="flex flex-col sm:flex-row items-start sm:items-end justify-between mb-5 sm:mb-7 gap-3">
                 <div class="space-y-1">
                     <div class="inline-flex items-center gap-1.5 text-xs font-sans font-bold text-[var(--color-rose-antique)] uppercase tracking-widest">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><rect x="2" y="2" width="20" height="20" rx="5" ry="5" stroke-width="2"/><path d="M16 11.37A4 4 0 1112.63 8 4 4 0 0116 11.37z" stroke-width="2"/><line x1="17.5" y1="6.5" x2="17.51" y2="6.5" stroke-width="2"/></svg>
