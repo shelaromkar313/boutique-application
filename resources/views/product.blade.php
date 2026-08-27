@@ -22,9 +22,59 @@ $productsData = [
   ]
 ];
 
-$product = collect($productsData)->firstWhere('id', $id) ?? $productsData[0];
+$dbProduct = \App\Models\Product::where('est_id', $id)->orWhere('id', $id)->first();
+$referralCode = session('referral_code') ?? request('ref');
+$associate = null;
+if ($referralCode) {
+    $associate = \App\Models\User::where('referral_code', strtoupper($referralCode))->first();
+}
+
+if ($dbProduct) {
+    $effectivePrice = ($referralCode && $dbProduct->sales_price && $dbProduct->sales_price > 0)
+        ? (float) $dbProduct->sales_price
+        : ($referralCode ? (float) ($dbProduct->price + 50) : (float) $dbProduct->price);
+
+    $product = [
+        'id'           => $dbProduct->est_id,
+        'name'         => $dbProduct->name,
+        'category'     => $dbProduct->category,
+        'mainCategory' => $dbProduct->main_category,
+        'fabric'       => $dbProduct->fabric,
+        'occasion'     => $dbProduct->occasion,
+        'price'        => $effectivePrice,
+        'basePrice'    => (float) $dbProduct->price,
+        'salesPrice'   => (float) ($dbProduct->sales_price ?: ($dbProduct->price + 50)),
+        'oldPrice'     => (float) $dbProduct->old_price,
+        'discount'     => (int) $dbProduct->discount,
+        'rating'       => (float) $dbProduct->rating,
+        'reviewCount'  => (int) $dbProduct->review_count,
+        'isNewArrival' => (bool) $dbProduct->is_new_arrival,
+        'sku'          => $dbProduct->sku,
+        'colors'       => is_array($dbProduct->colors) ? $dbProduct->colors : [['name' => 'Royal Hue', 'hex' => '#C87D87']],
+        'sizes'        => is_array($dbProduct->sizes) ? $dbProduct->sizes : ['XS', 'S', 'M', 'L', 'XL', 'XXL'],
+        'description'  => $dbProduct->description,
+        'details'      => is_array($dbProduct->details) ? $dbProduct->details : ['Craft: Handloom Artisanal', 'Origin: Lucknow / Varanasi'],
+        'care'         => $dbProduct->care ?? 'Dry Clean Only.',
+        'images'       => is_array($dbProduct->images) ? $dbProduct->images : ['/storage/hero/hero-main.jpg'],
+        'isReferral'   => !empty($referralCode),
+        'referralCode' => $referralCode,
+        'associateName'=> $associate ? $associate->name : null,
+    ];
+} else {
+    $rawProduct = collect($productsData)->firstWhere('id', $id) ?? $productsData[0];
+    $effectivePrice = $referralCode ? ($rawProduct['price'] + 50) : $rawProduct['price'];
+    $product = array_merge($rawProduct, [
+        'price'        => $effectivePrice,
+        'basePrice'    => $rawProduct['price'],
+        'salesPrice'   => $rawProduct['price'] + 50,
+        'isReferral'   => !empty($referralCode),
+        'referralCode' => $referralCode,
+        'associateName'=> $associate ? $associate->name : null,
+    ]);
+}
+
 $relatedProducts = collect($productsData)->filter(function ($p) use ($product) {
-    return $p['id'] !== $product['id'] && $p['mainCategory'] === $product['mainCategory'];
+    return $p['id'] !== $product['id'] && ($p['mainCategory'] ?? '') === ($product['mainCategory'] ?? '');
 })->take(4);
 
 @endphp
@@ -117,6 +167,21 @@ $relatedProducts = collect($productsData)->filter(function ($p) use ($product) {
                     </div>
 
                     <h1 class="font-serif text-2xl sm:text-4xl font-bold text-[var(--color-ebony)] leading-tight">{{ $product['name'] }}</h1>
+
+                    @if(!empty($product['isReferral']))
+                    <div class="bg-amber-50 border border-amber-200/80 rounded-2xl p-3.5 flex items-center justify-between gap-3 shadow-xs">
+                        <div class="flex items-center gap-2.5">
+                            <span class="w-8 h-8 rounded-full bg-amber-100 text-amber-900 flex items-center justify-center font-bold text-sm shrink-0">✦</span>
+                            <div>
+                                <span class="block text-[11px] font-sans font-bold text-amber-900">Stylist Curated Link Active</span>
+                                <p class="text-[10px] font-sans text-amber-800/80">
+                                    Special partner collection verified by <strong>{{ $product['associateName'] ?? 'Estilo Associate' }}</strong> ({{ $product['referralCode'] }}).
+                                </p>
+                            </div>
+                        </div>
+                        <span class="text-[10px] font-sans font-bold uppercase tracking-wider bg-emerald-100 text-emerald-800 px-2.5 py-1 rounded-full shrink-0">Verified</span>
+                    </div>
+                    @endif
 
                     <div class="flex items-baseline gap-4 pt-1">
                         <span class="font-serif text-3xl font-bold text-[var(--color-ebony)]">₹{{ number_format($product['price']) }}</span>

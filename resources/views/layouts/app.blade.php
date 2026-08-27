@@ -178,8 +178,37 @@
     <!-- Custom Design Tokens & Utilities -->
     <link rel="stylesheet" href="/css/app.css">
 </head>
-<body class="bg-[var(--color-offwhite)] text-[var(--color-ebony)] font-sans antialiased selection:bg-[var(--color-blush)] selection:text-[var(--color-ebony)] overflow-x-hidden min-h-screen flex flex-col justify-between">
+<body class="bg-[var(--color-offwhite)] text-[var(--color-ebony)] font-sans antialiased selection:bg-[var(--color-blush)] selection:text-[var(--color-ebony)] overflow-x-hidden min-h-screen flex flex-col justify-between pb-16 lg:pb-0">
     
+    {{-- Partner Mode Active Banner for Logged-In Sales Associates --}}
+    @if(auth()->check() && auth()->user()->isSalesAssociate())
+    <div class="bg-[var(--color-ebony)] text-white text-xs py-2 px-4 border-b border-amber-400/30 sticky top-0 z-50 shadow-md">
+        <div class="max-w-7xl mx-auto w-full flex flex-col sm:flex-row items-center justify-between gap-2">
+            <div class="flex items-center gap-2">
+                <span class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-amber-400/20 text-amber-300 text-[10px] font-bold uppercase tracking-wider border border-amber-400/40">
+                    ✦ Partner Mode Active
+                </span>
+                <span class="text-xs">
+                    Welcome, <strong>{{ auth()->user()->name }}</strong> (Code: <code class="font-mono bg-black/40 px-1.5 py-0.5 rounded text-amber-300">{{ auth()->user()->referral_code ?? 'ESTILO-SA01' }}</code>)
+                </span>
+            </div>
+            <div class="flex items-center gap-3 text-xs font-sans">
+                <span class="text-gray-300 hidden md:inline">Balance: <strong class="text-emerald-400">₹{{ number_format(auth()->user()->balance, 0) }}</strong></span>
+                <span class="text-gray-300 hidden md:inline">Total Profit: <strong class="text-amber-300">₹{{ number_format(auth()->user()->earnings, 0) }}</strong></span>
+                <a href="/sales/dashboard" class="bg-amber-400 hover:bg-amber-500 text-[var(--color-ebony)] font-bold text-[10px] uppercase tracking-wider px-3 py-1 rounded-full transition-all shadow-sm">
+                    Sales Dashboard →
+                </a>
+                <form action="{{ route('logout') }}" method="POST" class="inline m-0">
+                    @csrf
+                    <button type="submit" class="text-rose-300 hover:text-white text-[10px] font-bold uppercase tracking-wider px-2 py-1 rounded hover:bg-white/10 transition-colors" title="Sign Out">
+                        Sign Out
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+    @endif
+
     @include('partials.navbar')
     
     <main class="flex-grow">
@@ -189,6 +218,7 @@
     @include('partials.footer')
 
     {{-- Interactive Global Overlays & Modals --}}
+    @include('partials.mobile-bottom-nav')
     @include('partials.cart-drawer')
     @include('partials.search-modal')
     @include('partials.size-guide-modal')

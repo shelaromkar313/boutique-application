@@ -140,6 +140,8 @@ class AdminController extends Controller
         $colors = array_filter(array_map('trim', explode(',', $request->input('colors', 'Royal Navy, Rose Blush, Golden Zari'))));
         $sizes = array_filter(array_map('trim', explode(',', $request->input('sizes', 'XS, S, M, L, XL, XXL'))));
 
+        $salesPrice = $request->filled('sales_price') ? (float) $request->sales_price : round($request->price * 1.05 + 50, -1);
+
         Product::create([
             'est_id'         => $estId,
             'sku'            => $sku,
@@ -150,6 +152,7 @@ class AdminController extends Controller
             'fabric'         => $request->fabric,
             'occasion'       => $request->input('occasion', 'Festive / Wedding'),
             'price'          => $request->price,
+            'sales_price'    => $salesPrice,
             'old_price'      => $request->price * 1.25,
             'discount'       => 20,
             'rating'         => 5.0,
@@ -179,6 +182,7 @@ class AdminController extends Controller
             'name'        => $request->input('name', $product->name),
             'category'    => $request->input('category', $product->category),
             'price'       => $request->input('price', $product->price),
+            'sales_price' => $request->filled('sales_price') ? $request->input('sales_price') : $product->sales_price,
             'fabric'      => $request->input('fabric', $product->fabric),
             'in_stock'    => $request->has('in_stock'),
             'is_featured' => $request->has('is_featured'),

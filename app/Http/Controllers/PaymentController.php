@@ -100,11 +100,123 @@ class PaymentController extends Controller
             'note' => 'Payment via Razorpay',
         ]);
 
+        $referralCode = session('referral_code') ?? $request->input('referral_code');
+        if (!empty($referralCode)) {
+            $this->creditReferralAssociate($order->order_no, $request->input('items', []), $referralCode, $order->full_name);
+            session()->forget('referral_code');
+        }
+
         return response()->json([
-            'success' => true,
-            'order_id' => $order->order_no,
+            'success'    => true,
+            'order_id'   => $order->order_no,
             'payment_id' => $request->input('razorpay_payment_id'),
         ], 201);
+    }
+
+    /**
+     * Place order directly via COD, UPI, or Direct Transfer with Referral Tracking
+     */
+    public function placeOrder(Request $request)
+    {
+        $request->validate([
+            'name'           => 'required|string|max:255',
+            'email'          => 'required|email',
+            'phone'          => 'required|string|max:20',
+            'address'        => 'required|string',
+            'pincode'        => 'required|string|max:10',
+            'items'          => 'required|array|min:1',
+            'payment_method' => 'required|string',
+        ]);
+
+        $orderNo = 'EST-' . rand(100000, 999999);
+        $items = $request->input('items', []);
+        $subtotal = (float) $request->input('subtotal', 0);
+        $shipping = (float) $request->input('shipping', 0);
+        $discount = (float) $request->input('discount', 0);
+        $total = (float) $request->input('total', $subtotal + $shipping - $discount);
+
+        $referralCode = session('referral_code') ?? $request->input('referral_code');
+
+        $order = Order::create([
+            'order_no'    => $orderNo,
+            'user_id'     => auth()->id(),
+            'full_name'   => $request->name,
+            'email'       => $request->email,
+            'phone'       => $request->phone,
+            'address'     => $request->address,
+            'city'        => $request->input('city', 'Metropolitan'),
+            'state'       => $request->input('state', 'India'),
+            'pincode'     => $request->pincode,
+            'subtotal'    => $subtotal,
+            'shipping'    => $shipping,
+            'discount'    => $discount,
+            'total'       => $total,
+            'currency'    => 'INR',
+            'payment_id'  => $request->payment_method === 'cod' ? 'COD-PENDING' : 'UPI-CONFIRMED',
+            'status'      => 'confirmed',
+            'items'       => json_encode($items),
+            'note'        => 'Payment Mode: ' . strtoupper($request->payment_method) . ($referralCode ? ' • Referred by: ' . $referralCode : ''),
+        ]);
+
+        // Credit referral earnings to the sales associate
+        if (!empty($referralCode)) {
+            $this->creditReferralAssociate($orderNo, $items, $referralCode, $request->name);
+            session()->forget('referral_code');
+        }
+
+        return response()->json([
+            'success'  => true,
+            'order_id' => $orderNo,
+            'message'  => 'Order placed and confirmed successfully!',
+        ], 201);
+    }
+
+    /**
+     * Credit associate with referral profit/commission
+     */
+    private function creditReferralAssociate(string $orderNo, array $items, string $referralCode, string $customerName): void
+    {
+        $associate = \App\Models\User::where('referral_code', strtoupper($referralCode))->first();
+        if (!$associate) return;
+
+        $totalCommission = 0;
+        foreach ($items as $item) {
+            $estId = $item['id'] ?? ($item['est_id'] ?? '');
+            $itemName = $item['name'] ?? 'Handcrafted Garment';
+            $itemQty = max(1, (int) ($item['qty'] ?? ($item['quantity'] ?? 1)));
+            $itemPrice = (float) ($item['price'] ?? 0);
+            $itemTotal = $itemPrice * $itemQty;
+
+            $dbProd = \App\Models\Product::where('est_id', $estId)->orWhere('id', $estId)->first();
+
+            // Option B: Profit margin is difference between Link selling price and base price
+            if ($dbProd && $dbProd->price && $itemPrice > (float) $dbProd->price) {
+                $commissionEarned = round(($itemPrice - (float) $dbProd->price) * $itemQty, 2);
+                $commissionRate = round((($itemPrice - (float) $dbProd->price) / $itemPrice) * 100, 2);
+            } else {
+                // Fallback to associate's commission rate percentage
+                $commissionRate = (float) ($associate->commission_rate ?: 10.00);
+                $commissionEarned = round($itemTotal * ($commissionRate / 100), 2);
+            }
+
+            \App\Models\ReferralSale::create([
+                'associate_id'      => $associate->id,
+                'order_no'          => $orderNo,
+                'product_name'      => $itemName . ($itemQty > 1 ? " (x{$itemQty})" : ''),
+                'sale_amount'       => $itemTotal,
+                'commission_rate'   => $commissionRate,
+                'commission_earned' => $commissionEarned,
+                'customer_name'     => $customerName,
+                'status'            => 'approved',
+            ]);
+
+            $totalCommission += $commissionEarned;
+        }
+
+        if ($totalCommission > 0) {
+            $associate->increment('balance', $totalCommission);
+            $associate->increment('earnings', $totalCommission);
+        }
     }
 
     /**
@@ -113,6 +225,10 @@ class PaymentController extends Controller
     public function getOrder(Request $request)
     {
         $user = $request->user();
+        if (!$user) {
+            return response()->json(['order' => null], 200);
+        }
+
         $order = Order::where('user_id', $user->id)
             ->orderBy('created_at', 'desc')
             ->first();

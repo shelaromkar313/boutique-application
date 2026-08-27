@@ -3,6 +3,7 @@
 use App\Http\Controllers\AdminController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\HomeController;
+use App\Http\Controllers\PaymentController;
 use App\Http\Controllers\SalesAssociateController;
 use App\Http\Controllers\TryOnController;
 use App\Models\User;
@@ -14,12 +15,14 @@ use Illuminate\Support\Facades\Route;
 // ─────────────────────────────────────────────────────────────────────────────
 Route::get('/', [HomeController::class, 'index']);
 Route::get('/shop', function () { return view('shop'); });
-Route::get('/product/{id}', function ($id) { return view('product', ['id' => $id]); });
 Route::get('/about', function () { return view('about'); });
 Route::get('/contact', function () { return view('contact'); });
 Route::get('/wishlist', function () { return view('wishlist'); });
 Route::get('/cart', function () { return view('cart'); });
 Route::get('/checkout', function () { return view('checkout'); });
+Route::post('/checkout/place-order', [PaymentController::class, 'placeOrder']);
+Route::post('/api/payments/create-order', [PaymentController::class, 'createOrder']);
+Route::post('/api/payments/verify', [PaymentController::class, 'verify']);
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Referral Tracking — Short Link + Session Cookie
