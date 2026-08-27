@@ -1,10 +1,34 @@
 @extends('layouts.app')
 
-@section('title', 'My Profile & Orders | ESTILO WEAR')
+@section('title', 'My Account & Orders Hub | ESTILO WEAR')
 
 @section('content')
-<div class="min-h-screen bg-[var(--color-offwhite)] py-12" x-data="{ activeTab: 'orders' }">
-    <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 space-y-8">
+<div class="min-h-screen bg-[var(--color-offwhite)] py-6 sm:py-10" x-data="{
+    activeTab: 'all',
+    reviewModal: false,
+    selectedItemToReview: null,
+    rating: 5,
+    reviewComment: '',
+    reviewSubmitted: false,
+
+    openReview(item) {
+        this.selectedItemToReview = item;
+        this.rating = 5;
+        this.reviewComment = '';
+        this.reviewSubmitted = false;
+        this.reviewModal = true;
+    },
+
+    submitReview() {
+        this.reviewSubmitted = true;
+        setTimeout(() => {
+            this.reviewModal = false;
+            $store.shop.showToast('Thank you for reviewing your couture piece! ✨');
+        }, 1200);
+    }
+}">
+
+    <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 space-y-6 sm:space-y-8">
 
         {{-- Flash Alerts --}}
         @if(session('success'))
@@ -17,69 +41,201 @@
         </div>
         @endif
 
-        @if($errors->any())
-        <div class="bg-rose-50 border border-rose-300 text-rose-900 px-5 py-3.5 rounded-2xl space-y-1 shadow-sm">
-            <div class="flex items-center gap-2 text-xs font-bold font-sans">
-                <span>⚠️</span> Please correct the following errors:
-            </div>
-            <ul class="list-disc pl-6 text-xs space-y-0.5">
-                @foreach($errors->all() as $err)
-                <li>{{ $err }}</li>
-                @endforeach
-            </ul>
-        </div>
-        @endif
-
-        {{-- Profile Header Card --}}
-        <div class="bg-white rounded-3xl border border-[var(--color-bisque)] p-6 sm:p-8 shadow-sm flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
-            <div class="flex items-center gap-5">
-                <div class="w-16 h-16 sm:w-20 sm:h-20 rounded-full bg-[var(--color-ebony)] text-amber-200 flex items-center justify-center font-serif font-bold text-2xl sm:text-3xl shadow-inner ring-4 ring-pink-100">
-                    {{ strtoupper(substr($user->name, 0, 1)) }}
-                </div>
-                <div class="space-y-1">
-                    <div class="inline-flex items-center gap-2 px-3 py-0.5 rounded-full bg-pink-50 border border-pink-200 text-[var(--color-rose-antique)] text-[10px] font-sans font-bold uppercase tracking-wider">
-                        <span>✨ Estilo Atelier Member</span>
+        {{-- TOP: User Welcome Banner & Search Bar --}}
+        <div class="bg-white rounded-3xl border border-[var(--color-bisque)]/80 p-5 sm:p-7 shadow-sm space-y-4">
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                <div class="flex items-center gap-4">
+                    <div class="w-14 h-14 sm:w-16 sm:h-16 rounded-full bg-[var(--color-ebony)] text-[#FBEAD6] flex items-center justify-center font-serif font-bold text-xl sm:text-2xl shadow-md ring-4 ring-[var(--color-champagne-light)]">
+                        {{ strtoupper(substr($user->name, 0, 1)) }}
                     </div>
-                    <h1 class="font-serif text-2xl sm:text-3xl font-bold text-[var(--color-ebony)]">{{ $user->name }}</h1>
-                    <p class="text-xs font-sans text-[var(--color-ebony)]/60">{{ $user->email }} • {{ $user->phone ?? 'Phone not set' }}</p>
+                    <div>
+                        <div class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-amber-50 border border-amber-200 text-amber-900 text-[10px] font-sans font-bold uppercase tracking-wider mb-0.5">
+                            <span>✦ Estilo Atelier Patron</span>
+                        </div>
+                        <h1 class="font-serif text-xl sm:text-2xl font-bold text-[var(--color-ebony)]">Hello, {{ $user->name }}</h1>
+                        <p class="text-xs font-sans text-[var(--color-ebony)]/60">{{ $user->email }} • {{ $user->phone ?? '+91 (Not set)' }}</p>
+                    </div>
+                </div>
+
+                <div class="flex items-center gap-2 self-end sm:self-center">
+                    <a href="/shop" class="bg-[var(--color-ebony)] hover:bg-[var(--color-rose-deep)] text-white text-xs font-sans font-bold uppercase tracking-wider px-4 py-2.5 rounded-full transition-all shadow-sm">
+                        🛍️ Shop
+                    </a>
+                    <form action="{{ route('logout') }}" method="POST" class="inline m-0">
+                        @csrf
+                        <button type="submit" class="bg-rose-50 hover:bg-rose-100 border border-rose-200 text-rose-800 text-xs font-sans font-bold uppercase tracking-wider px-3.5 py-2.5 rounded-full transition-colors flex items-center gap-1" title="Sign Out">
+                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/></svg>
+                            Logout
+                        </button>
+                    </form>
                 </div>
             </div>
 
-            <div class="flex items-center gap-3">
-                <a href="/shop" class="bg-[var(--color-ebony)] hover:bg-[var(--color-rose-deep)] text-white text-xs font-sans font-bold uppercase tracking-wider px-5 py-2.5 rounded-full transition-all shadow-md">
-                    🛍️ Explore Collections
-                </a>
-                <form action="{{ route('logout') }}" method="POST">
-                    @csrf
-                    <button type="submit" class="bg-rose-50 hover:bg-rose-100 border border-rose-200 text-rose-700 text-xs font-sans font-bold uppercase tracking-wider px-4 py-2.5 rounded-full transition-colors">
-                        🚪 Log Out
-                    </button>
-                </form>
+            {{-- Amazon-style Quick Search Bar for Catalog --}}
+            <div class="pt-2 border-t border-[var(--color-bisque)]/40">
+                <div class="relative">
+                    <input type="text" @click="$store.shop.isSearchOpen = true" readonly placeholder="Search couture kurtis, silk sarees, anarkalis, or wedding edits..." class="w-full bg-[var(--color-offwhite)] border border-[var(--color-bisque)] rounded-full pl-10 pr-4 py-2.5 text-xs font-sans cursor-pointer focus:outline-none focus:border-[var(--color-rose-antique)]" />
+                    <svg class="w-4 h-4 absolute left-3.5 top-3 text-[var(--color-ebony)]/40" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+                </div>
             </div>
         </div>
 
-        {{-- Navigation Tabs --}}
-        <div class="flex items-center gap-3 border-b border-[var(--color-bisque)] pb-2">
-            <button @click="activeTab = 'orders'"
-                    :class="activeTab === 'orders' ? 'bg-[var(--color-ebony)] text-white shadow-sm' : 'bg-white text-[var(--color-ebony)]/70 hover:text-[var(--color-ebony)] border border-[var(--color-bisque)]'"
-                    class="px-5 py-2.5 rounded-full text-xs font-sans font-bold uppercase tracking-wider transition-all">
-                Order History ({{ $orders->count() }})
-            </button>
-            <button @click="activeTab = 'edit'"
-                    :class="activeTab === 'edit' ? 'bg-[var(--color-ebony)] text-white shadow-sm' : 'bg-white text-[var(--color-ebony)]/70 hover:text-[var(--color-ebony)] border border-[var(--color-bisque)]'"
-                    class="px-5 py-2.5 rounded-full text-xs font-sans font-bold uppercase tracking-wider transition-all">
-                Account Settings
-            </button>
+        {{-- 1. LISTS & REGISTRIES (Amazon-style Shopping List Card with Luxury Boutique Style) --}}
+        <div class="bg-white rounded-3xl border border-[var(--color-bisque)]/80 p-5 sm:p-6 shadow-sm hover:shadow-md transition-shadow">
+            <div class="flex items-center justify-between pb-3 border-b border-[var(--color-bisque)]/40">
+                <span class="text-xs font-sans font-bold text-[var(--color-rose-antique)] uppercase tracking-[0.2em]">Lists & Wardrobe Registries</span>
+                <a href="/wishlist" class="text-xs font-sans font-bold text-[var(--color-ebony)] hover:text-[var(--color-rose-antique)] transition-colors">View All →</a>
+            </div>
+
+            <a href="/wishlist" class="mt-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-4 rounded-2xl bg-[var(--color-offwhite)] border border-[var(--color-bisque)]/60 hover:border-[var(--color-rose-antique)] transition-all group">
+                <div>
+                    <h3 class="font-serif text-base sm:text-lg font-bold text-[var(--color-ebony)] group-hover:text-[var(--color-rose-antique)] transition-colors">Curated Shopping List</h3>
+                    <p class="text-[11px] font-sans text-[var(--color-ebony)]/60">Private • Default Boutique Wishlist</p>
+                </div>
+
+                {{-- Multi-product thumbnail preview container --}}
+                <div class="flex items-center gap-2">
+                    <template x-if="$store.shop.wishlist.length > 0">
+                        <div class="flex items-center gap-2">
+                            <template x-for="(item, idx) in $store.shop.wishlist.slice(0, 3)" :key="idx">
+                                <img :src="item.image" :alt="item.name" class="w-12 h-14 object-cover object-top rounded-xl border border-[var(--color-bisque)] shadow-xs" />
+                            </template>
+                            <template x-if="$store.shop.wishlist.length > 3">
+                                <div class="w-12 h-14 rounded-xl bg-[var(--color-champagne-light)] border border-[var(--color-bisque)] flex items-center justify-center font-bold text-xs text-[var(--color-ebony)]" x-text="'+' + ($store.shop.wishlist.length - 3)">
+                                </div>
+                            </template>
+                        </div>
+                    </template>
+                    <template x-if="$store.shop.wishlist.length === 0">
+                        <div class="flex items-center gap-2 text-xs font-sans text-[var(--color-ebony)]/50">
+                            <span class="text-lg">💖</span>
+                            <span>No items saved yet. Tap heart icon on products to curate your list.</span>
+                        </div>
+                    </template>
+                </div>
+            </a>
         </div>
 
-        {{-- TAB 1: ORDER HISTORY --}}
-        <div x-show="activeTab === 'orders'" class="space-y-6">
+        {{-- 2. YOUR ACCOUNT (Amazon-style Horizontal Quick Pills) --}}
+        <div class="space-y-3">
+            <div class="flex items-center justify-between">
+                <h2 class="font-serif text-lg font-bold text-[var(--color-ebony)]">Your Account</h2>
+            </div>
+
+            <div class="flex items-center gap-2.5 overflow-x-auto pb-1 no-scrollbar text-xs font-sans">
+                <button @click="activeTab = 'orders'" :class="activeTab === 'orders' ? 'bg-[var(--color-ebony)] text-white shadow-sm ring-2 ring-[var(--color-ebony)]' : 'bg-white text-[var(--color-ebony)] border border-[var(--color-bisque)] hover:bg-[var(--color-offwhite)]'" class="px-5 py-2.5 rounded-full font-bold whitespace-nowrap transition-all flex items-center gap-1.5 shrink-0">
+                    <span>📦</span> Your Orders ({{ $orders->count() }})
+                </button>
+
+                <button @click="activeTab = 'addresses'" :class="activeTab === 'addresses' ? 'bg-[var(--color-ebony)] text-white shadow-sm ring-2 ring-[var(--color-ebony)]' : 'bg-white text-[var(--color-ebony)] border border-[var(--color-bisque)] hover:bg-[var(--color-offwhite)]'" class="px-5 py-2.5 rounded-full font-bold whitespace-nowrap transition-all flex items-center gap-1.5 shrink-0">
+                    <span>📍</span> Saved Addresses
+                </button>
+
+                <button @click="activeTab = 'rewards'" :class="activeTab === 'rewards' ? 'bg-[var(--color-ebony)] text-white shadow-sm ring-2 ring-[var(--color-ebony)]' : 'bg-white text-[var(--color-ebony)] border border-[var(--color-bisque)] hover:bg-[var(--color-offwhite)]'" class="px-5 py-2.5 rounded-full font-bold whitespace-nowrap transition-all flex items-center gap-1.5 shrink-0">
+                    <span>💎</span> Your Rewards
+                </button>
+
+                <button @click="activeTab = 'edit'" :class="activeTab === 'edit' ? 'bg-[var(--color-ebony)] text-white shadow-sm ring-2 ring-[var(--color-ebony)]' : 'bg-white text-[var(--color-ebony)] border border-[var(--color-bisque)] hover:bg-[var(--color-offwhite)]'" class="px-5 py-2.5 rounded-full font-bold whitespace-nowrap transition-all flex items-center gap-1.5 shrink-0">
+                    <span>⚙️</span> Account Settings
+                </button>
+
+                <a href="/wishlist" class="px-5 py-2.5 rounded-full font-bold whitespace-nowrap transition-all bg-white text-[var(--color-ebony)] border border-[var(--color-bisque)] hover:bg-[var(--color-offwhite)] flex items-center gap-1.5 shrink-0">
+                    <span>❤️</span> Wishlist
+                </a>
+            </div>
+        </div>
+
+        {{-- 3. YOUR REWARDS & WALLET (Amazon-style 3-Column Rewards Card) --}}
+        <div class="bg-white rounded-3xl border border-[var(--color-bisque)]/80 p-5 sm:p-6 shadow-sm space-y-4">
+            <div class="flex items-center justify-between pb-2 border-b border-[var(--color-bisque)]/40">
+                <h3 class="font-serif text-base sm:text-lg font-bold text-[var(--color-ebony)]">Your Rewards & Atelier Perks</h3>
+                <span class="text-[10px] font-sans font-bold text-emerald-800 bg-emerald-50 px-2.5 py-0.5 rounded-full border border-emerald-200">Active Patron</span>
+            </div>
+
+            <div class="grid grid-cols-3 gap-3 sm:gap-4 text-center">
+                {{-- 1. Cashback / Store Credit --}}
+                <div class="p-3 sm:p-4 rounded-2xl bg-[var(--color-offwhite)] border border-[var(--color-bisque)]/60 flex flex-col items-center justify-between space-y-1">
+                    <span class="text-[10px] font-sans font-bold uppercase tracking-wider text-[var(--color-ebony)]/60">Atelier Credit</span>
+                    <div class="flex items-center gap-1">
+                        <span class="text-base sm:text-xl font-bold font-serif text-[var(--color-ebony)]">🪙 ₹150</span>
+                    </div>
+                    <span class="text-[9px] text-emerald-700 font-semibold">Usable on next order</span>
+                </div>
+
+                {{-- 2. Collected Offers / Coupons --}}
+                <div class="p-3 sm:p-4 rounded-2xl bg-[var(--color-offwhite)] border border-[var(--color-bisque)]/60 flex flex-col items-center justify-between space-y-1">
+                    <span class="text-[10px] font-sans font-bold uppercase tracking-wider text-[var(--color-ebony)]/60">Collected Offers</span>
+                    <div class="flex items-center gap-1">
+                        <span class="text-base sm:text-xl font-bold font-serif text-[var(--color-ebony)]">🎟️ 2 Active</span>
+                    </div>
+                    <span class="text-[9px] text-[var(--color-rose-antique)] font-mono font-bold">BOUTIQUE10 (10% OFF)</span>
+                </div>
+
+                {{-- 3. Membership / Scratch cards --}}
+                <div class="p-3 sm:p-4 rounded-2xl bg-[var(--color-offwhite)] border border-[var(--color-bisque)]/60 flex flex-col items-center justify-between space-y-1">
+                    <span class="text-[10px] font-sans font-bold uppercase tracking-wider text-[var(--color-ebony)]/60">Tier Status</span>
+                    <div class="flex items-center gap-1">
+                        <span class="text-base sm:text-xl font-bold font-serif text-[var(--color-ebony)]">💎 Gold</span>
+                    </div>
+                    <span class="text-[9px] text-amber-800 font-semibold">Free Express Shipping</span>
+                </div>
+            </div>
+        </div>
+
+        {{-- 4. YOUR REVIEWS (Amazon-style Review Cards for Recent Purchases) --}}
+        <div class="bg-white rounded-3xl border border-[var(--color-bisque)]/80 p-5 sm:p-6 shadow-sm space-y-4">
+            <div class="flex items-center justify-between pb-2 border-b border-[var(--color-bisque)]/40">
+                <div>
+                    <h3 class="font-serif text-base sm:text-lg font-bold text-[var(--color-ebony)]">Your Reviews & Ratings</h3>
+                    <p class="text-[11px] font-sans text-[var(--color-ebony)]/60">Rate garments you received to help fellow couture patrons.</p>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                {{-- Example Review Prompt Card --}}
+                <div class="p-4 rounded-2xl bg-[var(--color-offwhite)] border border-[var(--color-bisque)]/60 flex items-center justify-between gap-4">
+                    <div class="flex items-center gap-3">
+                        <img src="/storage/products/est-001-chikankari-anarkali.jpg" alt="Gulzar Anarkali" class="w-14 h-16 object-cover rounded-xl border border-[var(--color-bisque)] shadow-xs" />
+                        <div>
+                            <h4 class="font-serif text-xs font-bold text-[var(--color-ebony)] line-clamp-1">Gulzar Chikankari Anarkali</h4>
+                            <p class="text-[10px] font-sans text-[var(--color-ebony)]/60">What did you think of the craft?</p>
+                            <div class="flex items-center gap-1 text-amber-500 pt-1 cursor-pointer" @click="openReview({ name: 'Gulzar Chikankari Anarkali', image: '/storage/products/est-001-chikankari-anarkali.jpg' })">
+                                <span>★★★★★</span>
+                                <span class="text-[10px] text-gray-500 font-sans ml-1">Write Review</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="p-4 rounded-2xl bg-[var(--color-offwhite)] border border-[var(--color-bisque)]/60 flex items-center justify-between gap-4">
+                    <div class="flex items-center gap-3">
+                        <img src="/storage/products/est-002-banarasi-saree.jpg" alt="Banarasi Saree" class="w-14 h-16 object-cover rounded-xl border border-[var(--color-bisque)] shadow-xs" />
+                        <div>
+                            <h4 class="font-serif text-xs font-bold text-[var(--color-ebony)] line-clamp-1">Varanasi Royal Banarasi Silk Saree</h4>
+                            <p class="text-[10px] font-sans text-[var(--color-ebony)]/60">How is the silk and zari weave?</p>
+                            <div class="flex items-center gap-1 text-amber-500 pt-1 cursor-pointer" @click="openReview({ name: 'Varanasi Royal Banarasi Silk Saree', image: '/storage/products/est-002-banarasi-saree.jpg' })">
+                                <span>★★★★★</span>
+                                <span class="text-[10px] text-gray-500 font-sans ml-1">Write Review</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        {{-- 5. YOUR ORDERS (Comprehensive Orders List) --}}
+        <div x-show="activeTab === 'all' || activeTab === 'orders'" class="space-y-4">
+            <div class="flex items-center justify-between">
+                <h2 class="font-serif text-xl font-bold text-[var(--color-ebony)]">Your Recent Orders</h2>
+                <span class="text-xs font-sans text-[var(--color-ebony)]/60">{{ $orders->count() }} Total Placed</span>
+            </div>
+
             @forelse($orders as $ord)
             @php
                 $items = is_string($ord->items) ? json_decode($ord->items, true) : ($ord->items ?? []);
             @endphp
-            <div class="bg-white rounded-3xl border border-[var(--color-bisque)] p-6 sm:p-8 shadow-sm space-y-5">
-                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-[var(--color-bisque)]/60">
+            <div class="bg-white rounded-3xl border border-[var(--color-bisque)] p-5 sm:p-7 shadow-sm space-y-4">
+                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-[var(--color-bisque)]/60">
                     <div>
                         <span class="text-[10px] font-sans font-bold uppercase tracking-wider text-gray-500">Order Number</span>
                         <h3 class="font-mono text-base font-bold text-[var(--color-ebony)]">{{ $ord->order_no }}</h3>
@@ -88,7 +244,7 @@
 
                     <div class="flex items-center gap-4">
                         <div class="text-right">
-                            <span class="text-[10px] font-sans font-bold uppercase tracking-wider text-gray-500 block">Total Amount</span>
+                            <span class="text-[10px] font-sans font-bold uppercase tracking-wider text-gray-500 block">Total</span>
                             <span class="font-serif text-lg font-bold text-[var(--color-ebony)]">₹{{ number_format($ord->total, 0) }}</span>
                         </div>
 
@@ -105,28 +261,28 @@
                 </div>
 
                 {{-- Garments in this order --}}
-                <div class="space-y-3">
-                    <h4 class="text-xs font-sans font-bold uppercase tracking-wider text-gray-500">Ordered Couture</h4>
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
-                        @foreach($items as $item)
-                        <div class="flex items-center gap-3 p-3 bg-[var(--color-offwhite)] rounded-2xl border border-[var(--color-bisque)]/60">
-                            <div class="w-12 h-14 bg-gray-200 rounded-lg overflow-hidden shrink-0 border border-gray-200">
-                                <img src="{{ $item['image'] ?? '/storage/hero/hero-main.jpg' }}" alt="{{ $item['name'] ?? 'Garment' }}" class="w-full h-full object-cover" />
-                            </div>
-                            <div class="flex-1 min-w-0">
-                                <h5 class="font-serif text-xs font-bold text-[var(--color-ebony)] truncate">{{ $item['name'] ?? 'Couture Item' }}</h5>
-                                <span class="text-[10px] text-gray-500 font-sans block">Size: {{ $item['selectedSize'] ?? $item['size'] ?? 'Standard' }} • Color: {{ $item['selectedColor'] ?? $item['color'] ?? 'Standard' }} • Qty: {{ $item['quantity'] ?? $item['qty'] ?? 1 }}</span>
-                                <span class="font-serif font-bold text-xs text-[var(--color-rose-antique)]">₹{{ number_format($item['price'] ?? 0, 0) }}</span>
-                            </div>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                    @foreach($items as $item)
+                    <div class="flex items-center gap-3 p-3 bg-[var(--color-offwhite)] rounded-2xl border border-[var(--color-bisque)]/60">
+                        <div class="w-12 h-14 bg-gray-200 rounded-lg overflow-hidden shrink-0 border border-gray-200">
+                            <img src="{{ $item['image'] ?? '/storage/hero/hero-main.jpg' }}" alt="{{ $item['name'] ?? 'Garment' }}" class="w-full h-full object-cover" />
                         </div>
-                        @endforeach
+                        <div class="flex-1 min-w-0">
+                            <h5 class="font-serif text-xs font-bold text-[var(--color-ebony)] truncate">{{ $item['name'] ?? 'Couture Item' }}</h5>
+                            <span class="text-[10px] text-gray-500 font-sans block">Size: {{ $item['selectedSize'] ?? $item['size'] ?? 'Standard' }} • Color: {{ $item['selectedColor'] ?? $item['color'] ?? 'Standard' }} • Qty: {{ $item['quantity'] ?? $item['qty'] ?? 1 }}</span>
+                            <span class="font-serif font-bold text-xs text-[var(--color-rose-antique)]">₹{{ number_format($item['price'] ?? 0, 0) }}</span>
+                        </div>
+                        <button type="button" @click="openReview({{ json_encode($item) }})" class="text-[10px] font-sans font-bold text-[var(--color-ebony)] hover:text-[var(--color-rose-antique)] px-2 py-1 bg-white rounded-lg border border-[var(--color-bisque)]">
+                            ★ Review
+                        </button>
                     </div>
+                    @endforeach
                 </div>
 
                 {{-- Delivery Destination --}}
                 <div class="pt-3 border-t border-[var(--color-bisque)]/40 flex flex-col sm:flex-row justify-between text-xs text-gray-600 gap-2">
                     <div>
-                        <span class="font-bold text-[var(--color-ebony)]">Delivery Address:</span>
+                        <span class="font-bold text-[var(--color-ebony)]">Destination:</span>
                         {{ $ord->address }}, {{ $ord->city }}, {{ $ord->state }} - {{ $ord->pincode }}
                     </div>
                     <div>
@@ -135,7 +291,7 @@
                 </div>
             </div>
             @empty
-            <div class="bg-white rounded-3xl border border-[var(--color-bisque)] p-12 text-center shadow-sm space-y-4">
+            <div class="bg-white rounded-3xl border border-[var(--color-bisque)] p-10 text-center shadow-sm space-y-4">
                 <div class="text-4xl">🛍️</div>
                 <h3 class="font-serif text-xl font-bold text-[var(--color-ebony)]">No Orders Yet</h3>
                 <p class="text-xs font-sans text-gray-500 max-w-md mx-auto">You haven't placed any couture orders yet. Discover our artisanal Chikankari, Anarkalis, and Luxury Silk Sarees.</p>
@@ -146,12 +302,34 @@
             @endforelse
         </div>
 
-        {{-- TAB 2: ACCOUNT SETTINGS --}}
+        {{-- 6. SAVED ADDRESSES TAB --}}
+        <div x-show="activeTab === 'addresses'" class="space-y-4" style="display: none;">
+            <div class="bg-white rounded-3xl border border-[var(--color-bisque)] p-6 sm:p-8 shadow-sm space-y-4">
+                <div class="flex items-center justify-between pb-3 border-b border-[var(--color-bisque)]/60">
+                    <h3 class="font-serif text-xl font-bold text-[var(--color-ebony)]">Your Delivery Addresses</h3>
+                    <button @click="activeTab = 'edit'" class="text-xs font-sans font-bold text-[var(--color-rose-antique)] hover:underline">+ Edit Default Address</button>
+                </div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div class="p-4 rounded-2xl bg-[var(--color-offwhite)] border-2 border-[var(--color-ebony)]/80 relative">
+                        <span class="absolute top-3 right-3 text-[9px] font-sans font-bold uppercase bg-[var(--color-ebony)] text-white px-2 py-0.5 rounded-full">Default</span>
+                        <h4 class="font-serif text-sm font-bold text-[var(--color-ebony)]">{{ $user->name }}</h4>
+                        <p class="text-xs font-sans text-[var(--color-ebony)]/70 mt-1 leading-relaxed">
+                            {{ $orders->first()?->address ?? 'Flat 402, Royal Palms Residency, MG Road' }}<br>
+                            {{ $orders->first()?->city ?? 'Mumbai' }}, {{ $orders->first()?->state ?? 'Maharashtra' }} - {{ $orders->first()?->pincode ?? '400001' }}
+                        </p>
+                        <p class="text-xs font-sans font-bold text-[var(--color-ebony)] mt-2">Phone: {{ $user->phone ?? '+91 98765 43210' }}</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        {{-- 7. ACCOUNT SETTINGS TAB --}}
         <div x-show="activeTab === 'edit'" class="space-y-6" style="display: none;">
             <div class="bg-white rounded-3xl border border-[var(--color-bisque)] p-6 sm:p-8 shadow-sm space-y-6 max-w-2xl">
                 <div class="border-b border-[var(--color-bisque)]/60 pb-3">
-                    <h3 class="font-serif text-xl font-bold text-[var(--color-ebony)]">Update Profile Details</h3>
-                    <p class="text-xs font-sans text-gray-500">Edit your name, contact phone number, and security password.</p>
+                    <h3 class="font-serif text-xl font-bold text-[var(--color-ebony)]">Update Profile & Security Details</h3>
+                    <p class="text-xs font-sans text-gray-500">Edit your name, contact phone number, and account password.</p>
                 </div>
 
                 <form action="/profile" method="POST" class="space-y-4">
@@ -185,6 +363,64 @@
             </div>
         </div>
 
+        {{-- 8. NEED HELP? ATELIER CONCIERGE (Amazon-style Customer Service Card) --}}
+        <div class="bg-white rounded-3xl border border-[var(--color-bisque)]/80 p-5 sm:p-6 shadow-sm hover:shadow-md transition-shadow">
+            <a href="https://api.whatsapp.com/send?phone=919876543210&text={{ urlencode('Hello Estilo Concierge, I need assistance with my boutique orders.') }}" target="_blank" class="flex items-center justify-between gap-4 group">
+                <div class="flex items-center gap-4">
+                    <div class="w-12 h-12 rounded-2xl bg-[var(--color-champagne-light)] text-[var(--color-ebony)] flex items-center justify-center text-xl shrink-0 group-hover:scale-105 transition-transform">
+                        💬
+                    </div>
+                    <div>
+                        <h4 class="font-serif text-base font-bold text-[var(--color-ebony)] group-hover:text-[var(--color-rose-antique)] transition-colors">Need Help? Contact Atelier Concierge</h4>
+                        <p class="text-xs font-sans text-[var(--color-ebony)]/60">Live styling consultation, order tracking, and bespoke tailoring assistance.</p>
+                    </div>
+                </div>
+                <span class="text-lg text-[var(--color-ebony)] group-hover:translate-x-1 transition-transform">→</span>
+            </a>
+        </div>
+
     </div>
+
+    {{-- CUSTOMER REVIEW MODAL --}}
+    <div x-show="reviewModal" style="display: none;" class="fixed inset-0 z-50 flex items-center justify-center p-4">
+        <div x-show="reviewModal" x-transition.opacity @click="reviewModal = false" class="absolute inset-0 bg-black/60 backdrop-blur-sm"></div>
+        <div class="relative w-full max-w-md bg-white rounded-3xl p-6 sm:p-8 shadow-2xl z-10 border border-[var(--color-bisque)] space-y-4">
+            <div class="flex items-center justify-between border-b border-[var(--color-bisque)]/60 pb-3">
+                <h3 class="font-serif text-lg font-bold text-[var(--color-ebony)]">Rate Your Garment</h3>
+                <button @click="reviewModal = false" class="text-gray-400 hover:text-gray-600 text-base">✕</button>
+            </div>
+
+            <template x-if="selectedItemToReview">
+                <div class="flex items-center gap-3 p-3 bg-[var(--color-offwhite)] rounded-xl border border-[var(--color-bisque)]/60">
+                    <img :src="selectedItemToReview.image || '/storage/hero/hero-main.jpg'" class="w-12 h-14 object-cover rounded-lg shrink-0" />
+                    <div>
+                        <h4 class="font-serif text-xs font-bold text-[var(--color-ebony)] truncate" x-text="selectedItemToReview.name"></h4>
+                        <span class="text-[10px] text-gray-500 font-sans">Craft & fit feedback</span>
+                    </div>
+                </div>
+            </template>
+
+            <div>
+                <label class="block text-xs font-sans font-bold uppercase tracking-wider mb-1.5 text-[var(--color-ebony)]">Your Star Rating</label>
+                <div class="flex gap-2 text-2xl text-amber-400 cursor-pointer">
+                    <template x-for="star in [1, 2, 3, 4, 5]" :key="star">
+                        <span @click="rating = star" :class="star <= rating ? 'opacity-100 scale-110' : 'opacity-30'" class="transition-all">★</span>
+                    </template>
+                </div>
+            </div>
+
+            <div>
+                <label class="block text-xs font-sans font-bold uppercase tracking-wider mb-1.5 text-[var(--color-ebony)]">Review Notes & Fitting Experience</label>
+                <textarea x-model="reviewComment" rows="3" placeholder="Tell us how the fabric felt, the embroidery precision, and the silhouette fit..." class="w-full bg-[var(--color-offwhite)] border border-[var(--color-bisque)] rounded-xl px-3.5 py-2.5 text-xs font-sans focus:outline-none focus:border-[var(--color-rose-antique)]"></textarea>
+            </div>
+
+            <div class="flex gap-2 pt-2">
+                <button type="button" @click="reviewModal = false" class="flex-1 bg-gray-100 hover:bg-gray-200 text-[var(--color-ebony)] text-xs font-sans font-bold py-3 rounded-xl">Cancel</button>
+                <button type="button" @click="submitReview()" class="flex-1 bg-[var(--color-ebony)] hover:bg-[var(--color-rose-deep)] text-white text-xs font-sans font-bold py-3 rounded-xl shadow-md">Submit Review ✨</button>
+            </div>
+        </div>
+    </div>
+
 </div>
 @endsection
+
