@@ -97,10 +97,11 @@ Route::prefix('admin')->middleware('admin')->group(function () {
     Route::delete('/categories/{id}', [AdminController::class, 'deleteCategory']);
 
     // Ratings & Reviews Moderation (Edit low ratings, change comments, approve/boost)
+    Route::match(['get', 'post'], '/reviews/{id}/boost', [AdminController::class, 'boostReview']);
+    Route::match(['get', 'post'], '/reviews/{id}/toggle', [AdminController::class, 'toggleReview']);
     Route::post('/reviews/{id}', [AdminController::class, 'updateReview']);
-    Route::post('/reviews/{id}/boost', [AdminController::class, 'boostReview']);
-    Route::post('/reviews/{id}/toggle', [AdminController::class, 'toggleReview']);
     Route::delete('/reviews/{id}', [AdminController::class, 'deleteReview']);
+    Route::match(['get', 'post', 'delete'], '/reviews/{id}/delete', [AdminController::class, 'deleteReview']);
 
     // 4.4 Orders Processing
     Route::post('/orders/{id}/status', [AdminController::class, 'updateOrderStatus']);
