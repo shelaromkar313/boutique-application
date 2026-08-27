@@ -27,9 +27,39 @@
         if (!isset($p['isBestSeller']) && isset($p['is_best_seller'])) $p['isBestSeller'] = $p['is_best_seller'];
     }
 
-    $mainImage    = $p['images'][0] ?? '/storage/hero/hero-main.jpg';
-    $colorsPreview = array_slice($p['colors'] ?? [], 0, 3);
-    $extraColors  = max(0, count($p['colors'] ?? []) - 3);
+    $mainImage = $p['images'][0] ?? '/storage/hero/hero-main.jpg';
+
+    // Normalize colors: DB may store as plain strings ["Red","Blue"] or objects [{"hex":"#..","name":".."}]
+    $colorNameToHex = [
+        'red' => '#E53E3E', 'rose' => '#FB7185', 'pink' => '#F472B6', 'maroon' => '#7B2D42',
+        'blue' => '#3B82F6', 'navy' => '#1E3A5F', 'sky' => '#38BDF8', 'teal' => '#14B8A6',
+        'green' => '#22C55E', 'olive' => '#6B7A2A', 'mint' => '#86EFAC',
+        'yellow' => '#FACC15', 'gold' => '#D4A843', 'orange' => '#F97316', 'peach' => '#FBCBA8',
+        'purple' => '#A855F7', 'violet' => '#7C3AED', 'lavender' => '#C4B5FD',
+        'brown' => '#92400E', 'beige' => '#F5E6C8', 'cream' => '#FFF8E7', 'ivory' => '#FFFFF0',
+        'black' => '#1A1A1A', 'white' => '#FFFFFF', 'grey' => '#9CA3AF', 'gray' => '#9CA3AF',
+        'silver' => '#C0C0C0', 'copper' => '#B87333', 'mustard' => '#D4A843',
+        'magenta' => '#D946EF', 'coral' => '#FF6B6B', 'champagne' => '#FBEAD6',
+        'turquoise' => '#40E0D0', 'indigo' => '#6366F1', 'fuchsia' => '#E879F9',
+        'multicolor' => 'linear-gradient(135deg, #f43f5e, #f59e0b, #10b981)',
+    ];
+
+    $rawColors = $p['colors'] ?? [];
+    $normalizedColors = [];
+    foreach ($rawColors as $c) {
+        if (is_array($c) && isset($c['hex'])) {
+            $normalizedColors[] = $c; // already correct format
+        } elseif (is_string($c)) {
+            $key = strtolower(trim($c));
+            $normalizedColors[] = [
+                'name' => $c,
+                'hex'  => $colorNameToHex[$key] ?? '#CCCCCC',
+            ];
+        }
+    }
+
+    $colorsPreview = array_slice($normalizedColors, 0, 3);
+    $extraColors   = max(0, count($normalizedColors) - 3);
     $sizesPreview = array_slice($p['sizes'] ?? [], 0, 4);
     $savings      = isset($p['oldPrice']) && isset($p['price']) ? ($p['oldPrice'] - $p['price']) : 0;
 @endphp
