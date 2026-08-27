@@ -1286,6 +1286,8 @@
                 </form>
             </div>
         </div>
+    </div>
+
     {{-- MODAL 8: EDIT RATING & REVIEW (OVERRIDE BAD/LOW RATINGS) --}}
     <div x-show="editReviewModal" style="display: none;" class="fixed inset-0 z-50 flex items-center justify-center p-4 overflow-y-auto">
         <div x-show="editReviewModal" x-transition.opacity @click="editReviewModal = false" class="fixed inset-0 bg-black/60 backdrop-blur-sm"></div>
