@@ -1342,47 +1342,78 @@
     {{-- MODAL 3: VIEW ORDER DETAILS --}}
     <div x-show="viewOrderModal" style="display: none;" class="fixed inset-0 z-50 flex items-center justify-center p-4 overflow-y-auto">
         <div x-show="viewOrderModal" x-transition.opacity @click="viewOrderModal = false" class="fixed inset-0 bg-black/60 backdrop-blur-sm"></div>
-        <div class="relative w-full max-w-xl bg-white rounded-3xl p-8 shadow-2xl z-10 border border-[var(--color-bisque)] my-8 space-y-5">
+        <div class="relative w-full max-w-xl bg-white rounded-3xl p-6 sm:p-8 shadow-2xl z-10 border border-[var(--color-bisque)] my-8 space-y-5">
             <div class="flex items-center justify-between border-b border-[var(--color-bisque)]/60 pb-3">
                 <div>
                     <h3 class="font-serif text-xl font-bold text-[var(--color-ebony)]" x-text="'Order #' + selectedOrder.order_no"></h3>
-                    <span class="text-[10px] font-mono text-gray-500" x-text="'Status: ' + (selectedOrder.status || '').toUpperCase()"></span>
+                    <div class="flex items-center gap-2 mt-0.5">
+                        <span class="text-[10px] font-mono text-gray-500" x-text="'Status: ' + (selectedOrder.status || '').toUpperCase()"></span>
+                        <span class="text-gray-300">•</span>
+                        <span class="text-[10px] text-gray-500 font-mono" x-text="selectedOrder.payment_id ? ('Payment: ' + selectedOrder.payment_id) : 'Payment: Verified'"></span>
+                    </div>
                 </div>
                 <button @click="viewOrderModal = false" class="text-gray-400 hover:text-gray-600 text-lg">✕</button>
             </div>
 
             <div class="space-y-3 text-xs font-sans">
-                <div class="bg-[var(--color-offwhite)] p-3.5 rounded-xl space-y-1">
-                    <h4 class="font-bold text-[var(--color-ebony)]">Customer Delivery Address</h4>
-                    <p class="text-gray-700" x-text="selectedOrder.full_name"></p>
+                {{-- Delivery Address --}}
+                <div class="bg-[var(--color-offwhite)] p-3.5 rounded-xl space-y-1 border border-[var(--color-bisque)]/60">
+                    <h4 class="font-bold text-[var(--color-ebony)] uppercase tracking-wider text-[10px]">Customer Delivery Address</h4>
+                    <p class="text-gray-800 font-bold" x-text="selectedOrder.full_name"></p>
                     <p class="text-gray-600" x-text="selectedOrder.address"></p>
                     <p class="text-gray-600" x-text="(selectedOrder.city || '') + ', ' + (selectedOrder.state || '') + ' - ' + (selectedOrder.pincode || '')"></p>
                     <p class="text-gray-600" x-text="'Phone: ' + (selectedOrder.phone || '') + ' | Email: ' + (selectedOrder.email || '')"></p>
                 </div>
 
+                {{-- Items --}}
                 <div class="space-y-2">
-                    <h4 class="font-bold text-[var(--color-ebony)]">Purchased Garments</h4>
+                    <h4 class="font-bold text-[var(--color-ebony)] uppercase tracking-wider text-[10px]">Purchased Couture Garments</h4>
                     <div class="max-h-48 overflow-y-auto space-y-2">
                         <template x-for="item in (selectedOrder.parsedItems || [])" :key="item.est_id || item.name">
-                            <div class="flex items-center justify-between p-2.5 bg-gray-50 rounded-lg border border-gray-100">
+                            <div class="flex items-center justify-between p-2.5 bg-gray-50 rounded-xl border border-gray-100">
                                 <div>
-                                    <span class="font-bold block" x-text="item.name || item.est_id"></span>
+                                    <span class="font-bold text-gray-900 block" x-text="item.name || item.est_id"></span>
                                     <span class="text-[10px] text-gray-500" x-text="'Qty: ' + (item.quantity || item.qty || 1) + ' • Size: ' + (item.selectedSize || item.size || 'Standard') + ' • Color: ' + (item.selectedColor || item.color || 'Standard')"></span>
                                 </div>
-                                <span class="font-serif font-bold text-xs" x-text="'₹' + (item.price || '')"></span>
+                                <span class="font-serif font-bold text-xs text-gray-900" x-text="'₹' + Number(item.price || 0).toLocaleString()"></span>
                             </div>
                         </template>
                     </div>
                 </div>
 
-                <div class="border-t border-[var(--color-bisque)]/60 pt-3 flex justify-between items-center text-sm">
-                    <span class="font-bold">Total Bill:</span>
-                    <span class="font-serif font-bold text-lg text-emerald-800" x-text="'₹' + Number(selectedOrder.total || 0).toLocaleString()"></span>
+                {{-- Order Notes & Referral info --}}
+                <template x-if="selectedOrder.note">
+                    <div class="p-3 bg-amber-50 rounded-xl border border-amber-200/80 text-[11px] text-amber-900 space-y-0.5">
+                        <span class="font-bold uppercase tracking-wider text-[9px] text-amber-800 block">Order Processing Note & Referral:</span>
+                        <p x-text="selectedOrder.note"></p>
+                    </div>
+                </template>
+
+                {{-- Price Breakdown --}}
+                <div class="bg-gray-50 p-3.5 rounded-xl space-y-1.5 border border-gray-200">
+                    <div class="flex justify-between text-gray-600 text-[11px]">
+                        <span>Subtotal:</span>
+                        <span class="font-mono" x-text="'₹' + Number(selectedOrder.subtotal || selectedOrder.total || 0).toLocaleString()"></span>
+                    </div>
+                    <template x-if="selectedOrder.discount > 0">
+                        <div class="flex justify-between text-emerald-700 text-[11px] font-bold">
+                            <span>Discount / Coupon Applied:</span>
+                            <span class="font-mono" x-text="'-₹' + Number(selectedOrder.discount).toLocaleString()"></span>
+                        </div>
+                    </template>
+                    <div class="flex justify-between text-gray-600 text-[11px]">
+                        <span>Shipping & Handling:</span>
+                        <span class="font-mono" x-text="selectedOrder.shipping > 0 ? ('₹' + selectedOrder.shipping) : 'FREE (Complimentary)'"></span>
+                    </div>
+                    <div class="border-t border-gray-200 pt-2 flex justify-between items-center text-sm font-bold text-[var(--color-ebony)]">
+                        <span>Total Paid:</span>
+                        <span class="font-serif font-bold text-lg text-emerald-800" x-text="'₹' + Number(selectedOrder.total || 0).toLocaleString()"></span>
+                    </div>
                 </div>
             </div>
 
             <div class="pt-2">
-                <button type="button" @click="viewOrderModal = false" class="w-full bg-[var(--color-ebony)] text-white text-xs font-bold py-2.5 rounded-xl">Close</button>
+                <button type="button" @click="viewOrderModal = false" class="w-full bg-[var(--color-ebony)] hover:bg-[var(--color-rose-deep)] text-white text-xs font-bold py-3 rounded-xl transition-colors">Close Details</button>
             </div>
         </div>
     </div>
