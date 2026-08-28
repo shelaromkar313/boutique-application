@@ -83,62 +83,55 @@
 
                 <!-- Center: Admin Features Navigation Tabs -->
                 <nav class="hidden lg:flex flex-1 justify-center items-center gap-0.5 px-1 min-w-0 overflow-x-auto scrollbar-none">
-                    <a href="/admin?tab=overview" 
+                    <a href="/admin?tab=overview"
                        :class="(typeof activeTab !== 'undefined' && activeTab === 'overview') ? 'bg-[#FBEAD6] text-[#1A1818] font-bold shadow-md' : 'text-white/75 hover:text-white hover:bg-white/10'"
-                       @click.prevent="if (typeof activeTab !== 'undefined') { activeTab = 'overview'; window.history.pushState({}, '', '/admin?tab=overview'); }"
                        class="px-2.5 py-1.5 rounded-full text-[9.5px] font-sans font-semibold uppercase tracking-wide transition-all whitespace-nowrap">
                         Overview
                     </a>
 
-                    <a href="/admin?tab=inventory" 
+                    <a href="/admin?tab=inventory"
                        :class="(typeof activeTab !== 'undefined' && activeTab === 'inventory') ? 'bg-[#FBEAD6] text-[#1A1818] font-bold shadow-md' : 'text-white/75 hover:text-white hover:bg-white/10'"
-                       @click.prevent="if (typeof activeTab !== 'undefined') { activeTab = 'inventory'; window.history.pushState({}, '', '/admin?tab=inventory'); }"
                        class="px-2.5 py-1.5 rounded-full text-[9.5px] font-sans font-semibold uppercase tracking-wide transition-all whitespace-nowrap">
                         Inventory
                     </a>
 
-                    <a href="/admin?tab=orders" 
+                    <a href="/admin?tab=orders"
                        :class="(typeof activeTab !== 'undefined' && activeTab === 'orders') ? 'bg-[#FBEAD6] text-[#1A1818] font-bold shadow-md' : 'text-white/75 hover:text-white hover:bg-white/10'"
-                       @click.prevent="if (typeof activeTab !== 'undefined') { activeTab = 'orders'; window.history.pushState({}, '', '/admin?tab=orders'); }"
                        class="px-2.5 py-1.5 rounded-full text-[9.5px] font-sans font-semibold uppercase tracking-wide transition-all whitespace-nowrap">
                         Orders
                     </a>
 
-                    <a href="/admin?tab=customers" 
+                    <a href="/admin?tab=customers"
                        :class="(typeof activeTab !== 'undefined' && activeTab === 'customers') ? 'bg-[#FBEAD6] text-[#1A1818] font-bold shadow-md' : 'text-white/75 hover:text-white hover:bg-white/10'"
-                       @click.prevent="if (typeof activeTab !== 'undefined') { activeTab = 'customers'; window.history.pushState({}, '', '/admin?tab=customers'); }"
                        class="px-2.5 py-1.5 rounded-full text-[9.5px] font-sans font-semibold uppercase tracking-wide transition-all whitespace-nowrap">
                         Customers
                     </a>
 
-                    <a href="/admin?tab=associates" 
+                    <a href="/admin?tab=associates"
                        :class="(typeof activeTab !== 'undefined' && activeTab === 'associates') ? 'bg-[#FBEAD6] text-[#1A1818] font-bold shadow-md' : 'text-white/75 hover:text-white hover:bg-white/10'"
-                       @click.prevent="if (typeof activeTab !== 'undefined') { activeTab = 'associates'; window.history.pushState({}, '', '/admin?tab=associates'); }"
                        class="px-2.5 py-1.5 rounded-full text-[9.5px] font-sans font-semibold uppercase tracking-wide transition-all whitespace-nowrap">
                         Associates
                     </a>
 
-                    <a href="/admin?tab=reports" 
+                    <a href="/admin?tab=reports"
                        :class="(typeof activeTab !== 'undefined' && activeTab === 'reports') ? 'bg-[#FBEAD6] text-[#1A1818] font-bold shadow-md' : 'text-white/75 hover:text-white hover:bg-white/10'"
-                       @click.prevent="if (typeof activeTab !== 'undefined') { activeTab = 'reports'; window.history.pushState({}, '', '/admin?tab=reports'); }"
                        class="px-2.5 py-1.5 rounded-full text-[9.5px] font-sans font-semibold uppercase tracking-wide transition-all whitespace-nowrap">
                         Reports
                     </a>
 
-                    <a href="/admin?tab=offers" 
+                    <a href="/admin?tab=offers"
                        :class="(typeof activeTab !== 'undefined' && activeTab === 'offers') ? 'bg-[#FBEAD6] text-[#1A1818] font-bold shadow-md' : 'text-white/75 hover:text-white hover:bg-white/10'"
-                       @click.prevent="if (typeof activeTab !== 'undefined') { activeTab = 'offers'; window.history.pushState({}, '', '/admin?tab=offers'); }"
                        class="px-2.5 py-1.5 rounded-full text-[9.5px] font-sans font-semibold uppercase tracking-wide transition-all whitespace-nowrap">
                         Coupons
                     </a>
 
-                    <a href="/admin?tab=reviews" 
+                    <a href="/admin?tab=reviews"
                        :class="(typeof activeTab !== 'undefined' && activeTab === 'reviews') ? 'bg-[#FBEAD6] text-[#1A1818] font-bold shadow-md' : 'text-white/75 hover:text-white hover:bg-white/10'"
-                       @click.prevent="if (typeof activeTab !== 'undefined') { activeTab = 'reviews'; window.history.pushState({}, '', '/admin?tab=reviews'); }"
                        class="px-2.5 py-1.5 rounded-full text-[9.5px] font-sans font-semibold uppercase tracking-wide transition-all whitespace-nowrap">
                         Reviews
                     </a>
                 </nav>
+
 
                 <!-- Right: Admin Actions -->
                 <div class="flex items-center gap-2 sm:gap-3 shrink-0">
@@ -475,31 +468,31 @@
                         </span>
                     </div>
 
-                    <a href="/admin?tab=overview" @click="if (typeof activeTab !== 'undefined') activeTab = 'overview'; mobileMenuOpen = false;" class="block text-sm font-sans font-semibold text-[var(--color-ebony)] uppercase tracking-wider hover:text-[var(--color-rose-antique)]">
+                    <a href="/admin?tab=overview" class="block text-sm font-sans font-semibold text-[var(--color-ebony)] uppercase tracking-wider hover:text-[var(--color-rose-antique)]">
                         📊 Dashboard Overview
                     </a>
-                    <a href="/admin?tab=inventory" @click="if (typeof activeTab !== 'undefined') activeTab = 'inventory'; mobileMenuOpen = false;" class="block text-sm font-sans font-semibold text-[var(--color-ebony)] uppercase tracking-wider hover:text-[var(--color-rose-antique)]">
+                    <a href="/admin?tab=inventory" class="block text-sm font-sans font-semibold text-[var(--color-ebony)] uppercase tracking-wider hover:text-[var(--color-rose-antique)]">
                         👗 Inventory & Products
                     </a>
-                    <a href="/admin?tab=orders" @click="if (typeof activeTab !== 'undefined') activeTab = 'orders'; mobileMenuOpen = false;" class="block text-sm font-sans font-semibold text-[var(--color-ebony)] uppercase tracking-wider hover:text-[var(--color-rose-antique)]">
+                    <a href="/admin?tab=orders" class="block text-sm font-sans font-semibold text-[var(--color-ebony)] uppercase tracking-wider hover:text-[var(--color-rose-antique)]">
                         📦 Orders & Fulfillment
                     </a>
-                    <a href="/admin?tab=customers" @click="if (typeof activeTab !== 'undefined') activeTab = 'customers'; mobileMenuOpen = false;" class="block text-sm font-sans font-semibold text-[var(--color-ebony)] uppercase tracking-wider hover:text-[var(--color-rose-antique)]">
+                    <a href="/admin?tab=customers" class="block text-sm font-sans font-semibold text-[var(--color-ebony)] uppercase tracking-wider hover:text-[var(--color-rose-antique)]">
                         👥 Customers
                     </a>
-                    <a href="/admin?tab=associates" @click="if (typeof activeTab !== 'undefined') activeTab = 'associates'; mobileMenuOpen = false;" class="block text-sm font-sans font-semibold text-[var(--color-ebony)] uppercase tracking-wider hover:text-[var(--color-rose-antique)]">
+                    <a href="/admin?tab=associates" class="block text-sm font-sans font-semibold text-[var(--color-ebony)] uppercase tracking-wider hover:text-[var(--color-rose-antique)]">
                         🤝 Sales Associates & Sellers
                     </a>
-                    <a href="/admin?tab=reports" @click="if (typeof activeTab !== 'undefined') activeTab = 'reports'; mobileMenuOpen = false;" class="block text-sm font-sans font-semibold text-[var(--color-ebony)] uppercase tracking-wider hover:text-[var(--color-rose-antique)]">
+                    <a href="/admin?tab=reports" class="block text-sm font-sans font-semibold text-[var(--color-ebony)] uppercase tracking-wider hover:text-[var(--color-rose-antique)]">
                         📈 Monthly Reports & Billing
                     </a>
-                    <a href="/admin?tab=offers" @click="if (typeof activeTab !== 'undefined') activeTab = 'offers'; mobileMenuOpen = false;" class="block text-sm font-sans font-semibold text-[var(--color-ebony)] uppercase tracking-wider hover:text-[var(--color-rose-antique)]">
+                    <a href="/admin?tab=offers" class="block text-sm font-sans font-semibold text-[var(--color-ebony)] uppercase tracking-wider hover:text-[var(--color-rose-antique)]">
                         🎟️ Offers & Coupons
                     </a>
-                    <a href="/admin?tab=reviews" @click="if (typeof activeTab !== 'undefined') activeTab = 'reviews'; mobileMenuOpen = false;" class="block text-sm font-sans font-semibold text-[var(--color-ebony)] uppercase tracking-wider hover:text-[var(--color-rose-antique)]">
+                    <a href="/admin?tab=reviews" class="block text-sm font-sans font-semibold text-[var(--color-ebony)] uppercase tracking-wider hover:text-[var(--color-rose-antique)]">
                         ⭐ Ratings & Reviews
                     </a>
-                    <a href="/admin?tab=profile" @click="if (typeof activeTab !== 'undefined') activeTab = 'profile'; mobileMenuOpen = false;" class="block text-sm font-sans font-semibold text-[var(--color-ebony)] uppercase tracking-wider hover:text-[var(--color-rose-antique)]">
+                    <a href="/admin?tab=profile" class="block text-sm font-sans font-semibold text-[var(--color-ebony)] uppercase tracking-wider hover:text-[var(--color-rose-antique)]">
                         🛡️ Admin Profile & Security
                     </a>
                     <div class="pt-3 border-t border-[var(--color-bisque)]/40 mt-3 space-y-2">
