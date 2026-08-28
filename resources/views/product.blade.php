@@ -99,7 +99,7 @@ $ratingBreakdown = [
 <div class="pb-16 sm:pb-24 pt-4 sm:pt-6" x-data="{
     product: {{ json_encode($product) }},
     activeImageIndex: 0,
-    selectedColor: '{{ $product['colors'][0]['name'] ?? '' }}',
+    selectedColor: '{{ is_array($product['colors'][0] ?? null) ? ($product['colors'][0]['name'] ?? '') : ($product['colors'][0] ?? '') }}',
     selectedSize: '{{ $product['sizes'][0] ?? 'M' }}',
     quantity: 1,
     pincode: '',
@@ -227,9 +227,13 @@ $ratingBreakdown = [
                     <div class="pt-2">
                         <span class="block text-xs font-sans font-bold text-[var(--color-ebony)] uppercase tracking-wider mb-2">Color: <strong class="text-[var(--color-rose-antique)]" x-text="selectedColor"></strong></span>
                         <div class="flex items-center gap-3">
-                            <template x-for="c in product.colors" :key="c.name">
-                                <button @click="selectedColor = c.name" :class="selectedColor === c.name ? 'border-[var(--color-ebony)] scale-110 shadow-sm' : 'border-transparent'" :style="'background-color: ' + c.hex" class="w-9 h-9 rounded-full border-2 flex items-center justify-center transition-all" :title="c.name">
-                                    <svg x-show="selectedColor === c.name" class="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path></svg>
+                            <template x-for="c in product.colors" :key="typeof c === 'object' ? c.name : c">
+                                <button @click="selectedColor = (typeof c === 'object' ? c.name : c)" 
+                                        :class="selectedColor === (typeof c === 'object' ? c.name : c) ? 'border-[var(--color-ebony)] scale-110 shadow-sm' : 'border-transparent'" 
+                                        :style="'background-color: ' + (typeof c === 'object' ? (c.hex || '#C5A880') : '#C5A880')" 
+                                        class="w-9 h-9 rounded-full border-2 flex items-center justify-center transition-all shadow-xs" 
+                                        :title="typeof c === 'object' ? c.name : c">
+                                    <svg x-show="selectedColor === (typeof c === 'object' ? c.name : c)" class="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path></svg>
                                 </button>
                             </template>
                         </div>

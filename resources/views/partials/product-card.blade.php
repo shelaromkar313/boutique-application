@@ -28,7 +28,44 @@
     }
 
     $mainImage    = $p['images'][0] ?? '/storage/hero/hero-main.jpg';
+<<<<<<< HEAD
+=======
+    $rawColors    = is_array($p['colors'] ?? null) ? $p['colors'] : [];
+    $colorsPreview = array_slice($rawColors, 0, 3);
+    $extraColors  = max(0, count($rawColors) - 3);
+    $sizesPreview = array_slice(is_array($p['sizes'] ?? null) ? $p['sizes'] : [], 0, 4);
+>>>>>>> 4cf0ba5 (Fix: TypeError in product-card and product view by safely supporting string color names and object color maps)
     $savings      = isset($p['oldPrice']) && isset($p['price']) ? ($p['oldPrice'] - $p['price']) : 0;
+
+    $colorMap = [
+        'red' => '#DC2626', 'crimson' => '#991B1B', 'maroon' => '#800000',
+        'rose' => '#E11D48', 'blush' => '#FDA4AF', 'pink' => '#F472B6',
+        'navy' => '#1E3A8A', 'blue' => '#2563EB', 'royal' => '#1D4ED8', 'sky' => '#38BDF8',
+        'green' => '#16A34A', 'emerald' => '#059669', 'mint' => '#6EE7B7', 'thyme' => '#4D7C0F', 'olive' => '#65A30D',
+        'gold' => '#D97706', 'yellow' => '#FBBF24', 'amber' => '#F59E0B', 'mustard' => '#CA8A04', 'zari' => '#D4AF37',
+        'purple' => '#9333EA', 'lavender' => '#C084FC', 'plum' => '#7E22CE', 'violet' => '#7C3AED',
+        'black' => '#18181B', 'ebony' => '#1A1818', 'charcoal' => '#374151',
+        'white' => '#FFFFFF', 'ivory' => '#FFFFF0', 'cream' => '#FEF3C7', 'beige' => '#F5F5DC',
+        'orange' => '#EA580C', 'coral' => '#F87171', 'peach' => '#FDBA74',
+        'silver' => '#9CA3AF', 'grey' => '#6B7280', 'gray' => '#6B7280',
+    ];
+
+    $getColorHex = function($color) use ($colorMap) {
+        if (is_array($color)) return $color['hex'] ?? $color['color'] ?? '#C5A880';
+        if (!is_string($color)) return '#C5A880';
+        $trimmed = trim($color);
+        if (str_starts_with($trimmed, '#')) return $trimmed;
+        $lower = strtolower($trimmed);
+        foreach ($colorMap as $name => $hex) {
+            if (str_contains($lower, $name)) return $hex;
+        }
+        return '#C5A880';
+    };
+
+    $getColorName = function($color) {
+        if (is_array($color)) return $color['name'] ?? $color['hex'] ?? 'Couture Shade';
+        return is_string($color) ? $color : 'Couture Shade';
+    };
 @endphp
 
 <div class="group relative bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-[var(--shadow-floating)] transition-all duration-500 border border-[var(--color-bisque)]/30 flex flex-col" x-data="{ wishlisted: false }">
@@ -104,6 +141,26 @@
             </a>
         </div>
 
+<<<<<<< HEAD
+=======
+        <!-- Color Dots & Size Pills -->
+        <div class="flex items-center justify-between pt-1">
+            <div class="flex items-center gap-1">
+                @foreach($colorsPreview as $c)
+                    <span class="w-2.5 h-2.5 sm:w-3 sm:h-3 rounded-full border border-black/20 inline-block shadow-2xs" style="background-color: {{ $getColorHex($c) }}" title="{{ $getColorName($c) }}"></span>
+                @endforeach
+                @if($extraColors > 0)
+                    <span class="text-[9px] sm:text-[10px] text-[var(--color-ebony)]/50 font-sans">+{{ $extraColors }}</span>
+                @endif
+            </div>
+            <div class="hidden sm:flex items-center gap-1 text-[10px] font-sans font-semibold text-[var(--color-ebony)]/60">
+                @foreach($sizesPreview as $s)
+                    <span class="bg-[var(--color-offwhite)] px-1.5 py-0.5 rounded border border-[var(--color-bisque)]/50">{{ $s }}</span>
+                @endforeach
+            </div>
+        </div>
+
+>>>>>>> 4cf0ba5 (Fix: TypeError in product-card and product view by safely supporting string color names and object color maps)
         <!-- Price & Savings -->
         <div class="flex items-baseline gap-1 sm:gap-2 pt-1.5 sm:pt-2 border-t border-[var(--color-bisque)]/30">
             <span class="font-serif text-sm sm:text-lg font-bold text-[var(--color-ebony)]">₹{{ number_format($p['price']) }}</span>
