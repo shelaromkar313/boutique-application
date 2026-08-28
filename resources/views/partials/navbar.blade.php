@@ -11,30 +11,13 @@
     @php
         $activeAnnouncements = \App\Models\Announcement::active()->get();
         $tickerAnnouncements = $activeAnnouncements->where('show_in_ticker', true);
-        $bannerAnnouncements = $activeAnnouncements->where('show_as_banner', true);
         $tickerCoupons = \App\Models\Coupon::where('is_announced', true)
             ->where('is_active', true)
             ->where(function($q) { $q->whereNull('valid_until')->orWhere('valid_until', '>=', now()); })
             ->get();
     @endphp
 
-    {{-- 1. Optional Top Notification Banner (Dismissible) --}}
-    @if($bannerAnnouncements->isNotEmpty())
-        @foreach($bannerAnnouncements as $bAnn)
-        <div x-data="{ showBanner: true }" x-show="showBanner" x-transition class="bg-gradient-to-r from-amber-500 via-rose-500 to-amber-600 text-white text-xs font-sans py-2 px-4 shadow-sm flex items-center justify-between z-50">
-            <div class="max-w-7xl mx-auto flex items-center justify-center gap-2 text-center flex-1">
-                <span>{{ $bAnn->icon ?? '📢' }}</span>
-                <span class="font-bold tracking-wide">{{ $bAnn->title }}:</span>
-                <span class="opacity-95">{{ $bAnn->message }}</span>
-            </div>
-            <button @click="showBanner = false" class="text-white/80 hover:text-white p-1 ml-2 focus:outline-none" title="Dismiss">
-                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
-            </button>
-        </div>
-        @endforeach
-    @endif
-
-    <!-- 2. Continuous Right-to-Left Announcement Ticker -->
+    <!-- 1. Continuous Right-to-Left Announcement Ticker -->
     <div class="bg-white text-[var(--color-ebony)] text-[11px] font-sans tracking-[0.22em] uppercase py-2 border-b border-[var(--color-bisque)]/40 overflow-hidden relative select-none z-40">
         <div class="flex whitespace-nowrap gap-12 items-center w-max" style="animation: marquee 30s linear infinite;">
             <style>
