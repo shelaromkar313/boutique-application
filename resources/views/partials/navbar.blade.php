@@ -65,78 +65,78 @@
                 {{-- ══════════════════════════════════════════════════════════════════ --}}
                 
                 <!-- Left: Admin Brand Lockup -->
-                <div class="flex items-center gap-2 sm:gap-3 shrink-0">
+                <div class="flex items-center gap-1.5 shrink-0">
                     <button @click="mobileMenuOpen = true" class="lg:hidden p-1.5 text-white hover:text-[#FBEAD6] transition-colors rounded-full focus:outline-none shrink-0" aria-label="Open Menu">
-                        <svg class="w-5 h-5 sm:w-6 sm:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 6h16M4 12h16M4 18h16"></path></svg>
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 6h16M4 12h16M4 18h16"></path></svg>
                     </button>
 
-                    <a href="/admin" class="flex items-center gap-2 group shrink-0">
-                        <div class="w-8 h-8 sm:w-9 sm:h-9 overflow-hidden shrink-0 flex items-center justify-center bg-transparent rounded-full border-[0.5px] border-white/30 group-hover:border-[#FBEAD6]/50 transition-colors">
+                    <a href="/admin" class="flex items-center gap-1.5 group shrink-0">
+                        <div class="w-7 h-7 overflow-hidden shrink-0 flex items-center justify-center bg-transparent rounded-full border-[0.5px] border-white/30 group-hover:border-[#FBEAD6]/50 transition-colors">
                             <img src="/storage/logo.jpg" alt="Estilo Wear" class="w-[160%] max-w-none mix-blend-screen -mt-[25%]" />
                         </div>
                         <div class="flex flex-col justify-center">
-                            <span class="text-xs sm:text-base font-serif font-bold tracking-[0.20em] text-[#FBEAD6] leading-none uppercase">Estilo Admin</span>
-                            <span class="text-[6px] sm:text-[7px] font-sans tracking-[0.24em] text-emerald-400 mt-1 uppercase pl-0.5 font-bold">Executive Console</span>
+                            <span class="text-[11px] font-serif font-bold tracking-[0.18em] text-[#FBEAD6] leading-none uppercase">Estilo</span>
+                            <span class="text-[7px] font-sans tracking-[0.20em] text-emerald-400 mt-0.5 uppercase font-bold">Admin</span>
                         </div>
                     </a>
                 </div>
 
                 <!-- Center: Admin Features Navigation Tabs -->
-                <nav class="hidden lg:flex flex-1 justify-center items-center gap-1 xl:gap-1.5 px-2 min-w-0 overflow-x-auto scrollbar-none">
+                <nav class="hidden lg:flex flex-1 justify-center items-center gap-0.5 px-1 min-w-0 overflow-x-auto scrollbar-none">
                     <a href="/admin?tab=overview" 
-                       :class="(typeof activeTab !== 'undefined' && activeTab === 'overview') ? 'bg-[#FBEAD6] text-[#1A1818] font-bold shadow-md' : 'text-white/80 hover:text-white hover:bg-white/10'"
-                       @click="if (typeof activeTab !== 'undefined') { activeTab = 'overview'; window.history.pushState({}, '', '/admin?tab=overview'); }"
-                       class="px-3 py-1.5 rounded-full text-[10.5px] font-sans uppercase tracking-wider transition-all whitespace-nowrap">
+                       :class="(typeof activeTab !== 'undefined' && activeTab === 'overview') ? 'bg-[#FBEAD6] text-[#1A1818] font-bold shadow-md' : 'text-white/75 hover:text-white hover:bg-white/10'"
+                       @click.prevent="if (typeof activeTab !== 'undefined') { activeTab = 'overview'; window.history.pushState({}, '', '/admin?tab=overview'); }"
+                       class="px-2.5 py-1.5 rounded-full text-[9.5px] font-sans font-semibold uppercase tracking-wide transition-all whitespace-nowrap">
                         Overview
                     </a>
-                    
+
                     <a href="/admin?tab=inventory" 
-                       :class="(typeof activeTab !== 'undefined' && activeTab === 'inventory') ? 'bg-[#FBEAD6] text-[#1A1818] font-bold shadow-md' : 'text-white/80 hover:text-white hover:bg-white/10'"
-                       @click="if (typeof activeTab !== 'undefined') { activeTab = 'inventory'; window.history.pushState({}, '', '/admin?tab=inventory'); }"
-                       class="px-3 py-1.5 rounded-full text-[10.5px] font-sans uppercase tracking-wider transition-all whitespace-nowrap">
-                        Inventory & Products
+                       :class="(typeof activeTab !== 'undefined' && activeTab === 'inventory') ? 'bg-[#FBEAD6] text-[#1A1818] font-bold shadow-md' : 'text-white/75 hover:text-white hover:bg-white/10'"
+                       @click.prevent="if (typeof activeTab !== 'undefined') { activeTab = 'inventory'; window.history.pushState({}, '', '/admin?tab=inventory'); }"
+                       class="px-2.5 py-1.5 rounded-full text-[9.5px] font-sans font-semibold uppercase tracking-wide transition-all whitespace-nowrap">
+                        Inventory
                     </a>
 
                     <a href="/admin?tab=orders" 
-                       :class="(typeof activeTab !== 'undefined' && activeTab === 'orders') ? 'bg-[#FBEAD6] text-[#1A1818] font-bold shadow-md' : 'text-white/80 hover:text-white hover:bg-white/10'"
-                       @click="if (typeof activeTab !== 'undefined') { activeTab = 'orders'; window.history.pushState({}, '', '/admin?tab=orders'); }"
-                       class="px-3 py-1.5 rounded-full text-[10.5px] font-sans uppercase tracking-wider transition-all whitespace-nowrap">
-                        Orders & Fulfillment
+                       :class="(typeof activeTab !== 'undefined' && activeTab === 'orders') ? 'bg-[#FBEAD6] text-[#1A1818] font-bold shadow-md' : 'text-white/75 hover:text-white hover:bg-white/10'"
+                       @click.prevent="if (typeof activeTab !== 'undefined') { activeTab = 'orders'; window.history.pushState({}, '', '/admin?tab=orders'); }"
+                       class="px-2.5 py-1.5 rounded-full text-[9.5px] font-sans font-semibold uppercase tracking-wide transition-all whitespace-nowrap">
+                        Orders
                     </a>
 
                     <a href="/admin?tab=customers" 
-                       :class="(typeof activeTab !== 'undefined' && activeTab === 'customers') ? 'bg-[#FBEAD6] text-[#1A1818] font-bold shadow-md' : 'text-white/80 hover:text-white hover:bg-white/10'"
-                       @click="if (typeof activeTab !== 'undefined') { activeTab = 'customers'; window.history.pushState({}, '', '/admin?tab=customers'); }"
-                       class="px-3 py-1.5 rounded-full text-[10.5px] font-sans uppercase tracking-wider transition-all whitespace-nowrap">
+                       :class="(typeof activeTab !== 'undefined' && activeTab === 'customers') ? 'bg-[#FBEAD6] text-[#1A1818] font-bold shadow-md' : 'text-white/75 hover:text-white hover:bg-white/10'"
+                       @click.prevent="if (typeof activeTab !== 'undefined') { activeTab = 'customers'; window.history.pushState({}, '', '/admin?tab=customers'); }"
+                       class="px-2.5 py-1.5 rounded-full text-[9.5px] font-sans font-semibold uppercase tracking-wide transition-all whitespace-nowrap">
                         Customers
                     </a>
 
                     <a href="/admin?tab=associates" 
-                       :class="(typeof activeTab !== 'undefined' && activeTab === 'associates') ? 'bg-[#FBEAD6] text-[#1A1818] font-bold shadow-md' : 'text-white/80 hover:text-white hover:bg-white/10'"
-                       @click="if (typeof activeTab !== 'undefined') { activeTab = 'associates'; window.history.pushState({}, '', '/admin?tab=associates'); }"
-                       class="px-3 py-1.5 rounded-full text-[10.5px] font-sans uppercase tracking-wider transition-all whitespace-nowrap">
-                        Sales Associates
+                       :class="(typeof activeTab !== 'undefined' && activeTab === 'associates') ? 'bg-[#FBEAD6] text-[#1A1818] font-bold shadow-md' : 'text-white/75 hover:text-white hover:bg-white/10'"
+                       @click.prevent="if (typeof activeTab !== 'undefined') { activeTab = 'associates'; window.history.pushState({}, '', '/admin?tab=associates'); }"
+                       class="px-2.5 py-1.5 rounded-full text-[9.5px] font-sans font-semibold uppercase tracking-wide transition-all whitespace-nowrap">
+                        Associates
                     </a>
 
                     <a href="/admin?tab=reports" 
-                       :class="(typeof activeTab !== 'undefined' && activeTab === 'reports') ? 'bg-[#FBEAD6] text-[#1A1818] font-bold shadow-md' : 'text-white/80 hover:text-white hover:bg-white/10'"
-                       @click="if (typeof activeTab !== 'undefined') { activeTab = 'reports'; window.history.pushState({}, '', '/admin?tab=reports'); }"
-                       class="px-3 py-1.5 rounded-full text-[10.5px] font-sans uppercase tracking-wider transition-all whitespace-nowrap">
-                        Billing & Reports
+                       :class="(typeof activeTab !== 'undefined' && activeTab === 'reports') ? 'bg-[#FBEAD6] text-[#1A1818] font-bold shadow-md' : 'text-white/75 hover:text-white hover:bg-white/10'"
+                       @click.prevent="if (typeof activeTab !== 'undefined') { activeTab = 'reports'; window.history.pushState({}, '', '/admin?tab=reports'); }"
+                       class="px-2.5 py-1.5 rounded-full text-[9.5px] font-sans font-semibold uppercase tracking-wide transition-all whitespace-nowrap">
+                        Reports
                     </a>
 
                     <a href="/admin?tab=offers" 
-                       :class="(typeof activeTab !== 'undefined' && activeTab === 'offers') ? 'bg-[#FBEAD6] text-[#1A1818] font-bold shadow-md' : 'text-white/80 hover:text-white hover:bg-white/10'"
-                       @click="if (typeof activeTab !== 'undefined') { activeTab = 'offers'; window.history.pushState({}, '', '/admin?tab=offers'); }"
-                       class="px-3 py-1.5 rounded-full text-[10.5px] font-sans uppercase tracking-wider transition-all whitespace-nowrap">
-                        Offers & Coupons
+                       :class="(typeof activeTab !== 'undefined' && activeTab === 'offers') ? 'bg-[#FBEAD6] text-[#1A1818] font-bold shadow-md' : 'text-white/75 hover:text-white hover:bg-white/10'"
+                       @click.prevent="if (typeof activeTab !== 'undefined') { activeTab = 'offers'; window.history.pushState({}, '', '/admin?tab=offers'); }"
+                       class="px-2.5 py-1.5 rounded-full text-[9.5px] font-sans font-semibold uppercase tracking-wide transition-all whitespace-nowrap">
+                        Coupons
                     </a>
 
                     <a href="/admin?tab=reviews" 
-                       :class="(typeof activeTab !== 'undefined' && activeTab === 'reviews') ? 'bg-[#FBEAD6] text-[#1A1818] font-bold shadow-md' : 'text-white/80 hover:text-white hover:bg-white/10'"
-                       @click="if (typeof activeTab !== 'undefined') { activeTab = 'reviews'; window.history.pushState({}, '', '/admin?tab=reviews'); }"
-                       class="px-3 py-1.5 rounded-full text-[10.5px] font-sans uppercase tracking-wider transition-all whitespace-nowrap">
-                        Ratings & Reviews
+                       :class="(typeof activeTab !== 'undefined' && activeTab === 'reviews') ? 'bg-[#FBEAD6] text-[#1A1818] font-bold shadow-md' : 'text-white/75 hover:text-white hover:bg-white/10'"
+                       @click.prevent="if (typeof activeTab !== 'undefined') { activeTab = 'reviews'; window.history.pushState({}, '', '/admin?tab=reviews'); }"
+                       class="px-2.5 py-1.5 rounded-full text-[9.5px] font-sans font-semibold uppercase tracking-wide transition-all whitespace-nowrap">
+                        Reviews
                     </a>
                 </nav>
 

@@ -148,54 +148,6 @@
             </div>
         </div>
 
-        {{-- Navigation Tabs Header --}}
-        <div class="flex items-center gap-2 overflow-x-auto pb-2 border-b border-[var(--color-bisque)] scrollbar-none">
-            <button @click="activeTab = 'overview'" 
-                    :class="activeTab === 'overview' ? 'bg-[var(--color-ebony)] text-white shadow-md' : 'bg-white text-[var(--color-ebony)]/70 hover:text-[var(--color-ebony)] border border-[var(--color-bisque)]'"
-                    class="px-4 py-2.5 rounded-full text-xs font-sans font-bold uppercase tracking-wider transition-all shrink-0">
-                Dashboard Overview
-            </button>
-            <button @click="activeTab = 'inventory'" 
-                    :class="activeTab === 'inventory' ? 'bg-[var(--color-ebony)] text-white shadow-md' : 'bg-white text-[var(--color-ebony)]/70 hover:text-[var(--color-ebony)] border border-[var(--color-bisque)]'"
-                    class="px-4 py-2.5 rounded-full text-xs font-sans font-bold uppercase tracking-wider transition-all shrink-0">
-                Inventory & Products ({{ $totalProductsCount }})
-            </button>
-            <button @click="activeTab = 'orders'" 
-                    :class="activeTab === 'orders' ? 'bg-[var(--color-ebony)] text-white shadow-md' : 'bg-white text-[var(--color-ebony)]/70 hover:text-[var(--color-ebony)] border border-[var(--color-bisque)]'"
-                    class="px-4 py-2.5 rounded-full text-xs font-sans font-bold uppercase tracking-wider transition-all shrink-0">
-                Orders & Fulfillment ({{ $orders->count() }})
-            </button>
-            <button @click="activeTab = 'customers'" 
-                    :class="activeTab === 'customers' ? 'bg-[var(--color-ebony)] text-white shadow-md' : 'bg-white text-[var(--color-ebony)]/70 hover:text-[var(--color-ebony)] border border-[var(--color-bisque)]'"
-                    class="px-4 py-2.5 rounded-full text-xs font-sans font-bold uppercase tracking-wider transition-all shrink-0">
-                Customers ({{ $customers->count() }})
-            </button>
-            <button @click="activeTab = 'associates'" 
-                    :class="activeTab === 'associates' ? 'bg-[var(--color-ebony)] text-white shadow-md' : 'bg-white text-[var(--color-ebony)]/70 hover:text-[var(--color-ebony)] border border-[var(--color-bisque)]'"
-                    class="px-4 py-2.5 rounded-full text-xs font-sans font-bold uppercase tracking-wider transition-all shrink-0">
-                Sales Associates & Sellers ({{ $totalAssociatesCount }})
-            </button>
-            <button @click="activeTab = 'reports'" 
-                    :class="activeTab === 'reports' ? 'bg-[var(--color-ebony)] text-white shadow-md' : 'bg-white text-[var(--color-ebony)]/70 hover:text-[var(--color-ebony)] border border-[var(--color-bisque)]'"
-                    class="px-4 py-2.5 rounded-full text-xs font-sans font-bold uppercase tracking-wider transition-all shrink-0">
-                Monthly Reports & Billing
-            </button>
-            <button @click="activeTab = 'offers'" 
-                    :class="activeTab === 'offers' ? 'bg-[var(--color-ebony)] text-white shadow-md' : 'bg-white text-[var(--color-ebony)]/70 hover:text-[var(--color-ebony)] border border-[var(--color-bisque)]'"
-                    class="px-4 py-2.5 rounded-full text-xs font-sans font-bold uppercase tracking-wider transition-all shrink-0">
-                Offers & Coupons ({{ $coupons->count() }})
-            </button>
-            <button @click="activeTab = 'reviews'" 
-                    :class="activeTab === 'reviews' ? 'bg-[var(--color-ebony)] text-white shadow-md' : 'bg-white text-[var(--color-ebony)]/70 hover:text-[var(--color-ebony)] border border-[var(--color-bisque)]'"
-                    class="px-4 py-2.5 rounded-full text-xs font-sans font-bold uppercase tracking-wider transition-all shrink-0">
-                Ratings & Reviews ({{ $reviews->count() }})
-            </button>
-            <button @click="activeTab = 'profile'" 
-                    :class="activeTab === 'profile' ? 'bg-[var(--color-ebony)] text-white shadow-md' : 'bg-white text-[var(--color-ebony)]/70 hover:text-[var(--color-ebony)] border border-[var(--color-bisque)]'"
-                    class="px-4 py-2.5 rounded-full text-xs font-sans font-bold uppercase tracking-wider transition-all shrink-0">
-                Admin Profile & Security
-            </button>
-        </div>
 
         {{-- TAB 1: OVERVIEW --}}
         <div x-show="activeTab === 'overview'" class="space-y-6">
