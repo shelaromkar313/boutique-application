@@ -7,15 +7,34 @@
     class="sticky top-0 z-50">
     
     @if(!request()->is('admin*'))
-    {{-- Pull live announced coupons from DB --}}
+    {{-- Pull live announced coupons and announcements from DB --}}
     @php
+        $activeAnnouncements = \App\Models\Announcement::active()->get();
+        $tickerAnnouncements = $activeAnnouncements->where('show_in_ticker', true);
+        $bannerAnnouncements = $activeAnnouncements->where('show_as_banner', true);
         $tickerCoupons = \App\Models\Coupon::where('is_announced', true)
             ->where('is_active', true)
             ->where(function($q) { $q->whereNull('valid_until')->orWhere('valid_until', '>=', now()); })
             ->get();
     @endphp
 
-    <!-- 1. Continuous Right-to-Left Announcement Ticker -->
+    {{-- 1. Optional Top Notification Banner (Dismissible) --}}
+    @if($bannerAnnouncements->isNotEmpty())
+        @foreach($bannerAnnouncements as $bAnn)
+        <div x-data="{ showBanner: true }" x-show="showBanner" x-transition class="bg-gradient-to-r from-amber-500 via-rose-500 to-amber-600 text-white text-xs font-sans py-2 px-4 shadow-sm flex items-center justify-between z-50">
+            <div class="max-w-7xl mx-auto flex items-center justify-center gap-2 text-center flex-1">
+                <span>{{ $bAnn->icon ?? '📢' }}</span>
+                <span class="font-bold tracking-wide">{{ $bAnn->title }}:</span>
+                <span class="opacity-95">{{ $bAnn->message }}</span>
+            </div>
+            <button @click="showBanner = false" class="text-white/80 hover:text-white p-1 ml-2 focus:outline-none" title="Dismiss">
+                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+            </button>
+        </div>
+        @endforeach
+    @endif
+
+    <!-- 2. Continuous Right-to-Left Announcement Ticker -->
     <div class="bg-white text-[var(--color-ebony)] text-[11px] font-sans tracking-[0.22em] uppercase py-2 border-b border-[var(--color-bisque)]/40 overflow-hidden relative select-none z-40">
         <div class="flex whitespace-nowrap gap-12 items-center w-max" style="animation: marquee 30s linear infinite;">
             <style>
@@ -26,18 +45,30 @@
             @foreach([1,2] as $loop)
             <div class="flex items-center gap-8 shrink-0">
 
-                {{-- Dynamic DB-driven coupon announcements --}}
-                @if($tickerCoupons->count() > 0)
-                    @foreach($tickerCoupons as $tc)
+                {{-- Dynamic Custom Announcements --}}
+                @if($tickerAnnouncements->isNotEmpty())
+                    @foreach($tickerAnnouncements as $tAnn)
                         <span class="flex items-center gap-2">
-                            <span class="text-amber-500 text-xs animate-pulse">📢</span>
-                            <span>{{ strtoupper($tc->announcement_text) }}</span>
+                            <span class="text-amber-500 text-xs animate-pulse">{{ $tAnn->icon ?? '📢' }}</span>
+                            <span class="font-bold text-amber-900">{{ strtoupper($tAnn->title) }}:</span>
+                            <span>{{ strtoupper($tAnn->message) }}</span>
                         </span>
                         <span class="text-[var(--color-bisque)] font-bold">|</span>
                     @endforeach
                 @endif
 
-                {{-- Static fallback messages always shown --}}
+                {{-- Dynamic DB-driven coupon announcements --}}
+                @if($tickerCoupons->isNotEmpty())
+                    @foreach($tickerCoupons as $tc)
+                        <span class="flex items-center gap-2">
+                            <span class="text-amber-500 text-xs animate-pulse">🎟️</span>
+                            <span>{{ strtoupper($tc->announcement_text ?? ('USE CODE ' . $tc->code . ' FOR ' . $tc->discount_value . '% OFF')) }}</span>
+                        </span>
+                        <span class="text-[var(--color-bisque)] font-bold">|</span>
+                    @endforeach
+                @endif
+
+                {{-- Static fallback messages --}}
                 <span class="flex items-center gap-2">
                     <span class="text-[var(--color-rose-antique)] text-xs animate-pulse">✨</span>
                     <span>COMPLIMENTARY EXPRESS SHIPPING ON ORDERS OVER ₹1,499</span>
@@ -59,8 +90,7 @@
     </div>
     @endif
 
-
-    <!-- 2. Premium Fixed Header -->
+    <!-- 3. Premium Fixed Header -->
     <header :class="isScrolled ? 'bg-[#181818]/98 backdrop-blur-md shadow-2xl py-2.5 border-b border-white/10' : 'bg-[#1a1a1a] py-3.5 border-b border-white/5'" class="w-full transition-all duration-500 text-white">
         <div class="max-w-[1520px] mx-auto pl-3 pr-4 sm:px-6 lg:px-8">
             <div class="flex items-center justify-between gap-2 lg:gap-4">
@@ -129,6 +159,12 @@
                        :class="(typeof activeTab !== 'undefined' && activeTab === 'offers') ? 'bg-[#FBEAD6] text-[#1A1818] font-bold shadow-md' : 'text-white/75 hover:text-white hover:bg-white/10'"
                        class="px-2.5 py-1.5 rounded-full text-[9.5px] font-sans font-semibold uppercase tracking-wide transition-all whitespace-nowrap">
                         Coupons
+                    </a>
+
+                    <a href="/admin?tab=announcements"
+                       :class="(typeof activeTab !== 'undefined' && activeTab === 'announcements') ? 'bg-[#FBEAD6] text-[#1A1818] font-bold shadow-md' : 'text-white/75 hover:text-white hover:bg-white/10'"
+                       class="px-2.5 py-1.5 rounded-full text-[9.5px] font-sans font-semibold uppercase tracking-wide transition-all whitespace-nowrap flex items-center gap-1">
+                        <span>📢 Announcements</span>
                     </a>
 
                     <a href="/admin?tab=reviews"
@@ -494,6 +530,9 @@
                     </a>
                     <a href="/admin?tab=offers" class="block text-sm font-sans font-semibold text-[var(--color-ebony)] uppercase tracking-wider hover:text-[var(--color-rose-antique)]">
                         🎟️ Offers & Coupons
+                    </a>
+                    <a href="/admin?tab=announcements" class="block text-sm font-sans font-semibold text-[var(--color-ebony)] uppercase tracking-wider hover:text-[var(--color-rose-antique)]">
+                        📢 Storefront Announcements
                     </a>
                     <a href="/admin?tab=reviews" class="block text-sm font-sans font-semibold text-[var(--color-ebony)] uppercase tracking-wider hover:text-[var(--color-rose-antique)]">
                         ⭐ Ratings & Reviews

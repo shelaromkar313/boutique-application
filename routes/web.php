@@ -115,5 +115,11 @@ Route::prefix('admin')->middleware('admin')->group(function () {
     Route::post('/coupons/{id}/toggle', [AdminController::class, 'toggleCoupon']);
     Route::post('/coupons/{id}/announce', [AdminController::class, 'announceCoupon']);
     Route::delete('/coupons/{id}', [AdminController::class, 'deleteCoupon']);
+
+    // 4.9 Storefront Announcements Suite
+    Route::post('/announcements', [AdminController::class, 'storeAnnouncement']);
+    Route::post('/announcements/{id}', [AdminController::class, 'updateAnnouncement']);
+    Route::post('/announcements/{id}/toggle', [AdminController::class, 'toggleAnnouncement']);
+    Route::delete('/announcements/{id}', [AdminController::class, 'deleteAnnouncement']);
 });
 

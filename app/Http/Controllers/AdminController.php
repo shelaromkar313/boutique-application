@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Announcement;
 use App\Models\Category;
 use App\Models\Coupon;
 use App\Models\Order;
@@ -43,6 +44,7 @@ class AdminController extends Controller
         $announcedCoupons = Coupon::where('is_announced', true)->where('is_active', true)
             ->where(function($q) { $q->whereNull('valid_until')->orWhere('valid_until', '>=', now()); })
             ->get();
+        $announcements = Announcement::orderBy('sort_order', 'asc')->latest()->get();
         $referralSales = ReferralSale::with('associate')->latest()->get();
 
         // Key KPI Metrics
@@ -72,6 +74,7 @@ class AdminController extends Controller
             'reviews',
             'coupons',
             'announcedCoupons',
+            'announcements',
             'referralSales',
             'totalRevenue',
             'totalOrdersCount',
@@ -444,5 +447,75 @@ class AdminController extends Controller
             : "🔕 Announcement for '{$coupon->code}' has been removed from the storefront.";
 
         return redirect('/admin?tab=offers')->with('success', $msg);
+    }
+
+    /**
+     * 4.9 Storefront Announcements Suite
+     */
+    public function storeAnnouncement(Request $request)
+    {
+        $request->validate([
+            'title'   => 'required|string|max:255',
+            'message' => 'required|string|max:1000',
+            'type'    => 'nullable|string',
+            'color'   => 'nullable|string',
+            'icon'    => 'nullable|string|max:10',
+        ]);
+
+        Announcement::create([
+            'title'          => $request->title,
+            'message'        => $request->message,
+            'type'           => $request->input('type', 'sale'),
+            'color'          => $request->input('color', 'amber'),
+            'icon'           => $request->input('icon', '📢'),
+            'show_in_ticker' => $request->has('show_in_ticker'),
+            'show_as_banner' => $request->has('show_as_banner'),
+            'is_active'      => true,
+            'starts_at'      => $request->filled('starts_at') ? $request->starts_at : null,
+            'ends_at'        => $request->filled('ends_at') ? $request->ends_at : null,
+            'sort_order'     => (int) $request->input('sort_order', 0),
+        ]);
+
+        return redirect('/admin?tab=announcements')->with('success', '📢 Announcement published live to storefront!');
+    }
+
+    public function updateAnnouncement(Request $request, $id)
+    {
+        $announcement = Announcement::findOrFail($id);
+        $request->validate([
+            'title'   => 'required|string|max:255',
+            'message' => 'required|string|max:1000',
+        ]);
+
+        $announcement->update([
+            'title'          => $request->title,
+            'message'        => $request->message,
+            'type'           => $request->input('type', $announcement->type),
+            'color'          => $request->input('color', $announcement->color),
+            'icon'           => $request->input('icon', $announcement->icon),
+            'show_in_ticker' => $request->has('show_in_ticker'),
+            'show_as_banner' => $request->has('show_as_banner'),
+            'is_active'      => $request->has('is_active'),
+            'starts_at'      => $request->filled('starts_at') ? $request->starts_at : null,
+            'ends_at'        => $request->filled('ends_at') ? $request->ends_at : null,
+        ]);
+
+        return redirect('/admin?tab=announcements')->with('success', 'Announcement updated successfully!');
+    }
+
+    public function toggleAnnouncement($id)
+    {
+        $announcement = Announcement::findOrFail($id);
+        $announcement->update(['is_active' => !$announcement->is_active]);
+        $status = $announcement->is_active ? 'Active (Live)' : 'Paused (Hidden)';
+        return redirect('/admin?tab=announcements')->with('success', "Announcement '{$announcement->title}' status set to {$status}.");
+    }
+
+    public function deleteAnnouncement($id)
+    {
+        $announcement = Announcement::findOrFail($id);
+        $title = $announcement->title;
+        $announcement->delete();
+        return redirect('/admin?tab=announcements')->with('success', "Announcement '{$title}' removed.");
     }
 }

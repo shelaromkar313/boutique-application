@@ -26,6 +26,7 @@
             'associates': 'Sales Associates & Sellers',
             'reports': 'Monthly Reports & Billing',
             'offers': 'Offers & Coupons',
+            'announcements': 'Storefront Announcements & Alerts',
             'reviews': 'Ratings & Reviews',
             'profile': 'Admin Profile & Security'
         };
@@ -70,9 +71,19 @@
     selectedReview: { rating: 5, comment: '', user_name: '', is_approved: true },
     reviewFilter: 'all',
 
+    showAddAnnouncementModal: false,
+    editAnnouncementModal: false,
+    selectedAnnouncement: { id: null, title: '', message: '', type: 'sale', color: 'amber', icon: '📢', show_in_ticker: true, show_as_banner: false, is_active: true, starts_at: '', ends_at: '' },
+    announcementFilter: 'all',
+
     openEditReview(rev) {
         this.selectedReview = Object.assign({}, rev);
         this.editReviewModal = true;
+    },
+
+    openEditAnnouncement(ann) {
+        this.selectedAnnouncement = Object.assign({}, ann);
+        this.editAnnouncementModal = true;
     }
 }">
 
@@ -141,6 +152,9 @@
                 </button>
                 <button @click="showAddCouponModal = true" class="inline-flex items-center gap-1.5 bg-amber-50 hover:bg-amber-100 border border-amber-300 text-amber-900 text-xs font-sans font-bold uppercase tracking-wider px-3.5 py-2.5 rounded-full transition-colors">
                     + Coupon
+                </button>
+                <button @click="showAddAnnouncementModal = true" class="inline-flex items-center gap-1.5 bg-rose-50 hover:bg-rose-100 border border-rose-200 text-rose-900 text-xs font-sans font-bold uppercase tracking-wider px-3.5 py-2.5 rounded-full transition-colors shadow-xs">
+                    📢 + Announcement
                 </button>
                 <a href="/shop" target="_blank" class="inline-flex items-center gap-1.5 bg-gray-50 hover:bg-gray-100 border border-[var(--color-bisque)] text-[var(--color-ebony)] text-xs font-sans font-bold uppercase tracking-wider px-3.5 py-2.5 rounded-full transition-colors">
                     Store ↗
@@ -726,6 +740,176 @@
             </div>
         </div>
 
+        {{-- TAB: STOREFRONT ANNOUNCEMENTS SUITE --}}
+        <div x-show="activeTab === 'announcements'" class="space-y-6">
+            <div class="bg-white rounded-3xl border border-[var(--color-bisque)] p-6 sm:p-8 shadow-sm space-y-6">
+                
+                {{-- Header & Subtext --}}
+                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-[var(--color-bisque)]/60 pb-5">
+                    <div>
+                        <span class="text-[10px] font-sans font-bold uppercase tracking-widest text-[var(--color-rose-antique)]">Promotions & Broadcast Suite</span>
+                        <h2 class="font-serif text-xl sm:text-2xl font-bold text-[var(--color-ebony)] flex items-center gap-2">
+                            Storefront Announcements & Promotional Banners
+                        </h2>
+                        <p class="text-xs font-sans text-[var(--color-ebony)]/60 mt-0.5">
+                            Broadcast promotional sales, new arrivals, festival discount codes, and express delivery alerts directly to the public storefront ticker and top banners.
+                        </p>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <button type="button" @click="showAddAnnouncementModal = true" class="bg-[var(--color-ebony)] hover:bg-[var(--color-rose-deep)] text-white text-xs font-sans font-bold uppercase tracking-wider px-5 py-2.5 rounded-full transition-all shadow-md flex items-center gap-2">
+                            <span>📢</span> + Create Announcement
+                        </button>
+                    </div>
+                </div>
+
+                {{-- Metric KPI Badges --}}
+                <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
+                    <div class="p-4 rounded-2xl bg-[var(--color-champagne-light)]/40 border border-[var(--color-bisque)]/60 flex items-center gap-3">
+                        <div class="w-10 h-10 rounded-xl bg-white shadow-xs flex items-center justify-center text-lg">📢</div>
+                        <div>
+                            <span class="text-[10px] font-sans font-bold text-[var(--color-ebony)]/60 uppercase tracking-wider block">Total Announcements</span>
+                            <span class="font-serif text-xl font-bold text-[var(--color-ebony)]">{{ $announcements->count() }}</span>
+                        </div>
+                    </div>
+
+                    <div class="p-4 rounded-2xl bg-amber-50 border border-amber-200/80 flex items-center gap-3">
+                        <div class="w-10 h-10 rounded-xl bg-amber-100 flex items-center justify-center text-lg">⚡</div>
+                        <div>
+                            <span class="text-[10px] font-sans font-bold text-amber-900/80 uppercase tracking-wider block">Live on Ticker</span>
+                            <span class="font-serif text-xl font-bold text-amber-950">{{ $announcements->where('is_active', true)->where('show_in_ticker', true)->count() }}</span>
+                        </div>
+                    </div>
+
+                    <div class="p-4 rounded-2xl bg-rose-50 border border-rose-200/80 flex items-center gap-3">
+                        <div class="w-10 h-10 rounded-xl bg-rose-100 flex items-center justify-center text-lg">📌</div>
+                        <div>
+                            <span class="text-[10px] font-sans font-bold text-rose-900/80 uppercase tracking-wider block">Top Banners</span>
+                            <span class="font-serif text-xl font-bold text-rose-950">{{ $announcements->where('is_active', true)->where('show_as_banner', true)->count() }}</span>
+                        </div>
+                    </div>
+
+                    <div class="p-4 rounded-2xl bg-emerald-50 border border-emerald-200/80 flex items-center gap-3">
+                        <div class="w-10 h-10 rounded-xl bg-emerald-100 flex items-center justify-center text-lg">✓</div>
+                        <div>
+                            <span class="text-[10px] font-sans font-bold text-emerald-900/80 uppercase tracking-wider block">Active & Broadcasting</span>
+                            <span class="font-serif text-xl font-bold text-emerald-950">{{ $announcements->where('is_active', true)->count() }}</span>
+                        </div>
+                    </div>
+                </div>
+
+                {{-- Filter Pills Bar --}}
+                <div class="flex items-center gap-2 overflow-x-auto pb-1 text-xs font-sans font-bold">
+                    <button type="button" @click="announcementFilter = 'all'" :class="announcementFilter === 'all' ? 'bg-[var(--color-ebony)] text-white shadow-sm' : 'bg-gray-100 text-[var(--color-ebony)]/70 hover:bg-gray-200'" class="px-4 py-2 rounded-xl transition-all">
+                        All ({{ $announcements->count() }})
+                    </button>
+                    <button type="button" @click="announcementFilter = 'live'" :class="announcementFilter === 'live' ? 'bg-emerald-600 text-white shadow-sm' : 'bg-emerald-50 text-emerald-800 hover:bg-emerald-100'" class="px-4 py-2 rounded-xl transition-all flex items-center gap-1.5">
+                        <span>● Live Now</span>
+                        <span class="bg-emerald-200 text-emerald-900 text-[10px] px-1.5 py-0.2 rounded-full" :class="announcementFilter === 'live' ? 'bg-white/30 text-white' : ''">{{ $announcements->where('is_active', true)->count() }}</span>
+                    </button>
+                    <button type="button" @click="announcementFilter = 'ticker'" :class="announcementFilter === 'ticker' ? 'bg-amber-500 text-white shadow-sm' : 'bg-amber-50 text-amber-900 hover:bg-amber-100'" class="px-4 py-2 rounded-xl transition-all">
+                        ⚡ Ticker Feed ({{ $announcements->where('show_in_ticker', true)->count() }})
+                    </button>
+                    <button type="button" @click="announcementFilter = 'banner'" :class="announcementFilter === 'banner' ? 'bg-rose-600 text-white shadow-sm' : 'bg-rose-50 text-rose-900 hover:bg-rose-100'" class="px-4 py-2 rounded-xl transition-all">
+                        📌 Top Banners ({{ $announcements->where('show_as_banner', true)->count() }})
+                    </button>
+                    <button type="button" @click="announcementFilter = 'paused'" :class="announcementFilter === 'paused' ? 'bg-slate-800 text-white shadow-sm' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'" class="px-4 py-2 rounded-xl transition-all">
+                        Draft / Paused ({{ $announcements->where('is_active', false)->count() }})
+                    </button>
+                </div>
+
+                {{-- Announcements Grid --}}
+                <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+                    @forelse($announcements as $ann)
+                    <div x-show="announcementFilter === 'all' || 
+                                (announcementFilter === 'live' && {{ $ann->is_active ? 'true' : 'false' }}) ||
+                                (announcementFilter === 'ticker' && {{ $ann->show_in_ticker ? 'true' : 'false' }}) ||
+                                (announcementFilter === 'banner' && {{ $ann->show_as_banner ? 'true' : 'false' }}) ||
+                                (announcementFilter === 'paused' && {{ !$ann->is_active ? 'true' : 'false' }})"
+                         class="bg-[var(--color-offwhite)] rounded-2xl border {{ $ann->is_active ? 'border-amber-300 ring-1 ring-amber-200/80 shadow-md' : 'border-[var(--color-bisque)] shadow-xs opacity-85' }} p-5 space-y-4 relative overflow-hidden transition-all hover:shadow-lg">
+
+                        {{-- Status Pill --}}
+                        <div class="flex items-center justify-between gap-2">
+                            <div class="flex items-center gap-1.5">
+                                <span class="text-base">{{ $ann->icon ?? '📢' }}</span>
+                                <span class="text-[9px] font-sans font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-slate-900 text-amber-200">
+                                    {{ ucfirst($ann->type ?? 'Promo') }}
+                                </span>
+                            </div>
+                            <div class="flex items-center gap-1.5">
+                                @if($ann->show_in_ticker)
+                                    <span class="text-[9px] font-bold bg-amber-100 text-amber-900 px-2 py-0.5 rounded-full" title="Active in Marquee Ticker">⚡ Ticker</span>
+                                @endif
+                                @if($ann->show_as_banner)
+                                    <span class="text-[9px] font-bold bg-rose-100 text-rose-900 px-2 py-0.5 rounded-full" title="Active as Top Banner">📌 Banner</span>
+                                @endif
+                                <span class="text-[10px] font-bold {{ $ann->is_active ? 'text-emerald-600' : 'text-gray-400' }}">
+                                    {{ $ann->is_active ? '● Live' : '○ Paused' }}
+                                </span>
+                            </div>
+                        </div>
+
+                        {{-- Announcement Title & Text --}}
+                        <div class="space-y-1">
+                            <h4 class="font-serif text-base font-bold text-[var(--color-ebony)] leading-snug">{{ $ann->title }}</h4>
+                            <p class="text-xs font-sans text-[var(--color-ebony)]/80 leading-relaxed">{{ $ann->message }}</p>
+                        </div>
+
+                        {{-- Live Storefront Appearance Preview Box --}}
+                        <div class="p-3 bg-white rounded-xl border border-[var(--color-bisque)] space-y-1.5 shadow-inner">
+                            <span class="text-[9px] font-sans font-bold uppercase tracking-wider text-gray-400 block">Storefront Display Preview:</span>
+                            <div class="bg-gray-900 text-[#FBEAD6] px-3 py-1.5 rounded-lg text-[10px] font-sans flex items-center gap-2 overflow-hidden text-ellipsis whitespace-nowrap">
+                                <span class="animate-pulse">{{ $ann->icon ?? '📢' }}</span>
+                                <span class="font-bold text-amber-300">{{ strtoupper($ann->title) }}:</span>
+                                <span class="text-gray-300 text-ellipsis overflow-hidden">{{ $ann->message }}</span>
+                            </div>
+                        </div>
+
+                        {{-- Date & Actions Footer --}}
+                        <div class="pt-2 border-t border-[var(--color-bisque)]/60 flex items-center justify-between flex-wrap gap-2 text-xs">
+                            <span class="text-[10px] text-[var(--color-ebony)]/50 font-sans">
+                                Added {{ $ann->created_at->diffForHumans() }}
+                            </span>
+
+                            <div class="flex items-center gap-2">
+                                {{-- Quick Edit Button --}}
+                                <button type="button" @click="openEditAnnouncement({{ json_encode($ann) }})" class="text-[11px] font-bold text-slate-800 bg-white hover:bg-slate-50 border border-slate-200 px-2.5 py-1 rounded-lg transition-colors">
+                                    ✏️ Edit
+                                </button>
+
+                                {{-- Toggle Active Status --}}
+                                <form action="/admin/announcements/{{ $ann->id }}/toggle" method="POST" class="inline m-0">
+                                    @csrf
+                                    <button type="submit" class="text-[11px] font-bold {{ $ann->is_active ? 'text-amber-700 hover:text-amber-900 bg-amber-50' : 'text-emerald-700 hover:text-emerald-900 bg-emerald-50' }} border border-transparent hover:border-current px-2.5 py-1 rounded-lg transition-colors">
+                                        {{ $ann->is_active ? '⏸ Pause' : '▶ Publish' }}
+                                    </button>
+                                </form>
+
+                                {{-- Delete Announcement --}}
+                                <form action="/admin/announcements/{{ $ann->id }}" method="POST" onsubmit="return confirm('Remove announcement: {{ $ann->title }}?');" class="inline m-0">
+                                    @csrf
+                                    @method('DELETE')
+                                    <button type="submit" class="text-[11px] font-bold text-rose-600 hover:text-rose-800 hover:underline p-1">
+                                        ✕
+                                    </button>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                    @empty
+                    <div class="col-span-3 p-12 text-center bg-[var(--color-offwhite)] rounded-3xl border border-dashed border-[var(--color-bisque)] space-y-3">
+                        <div class="text-4xl">📢</div>
+                        <h4 class="font-serif text-lg font-bold text-[var(--color-ebony)]">No Storefront Announcements Yet</h4>
+                        <p class="text-xs text-[var(--color-ebony)]/60 max-w-md mx-auto">
+                            Broadcast promotional sales, festive coupons, or shipping notices to customers by creating your first announcement.
+                        </p>
+                        <button type="button" @click="showAddAnnouncementModal = true" class="inline-flex items-center gap-1.5 bg-[var(--color-ebony)] hover:bg-[var(--color-rose-deep)] text-white text-xs font-sans font-bold uppercase tracking-wider px-5 py-2.5 rounded-full transition-all shadow-md">
+                            <span>📢</span> Create First Announcement
+                        </button>
+                    </div>
+                    @endforelse
+                </div>
+            </div>
+        </div>
 
         {{-- TAB 8: RATINGS & REVIEWS MODERATION (Edit 1-5 Stars & Modify Bad Reviews) --}}
         <div x-show="activeTab === 'reviews'" class="space-y-6">
@@ -1419,6 +1603,176 @@
                     <button type="button" @click="editReviewModal = false" class="flex-1 bg-gray-100 text-xs font-bold py-3 rounded-xl">Cancel</button>
                     <button type="submit" class="flex-1 bg-[var(--color-ebony)] hover:bg-[var(--color-rose-deep)] text-white text-xs font-bold py-3 rounded-xl shadow-md transition-colors">
                         Save Rating & Review
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    {{-- MODAL 9: ADD STOREFRONT ANNOUNCEMENT --}}
+    <div x-show="showAddAnnouncementModal" style="display: none;" class="fixed inset-0 z-50 flex items-center justify-center p-4 overflow-y-auto">
+        <div x-show="showAddAnnouncementModal" x-transition.opacity @click="showAddAnnouncementModal = false" class="fixed inset-0 bg-black/60 backdrop-blur-sm"></div>
+        <div class="relative w-full max-w-lg bg-white rounded-3xl p-6 sm:p-8 shadow-2xl z-10 border border-[var(--color-bisque)] my-8 space-y-5">
+            <div class="flex items-center justify-between border-b border-[var(--color-bisque)]/60 pb-3">
+                <div class="flex items-center gap-2.5">
+                    <span class="w-9 h-9 rounded-xl bg-amber-100 text-amber-900 flex items-center justify-center text-lg">📢</span>
+                    <div>
+                        <h3 class="font-serif text-lg font-bold text-[var(--color-ebony)]">Create Storefront Announcement</h3>
+                        <span class="text-[10px] font-sans text-gray-500">Broadcast promotional notices, discount codes, or shipping alerts</span>
+                    </div>
+                </div>
+                <button type="button" @click="showAddAnnouncementModal = false" class="text-gray-400 hover:text-gray-600 text-lg">✕</button>
+            </div>
+
+            <form action="/admin/announcements" method="POST" class="space-y-4">
+                @csrf
+
+                {{-- Title & Emoji Icon --}}
+                <div class="grid grid-cols-4 gap-3">
+                    <div class="col-span-1">
+                        <label class="block text-xs font-sans font-bold uppercase tracking-wider mb-1 text-[var(--color-ebony)]">Icon</label>
+                        <select name="icon" class="w-full bg-[var(--color-offwhite)] border border-[var(--color-bisque)] rounded-xl px-3 py-2.5 text-base font-sans focus:outline-none">
+                            <option value="📢">📢 Loudspeaker</option>
+                            <option value="🎉">🎉 Festive</option>
+                            <option value="✨">✨ Sparkle</option>
+                            <option value="🎟️">🎟️ Coupon</option>
+                            <option value="🚚">🚚 Shipping</option>
+                            <option value="🛍️">🛍️ Shopping</option>
+                            <option value="💎">💎 Luxury</option>
+                            <option value="🔥">🔥 Hot Deal</option>
+                            <option value="⏳">⏳ Limited Time</option>
+                        </select>
+                    </div>
+                    <div class="col-span-3">
+                        <label class="block text-xs font-sans font-bold uppercase tracking-wider mb-1 text-[var(--color-ebony)]">Short Title / Event Name</label>
+                        <input type="text" name="title" placeholder="e.g. Festive Special Sale, Express Delivery" required class="w-full bg-[var(--color-offwhite)] border border-[var(--color-bisque)] rounded-xl px-4 py-2.5 text-xs font-sans font-bold focus:outline-none focus:border-[var(--color-rose-antique)]" />
+                    </div>
+                </div>
+
+                {{-- Full Announcement Message --}}
+                <div>
+                    <label class="block text-xs font-sans font-bold uppercase tracking-wider mb-1 text-[var(--color-ebony)]">
+                        Announcement Message (Broadcast Text)
+                    </label>
+                    <textarea name="message" rows="3" required placeholder="e.g. Use code DIWALI25 for flat 25% off on all bridal sarees & pure Banarasi silk couture!" class="w-full bg-[var(--color-offwhite)] border border-[var(--color-bisque)] rounded-xl p-3 text-xs font-sans focus:outline-none focus:border-[var(--color-rose-antique)]"></textarea>
+                    <span class="text-[10px] text-gray-500">This message scrolls across the storefront marquee and shows in header banners.</span>
+                </div>
+
+                {{-- Campaign Type & Theme Color --}}
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="block text-xs font-sans font-bold uppercase tracking-wider mb-1 text-[var(--color-ebony)]">Category / Type</label>
+                        <select name="type" class="w-full bg-[var(--color-offwhite)] border border-[var(--color-bisque)] rounded-xl px-3 py-2 text-xs font-sans">
+                            <option value="sale">Promotional Sale</option>
+                            <option value="coupon">Discount Coupon</option>
+                            <option value="festive">Festival Special</option>
+                            <option value="shipping">Shipping & Delivery</option>
+                            <option value="alert">General Notice</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-sans font-bold uppercase tracking-wider mb-1 text-[var(--color-ebony)]">Theme Style</label>
+                        <select name="color" class="w-full bg-[var(--color-offwhite)] border border-[var(--color-bisque)] rounded-xl px-3 py-2 text-xs font-sans">
+                            <option value="amber">Royal Gold / Amber</option>
+                            <option value="rose">Rose Antique / Crimson</option>
+                            <option value="emerald">Emerald Handloom</option>
+                            <option value="ebony">Classic Ebony / Navy</option>
+                        </select>
+                    </div>
+                </div>
+
+                {{-- Display Placements --}}
+                <div class="space-y-2 p-3 bg-gray-50 rounded-xl border border-gray-200">
+                    <span class="text-[10px] font-sans font-bold uppercase tracking-wider text-gray-600 block">Display Placements:</span>
+                    <label class="flex items-center gap-2.5 text-xs font-sans text-[var(--color-ebony)] cursor-pointer">
+                        <input type="checkbox" name="show_in_ticker" checked value="1" class="w-4 h-4 rounded text-[var(--color-ebony)]" />
+                        <span><strong>Marquee Ticker:</strong> Continuous scrolling bar under the main header</span>
+                    </label>
+                    <label class="flex items-center gap-2.5 text-xs font-sans text-[var(--color-ebony)] cursor-pointer">
+                        <input type="checkbox" name="show_as_banner" value="1" class="w-4 h-4 rounded text-[var(--color-ebony)]" />
+                        <span><strong>Top Notification Banner:</strong> Dismissible floating banner at the very top</span>
+                    </label>
+                </div>
+
+                <div class="flex gap-3 pt-2">
+                    <button type="button" @click="showAddAnnouncementModal = false" class="flex-1 bg-gray-100 text-xs font-bold py-3 rounded-xl">Cancel</button>
+                    <button type="submit" class="flex-1 bg-[var(--color-ebony)] hover:bg-[var(--color-rose-deep)] text-white text-xs font-bold py-3 rounded-xl shadow-md transition-colors">
+                        📢 Broadcast Announcement
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    {{-- MODAL 10: EDIT STOREFRONT ANNOUNCEMENT --}}
+    <div x-show="editAnnouncementModal" style="display: none;" class="fixed inset-0 z-50 flex items-center justify-center p-4 overflow-y-auto">
+        <div x-show="editAnnouncementModal" x-transition.opacity @click="editAnnouncementModal = false" class="fixed inset-0 bg-black/60 backdrop-blur-sm"></div>
+        <div class="relative w-full max-w-lg bg-white rounded-3xl p-6 sm:p-8 shadow-2xl z-10 border border-[var(--color-bisque)] my-8 space-y-5">
+            <div class="flex items-center justify-between border-b border-[var(--color-bisque)]/60 pb-3">
+                <div class="flex items-center gap-2.5">
+                    <span class="w-9 h-9 rounded-xl bg-amber-100 text-amber-900 flex items-center justify-center text-lg">✏️</span>
+                    <div>
+                        <h3 class="font-serif text-lg font-bold text-[var(--color-ebony)]">Edit Announcement #<span x-text="selectedAnnouncement.id"></span></h3>
+                        <span class="text-[10px] font-sans text-gray-500">Update broadcast text, placements, and active status</span>
+                    </div>
+                </div>
+                <button type="button" @click="editAnnouncementModal = false" class="text-gray-400 hover:text-gray-600 text-lg">✕</button>
+            </div>
+
+            <form :action="'/admin/announcements/' + selectedAnnouncement.id" method="POST" class="space-y-4">
+                @csrf
+
+                {{-- Title & Emoji Icon --}}
+                <div class="grid grid-cols-4 gap-3">
+                    <div class="col-span-1">
+                        <label class="block text-xs font-sans font-bold uppercase tracking-wider mb-1 text-[var(--color-ebony)]">Icon</label>
+                        <select name="icon" x-model="selectedAnnouncement.icon" class="w-full bg-[var(--color-offwhite)] border border-[var(--color-bisque)] rounded-xl px-3 py-2.5 text-base font-sans">
+                            <option value="📢">📢</option>
+                            <option value="🎉">🎉</option>
+                            <option value="✨">✨</option>
+                            <option value="🎟️">🎟️</option>
+                            <option value="🚚">🚚</option>
+                            <option value="🛍️">🛍️</option>
+                            <option value="💎">💎</option>
+                            <option value="🔥">🔥</option>
+                            <option value="⏳">⏳</option>
+                        </select>
+                    </div>
+                    <div class="col-span-3">
+                        <label class="block text-xs font-sans font-bold uppercase tracking-wider mb-1 text-[var(--color-ebony)]">Title / Event Name</label>
+                        <input type="text" name="title" x-model="selectedAnnouncement.title" required class="w-full bg-[var(--color-offwhite)] border border-[var(--color-bisque)] rounded-xl px-4 py-2.5 text-xs font-sans font-bold focus:outline-none" />
+                    </div>
+                </div>
+
+                {{-- Full Announcement Message --}}
+                <div>
+                    <label class="block text-xs font-sans font-bold uppercase tracking-wider mb-1 text-[var(--color-ebony)]">
+                        Announcement Message
+                    </label>
+                    <textarea name="message" x-model="selectedAnnouncement.message" rows="3" required class="w-full bg-[var(--color-offwhite)] border border-[var(--color-bisque)] rounded-xl p-3 text-xs font-sans focus:outline-none"></textarea>
+                </div>
+
+                {{-- Display Placements & Status --}}
+                <div class="space-y-2.5 p-3 bg-gray-50 rounded-xl border border-gray-200">
+                    <span class="text-[10px] font-sans font-bold uppercase tracking-wider text-gray-600 block">Configuration:</span>
+                    <label class="flex items-center gap-2.5 text-xs font-sans text-[var(--color-ebony)] cursor-pointer">
+                        <input type="checkbox" name="show_in_ticker" :checked="selectedAnnouncement.show_in_ticker" value="1" class="w-4 h-4 rounded text-[var(--color-ebony)]" />
+                        <span>Display in Storefront Marquee Ticker</span>
+                    </label>
+                    <label class="flex items-center gap-2.5 text-xs font-sans text-[var(--color-ebony)] cursor-pointer">
+                        <input type="checkbox" name="show_as_banner" :checked="selectedAnnouncement.show_as_banner" value="1" class="w-4 h-4 rounded text-[var(--color-ebony)]" />
+                        <span>Display as Top Dismissible Banner</span>
+                    </label>
+                    <label class="flex items-center gap-2.5 text-xs font-sans text-emerald-800 font-bold cursor-pointer">
+                        <input type="checkbox" name="is_active" :checked="selectedAnnouncement.is_active" value="1" class="w-4 h-4 rounded text-emerald-600" />
+                        <span>Active & Currently Broadcasting Live</span>
+                    </label>
+                </div>
+
+                <div class="flex gap-3 pt-2">
+                    <button type="button" @click="editAnnouncementModal = false" class="flex-1 bg-gray-100 text-xs font-bold py-3 rounded-xl">Cancel</button>
+                    <button type="submit" class="flex-1 bg-[var(--color-ebony)] hover:bg-[var(--color-rose-deep)] text-white text-xs font-bold py-3 rounded-xl shadow-md transition-colors">
+                        Save Changes
                     </button>
                 </div>
             </form>
