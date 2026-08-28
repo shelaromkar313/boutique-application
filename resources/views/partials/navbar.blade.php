@@ -6,6 +6,7 @@
     @scroll.window="isScrolled = (window.pageYOffset > 40) ? true : false"
     class="sticky top-0 z-50">
     
+    @if(!request()->is('admin*'))
     <!-- 1. Continuous Right-to-Left Announcement Ticker -->
     <div class="bg-white text-[var(--color-ebony)] text-[11px] font-sans tracking-[0.22em] uppercase py-2 border-b border-[var(--color-bisque)]/40 overflow-hidden relative select-none z-40">
         <div class="flex whitespace-nowrap gap-12 items-center w-max" style="animation: marquee 25s linear infinite;">
@@ -51,6 +52,7 @@
             </div>
         </div>
     </div>
+    @endif
 
     <!-- 2. Premium Fixed Header -->
     <header :class="isScrolled ? 'bg-[#181818]/98 backdrop-blur-md shadow-2xl py-2.5 border-b border-white/10' : 'bg-[#1a1a1a] py-3.5 border-b border-white/5'" class="w-full transition-all duration-500 text-white">

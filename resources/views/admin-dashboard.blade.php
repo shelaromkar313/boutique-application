@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', 'Atelier Admin Master Console | ESTILO WEAR')
+@section('title', 'Estilo Management Console - Dashboard Overview')
 
 @section('content')
 <div class="min-h-screen bg-[var(--color-offwhite)] pb-24 pt-6" x-data="{
@@ -16,6 +16,25 @@
     selectedProduct: {},
     selectedOrder: {},
     selectedAssociate: {},
+
+    init() {
+        const tabTitles = {
+            'overview': 'Dashboard Overview',
+            'inventory': 'Inventory & Products',
+            'orders': 'Orders & Fulfillment',
+            'customers': 'Customers',
+            'associates': 'Sales Associates & Sellers',
+            'reports': 'Monthly Reports & Billing',
+            'offers': 'Offers & Coupons',
+            'reviews': 'Ratings & Reviews',
+            'profile': 'Admin Profile & Security'
+        };
+        const updateDocTitle = (tab) => {
+            document.title = 'Estilo Management Console - ' + (tabTitles[tab] || 'Dashboard Overview');
+        };
+        updateDocTitle(this.activeTab);
+        this.$watch('activeTab', (val) => updateDocTitle(val));
+    },
 
     openEditProduct(p) {
         this.selectedProduct = Object.assign({}, p);
@@ -87,9 +106,9 @@
         <div class="bg-white rounded-3xl border border-[var(--color-bisque)] shadow-sm p-6 sm:p-8 flex flex-col lg:flex-row items-start lg:items-center justify-between gap-6">
             <div class="space-y-1.5">
                 <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-slate-900 text-amber-200 text-[10px] font-sans font-bold uppercase tracking-widest">
-                    <span>Atelier Master Administration Suite</span>
+                    <span>Executive Administration Suite</span>
                 </div>
-                <h1 class="font-serif text-2xl sm:text-3xl font-bold text-[var(--color-ebony)]">Estilo Boutique Management Console</h1>
+                <h1 class="font-serif text-2xl sm:text-3xl font-bold text-[var(--color-ebony)]">Estilo Management Console</h1>
                 <p class="text-xs font-sans text-[var(--color-ebony)]/60">Live session-authenticated portal for luxury handloom inventory, customer orders, partner earnings, billing audits, and festive discounts.</p>
             </div>
 
