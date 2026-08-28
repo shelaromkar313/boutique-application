@@ -56,8 +56,117 @@
 
     <!-- 2. Premium Fixed Header -->
     <header :class="isScrolled ? 'bg-[#181818]/98 backdrop-blur-md shadow-2xl py-2.5 border-b border-white/10' : 'bg-[#1a1a1a] py-3.5 border-b border-white/5'" class="w-full transition-all duration-500 text-white">
-        <div class="max-w-[1480px] mx-auto pl-3 pr-4 sm:px-6 lg:px-8">
+        <div class="max-w-[1520px] mx-auto pl-3 pr-4 sm:px-6 lg:px-8">
             <div class="flex items-center justify-between gap-2 lg:gap-4">
+                
+                @if(request()->is('admin*'))
+                {{-- ══════════════════════════════════════════════════════════════════ --}}
+                {{-- ADMIN PORTAL NAVIGATION HEADER                                    --}}
+                {{-- ══════════════════════════════════════════════════════════════════ --}}
+                
+                <!-- Left: Admin Brand Lockup -->
+                <div class="flex items-center gap-2 sm:gap-3 shrink-0">
+                    <button @click="mobileMenuOpen = true" class="lg:hidden p-1.5 text-white hover:text-[#FBEAD6] transition-colors rounded-full focus:outline-none shrink-0" aria-label="Open Menu">
+                        <svg class="w-5 h-5 sm:w-6 sm:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 6h16M4 12h16M4 18h16"></path></svg>
+                    </button>
+
+                    <a href="/admin" class="flex items-center gap-2 group shrink-0">
+                        <div class="w-8 h-8 sm:w-9 sm:h-9 overflow-hidden shrink-0 flex items-center justify-center bg-transparent rounded-full border-[0.5px] border-white/30 group-hover:border-[#FBEAD6]/50 transition-colors">
+                            <img src="/storage/logo.jpg" alt="Estilo Wear" class="w-[160%] max-w-none mix-blend-screen -mt-[25%]" />
+                        </div>
+                        <div class="flex flex-col justify-center">
+                            <span class="text-xs sm:text-base font-serif font-bold tracking-[0.20em] text-[#FBEAD6] leading-none uppercase">Estilo Admin</span>
+                            <span class="text-[6px] sm:text-[7px] font-sans tracking-[0.24em] text-emerald-400 mt-1 uppercase pl-0.5 font-bold">Executive Console</span>
+                        </div>
+                    </a>
+                </div>
+
+                <!-- Center: Admin Features Navigation Tabs -->
+                <nav class="hidden lg:flex flex-1 justify-center items-center gap-1 xl:gap-1.5 px-2 min-w-0 overflow-x-auto scrollbar-none">
+                    <a href="/admin?tab=overview" 
+                       :class="(typeof activeTab !== 'undefined' && activeTab === 'overview') ? 'bg-[#FBEAD6] text-[#1A1818] font-bold shadow-md' : 'text-white/80 hover:text-white hover:bg-white/10'"
+                       @click="if (typeof activeTab !== 'undefined') { activeTab = 'overview'; window.history.pushState({}, '', '/admin?tab=overview'); }"
+                       class="px-3 py-1.5 rounded-full text-[10.5px] font-sans uppercase tracking-wider transition-all whitespace-nowrap">
+                        Overview
+                    </a>
+                    
+                    <a href="/admin?tab=inventory" 
+                       :class="(typeof activeTab !== 'undefined' && activeTab === 'inventory') ? 'bg-[#FBEAD6] text-[#1A1818] font-bold shadow-md' : 'text-white/80 hover:text-white hover:bg-white/10'"
+                       @click="if (typeof activeTab !== 'undefined') { activeTab = 'inventory'; window.history.pushState({}, '', '/admin?tab=inventory'); }"
+                       class="px-3 py-1.5 rounded-full text-[10.5px] font-sans uppercase tracking-wider transition-all whitespace-nowrap">
+                        Inventory & Products
+                    </a>
+
+                    <a href="/admin?tab=orders" 
+                       :class="(typeof activeTab !== 'undefined' && activeTab === 'orders') ? 'bg-[#FBEAD6] text-[#1A1818] font-bold shadow-md' : 'text-white/80 hover:text-white hover:bg-white/10'"
+                       @click="if (typeof activeTab !== 'undefined') { activeTab = 'orders'; window.history.pushState({}, '', '/admin?tab=orders'); }"
+                       class="px-3 py-1.5 rounded-full text-[10.5px] font-sans uppercase tracking-wider transition-all whitespace-nowrap">
+                        Orders & Fulfillment
+                    </a>
+
+                    <a href="/admin?tab=customers" 
+                       :class="(typeof activeTab !== 'undefined' && activeTab === 'customers') ? 'bg-[#FBEAD6] text-[#1A1818] font-bold shadow-md' : 'text-white/80 hover:text-white hover:bg-white/10'"
+                       @click="if (typeof activeTab !== 'undefined') { activeTab = 'customers'; window.history.pushState({}, '', '/admin?tab=customers'); }"
+                       class="px-3 py-1.5 rounded-full text-[10.5px] font-sans uppercase tracking-wider transition-all whitespace-nowrap">
+                        Customers
+                    </a>
+
+                    <a href="/admin?tab=associates" 
+                       :class="(typeof activeTab !== 'undefined' && activeTab === 'associates') ? 'bg-[#FBEAD6] text-[#1A1818] font-bold shadow-md' : 'text-white/80 hover:text-white hover:bg-white/10'"
+                       @click="if (typeof activeTab !== 'undefined') { activeTab = 'associates'; window.history.pushState({}, '', '/admin?tab=associates'); }"
+                       class="px-3 py-1.5 rounded-full text-[10.5px] font-sans uppercase tracking-wider transition-all whitespace-nowrap">
+                        Sales Associates
+                    </a>
+
+                    <a href="/admin?tab=reports" 
+                       :class="(typeof activeTab !== 'undefined' && activeTab === 'reports') ? 'bg-[#FBEAD6] text-[#1A1818] font-bold shadow-md' : 'text-white/80 hover:text-white hover:bg-white/10'"
+                       @click="if (typeof activeTab !== 'undefined') { activeTab = 'reports'; window.history.pushState({}, '', '/admin?tab=reports'); }"
+                       class="px-3 py-1.5 rounded-full text-[10.5px] font-sans uppercase tracking-wider transition-all whitespace-nowrap">
+                        Billing & Reports
+                    </a>
+
+                    <a href="/admin?tab=offers" 
+                       :class="(typeof activeTab !== 'undefined' && activeTab === 'offers') ? 'bg-[#FBEAD6] text-[#1A1818] font-bold shadow-md' : 'text-white/80 hover:text-white hover:bg-white/10'"
+                       @click="if (typeof activeTab !== 'undefined') { activeTab = 'offers'; window.history.pushState({}, '', '/admin?tab=offers'); }"
+                       class="px-3 py-1.5 rounded-full text-[10.5px] font-sans uppercase tracking-wider transition-all whitespace-nowrap">
+                        Offers & Coupons
+                    </a>
+
+                    <a href="/admin?tab=reviews" 
+                       :class="(typeof activeTab !== 'undefined' && activeTab === 'reviews') ? 'bg-[#FBEAD6] text-[#1A1818] font-bold shadow-md' : 'text-white/80 hover:text-white hover:bg-white/10'"
+                       @click="if (typeof activeTab !== 'undefined') { activeTab = 'reviews'; window.history.pushState({}, '', '/admin?tab=reviews'); }"
+                       class="px-3 py-1.5 rounded-full text-[10.5px] font-sans uppercase tracking-wider transition-all whitespace-nowrap">
+                        Ratings & Reviews
+                    </a>
+                </nav>
+
+                <!-- Right: Admin Actions -->
+                <div class="flex items-center gap-2 sm:gap-3 shrink-0">
+                    <a href="/shop" target="_blank" class="inline-flex items-center gap-1 bg-white/10 hover:bg-white/20 border border-white/20 text-[#FBEAD6] text-xs font-sans font-bold uppercase tracking-wider px-3 py-1.5 rounded-full transition-all" title="View Customer Storefront">
+                        <span>Storefront ↗</span>
+                    </a>
+                    
+                    <a href="/admin?tab=profile" 
+                       @click="if (typeof activeTab !== 'undefined') { activeTab = 'profile'; window.history.pushState({}, '', '/admin?tab=profile'); }"
+                       class="hidden sm:flex items-center gap-2 bg-white/10 hover:bg-white/20 border border-white/15 rounded-full px-3 py-1 text-xs transition-colors cursor-pointer" title="Admin Profile">
+                        <span class="w-6 h-6 rounded-full bg-[var(--color-ebony)] text-amber-200 flex items-center justify-center font-bold text-[11px]">
+                            A
+                        </span>
+                        <span class="font-bold text-[11px] text-[#FBEAD6] hidden xl:inline">Admin</span>
+                    </a>
+
+                    <form action="{{ route('logout') }}" method="POST" class="inline m-0">
+                        @csrf
+                        <button type="submit" class="text-[11px] bg-rose-500/20 hover:bg-rose-500/30 border border-rose-400/40 text-rose-200 font-bold px-3 py-1.5 rounded-full transition-colors" title="Log Out">
+                            Sign Out
+                        </button>
+                    </form>
+                </div>
+
+                @else
+                {{-- ══════════════════════════════════════════════════════════════════ --}}
+                {{-- CUSTOMER STOREFRONT NAVIGATION HEADER                             --}}
+                {{-- ══════════════════════════════════════════════════════════════════ --}}
                 
                 <!-- Left: Logo Lockup + Mobile Menu -->
                 <div class="flex items-center gap-2 sm:gap-3 shrink-0">
@@ -66,11 +175,9 @@
                     </button>
                     
                     <a href="/" class="flex items-center gap-2 group shrink-0">
-                        <!-- Icon Circle -->
                         <div class="w-8 h-8 sm:w-10 sm:h-10 overflow-hidden shrink-0 flex items-center justify-center bg-transparent rounded-full border-[0.5px] border-white/30 group-hover:border-[#FBEAD6]/50 transition-colors">
                             <img src="/storage/logo.jpg" alt="Estilo Wear" class="w-[160%] max-w-none mix-blend-screen -mt-[25%]" />
                         </div>
-                        <!-- Typography -->
                         <div class="flex flex-col justify-center">
                             <span class="text-sm sm:text-lg lg:text-xl font-serif font-bold tracking-[0.24em] text-[#FBEAD6] leading-none uppercase" style="text-shadow: 0 0 1px rgba(251,234,214,0.3);">Estilo Wear</span>
                             <span class="text-[6px] sm:text-[8px] font-sans tracking-[0.26em] text-white/80 mt-1 uppercase pl-0.5">Slay Every Look</span>
@@ -78,7 +185,7 @@
                     </a>
                 </div>
 
-                <!-- Center: Navigation Links -->
+                <!-- Center: Customer Storefront Navigation Links -->
                 <nav class="hidden lg:flex flex-1 justify-center items-center gap-3 xl:gap-5 2xl:gap-6 px-2 min-w-0">
                     <a href="/" class="text-[11px] font-sans font-bold tracking-[0.12em] text-white hover:text-[#FBEAD6] uppercase transition-colors whitespace-nowrap">Home</a>
                     
@@ -256,7 +363,7 @@
                     <a href="/contact" class="text-[11px] font-sans font-bold tracking-[0.12em] text-white hover:text-[#FBEAD6] uppercase transition-colors whitespace-nowrap">Contact</a>
                 </nav>
 
-                {{-- Right action icons — NO overflow:hidden (that was clipping the cart) --}}
+                {{-- Right action icons for Customer Storefront --}}
                 <div class="flex items-center gap-1 sm:gap-2 lg:gap-3 shrink-0 mr-1">
 
                     <!-- AI Try-On (desktop only) -->
@@ -289,7 +396,7 @@
                               x-text="$store.shop.wishlist.length"></span>
                     </a>
 
-                    <!-- Profile / Account — dynamic routing based on authenticated user session -->
+                    <!-- Profile / Account -->
                     <a href="{{ Auth::check() ? (Auth::user()->isAdmin() ? '/admin?tab=profile' : (in_array(Auth::user()->role, ['sales_associate','associate','sales_executive']) ? '/sales/dashboard' : '/profile')) : '/login' }}"
                        class="hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-full text-white/90 hover:text-[#FBEAD6] hover:bg-white/10 transition-colors border border-white/10"
                        aria-label="My Account" title="{{ Auth::check() ? (Auth::user()->name . ' (My Account)') : 'My Account / Login' }}">
@@ -313,7 +420,7 @@
                         @endif
                     </a>
 
-                    <!-- ✅ Cart — solid rose fill, never shrinks, always fully visible -->
+                    <!-- Cart -->
                     <button @click="$store.shop.isCartOpen = true"
                             class="relative shrink-0 w-9 h-9 rounded-full flex items-center justify-center
                                    bg-[var(--color-rose-antique)] hover:bg-[var(--color-rose-deep)]
@@ -332,6 +439,7 @@
                     </button>
 
                 </div>
+                @endif
             </div>
         </div>
     </header>
@@ -360,6 +468,52 @@
                     </button>
                 </div>
                 <div class="p-6 space-y-3">
+                    @if(request()->is('admin*'))
+                    <div class="pb-2 border-b border-[var(--color-bisque)]/40 mb-2">
+                        <span class="text-[10px] font-sans font-bold uppercase tracking-wider text-emerald-800 bg-emerald-100 px-2.5 py-1 rounded-full inline-block">
+                            Admin Navigation Suite
+                        </span>
+                    </div>
+
+                    <a href="/admin?tab=overview" @click="if (typeof activeTab !== 'undefined') activeTab = 'overview'; mobileMenuOpen = false;" class="block text-sm font-sans font-semibold text-[var(--color-ebony)] uppercase tracking-wider hover:text-[var(--color-rose-antique)]">
+                        📊 Dashboard Overview
+                    </a>
+                    <a href="/admin?tab=inventory" @click="if (typeof activeTab !== 'undefined') activeTab = 'inventory'; mobileMenuOpen = false;" class="block text-sm font-sans font-semibold text-[var(--color-ebony)] uppercase tracking-wider hover:text-[var(--color-rose-antique)]">
+                        👗 Inventory & Products
+                    </a>
+                    <a href="/admin?tab=orders" @click="if (typeof activeTab !== 'undefined') activeTab = 'orders'; mobileMenuOpen = false;" class="block text-sm font-sans font-semibold text-[var(--color-ebony)] uppercase tracking-wider hover:text-[var(--color-rose-antique)]">
+                        📦 Orders & Fulfillment
+                    </a>
+                    <a href="/admin?tab=customers" @click="if (typeof activeTab !== 'undefined') activeTab = 'customers'; mobileMenuOpen = false;" class="block text-sm font-sans font-semibold text-[var(--color-ebony)] uppercase tracking-wider hover:text-[var(--color-rose-antique)]">
+                        👥 Customers
+                    </a>
+                    <a href="/admin?tab=associates" @click="if (typeof activeTab !== 'undefined') activeTab = 'associates'; mobileMenuOpen = false;" class="block text-sm font-sans font-semibold text-[var(--color-ebony)] uppercase tracking-wider hover:text-[var(--color-rose-antique)]">
+                        🤝 Sales Associates & Sellers
+                    </a>
+                    <a href="/admin?tab=reports" @click="if (typeof activeTab !== 'undefined') activeTab = 'reports'; mobileMenuOpen = false;" class="block text-sm font-sans font-semibold text-[var(--color-ebony)] uppercase tracking-wider hover:text-[var(--color-rose-antique)]">
+                        📈 Monthly Reports & Billing
+                    </a>
+                    <a href="/admin?tab=offers" @click="if (typeof activeTab !== 'undefined') activeTab = 'offers'; mobileMenuOpen = false;" class="block text-sm font-sans font-semibold text-[var(--color-ebony)] uppercase tracking-wider hover:text-[var(--color-rose-antique)]">
+                        🎟️ Offers & Coupons
+                    </a>
+                    <a href="/admin?tab=reviews" @click="if (typeof activeTab !== 'undefined') activeTab = 'reviews'; mobileMenuOpen = false;" class="block text-sm font-sans font-semibold text-[var(--color-ebony)] uppercase tracking-wider hover:text-[var(--color-rose-antique)]">
+                        ⭐ Ratings & Reviews
+                    </a>
+                    <a href="/admin?tab=profile" @click="if (typeof activeTab !== 'undefined') activeTab = 'profile'; mobileMenuOpen = false;" class="block text-sm font-sans font-semibold text-[var(--color-ebony)] uppercase tracking-wider hover:text-[var(--color-rose-antique)]">
+                        🛡️ Admin Profile & Security
+                    </a>
+                    <div class="pt-3 border-t border-[var(--color-bisque)]/40 mt-3 space-y-2">
+                        <a href="/shop" target="_blank" class="block text-xs font-sans font-bold text-gray-600 hover:text-black">
+                            Storefront ↗
+                        </a>
+                        <form action="{{ route('logout') }}" method="POST">
+                            @csrf
+                            <button type="submit" class="w-full text-left text-xs font-bold text-rose-600 hover:underline">
+                                Sign Out
+                            </button>
+                        </form>
+                    </div>
+                    @else
                     <a href="/" class="block text-sm font-sans font-semibold text-[var(--color-ebony)] uppercase tracking-wider hover:text-[var(--color-rose-antique)]">Home</a>
                     <a href="/shop" class="block text-sm font-sans font-semibold text-[var(--color-ebony)] uppercase tracking-wider hover:text-[var(--color-rose-antique)]">Shop All Collections</a>
 
@@ -417,6 +571,7 @@
                         <span>Cart</span>
                         <span x-show="$store.shop.cartCount > 0" class="bg-[var(--color-rose-antique)] text-white text-[10px] px-2 py-0.5 rounded-full" x-text="$store.shop.cartCount"></span>
                     </a>
+                    @endif
                 </div>
             </div>
         </aside>
