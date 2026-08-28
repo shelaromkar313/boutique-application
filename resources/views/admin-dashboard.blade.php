@@ -370,6 +370,7 @@
                                 <th class="p-3">Order No</th>
                                 <th class="p-3">Customer Name & Contact</th>
                                 <th class="p-3">Destination</th>
+                                <th class="p-3">Payment Mode & Type</th>
                                 <th class="p-3">Order Total</th>
                                 <th class="p-3">Status</th>
                                 <th class="p-3 text-right">Fulfillment Action</th>
@@ -377,6 +378,37 @@
                         </thead>
                         <tbody class="divide-y divide-[var(--color-bisque)]/40">
                             @forelse($orders as $ord)
+                            @php
+                                $pid = strtoupper($ord->payment_id ?? '');
+                                $note = strtoupper($ord->note ?? '');
+                                
+                                if (str_contains($pid, 'COD') || str_contains($note, 'COD') || str_contains($note, 'CASH ON DELIVERY')) {
+                                    $payBadge = 'bg-amber-100 text-amber-900 border-amber-300';
+                                    $payIcon = '💵';
+                                    $payTitle = 'Cash on Delivery (COD)';
+                                    $paySub = 'Collect at Doorstep';
+                                } elseif (str_contains($pid, 'UPI') || str_contains($note, 'UPI') || str_contains($note, 'GPAY') || str_contains($note, 'PHONEPE')) {
+                                    $payBadge = 'bg-purple-100 text-purple-900 border-purple-300';
+                                    $payIcon = '⚡';
+                                    $payTitle = 'UPI Instant (Verified)';
+                                    $paySub = 'Razorpay UPI';
+                                } elseif (str_contains($note, 'CARD') || str_contains($note, 'VISA') || str_contains($note, 'MASTERCARD')) {
+                                    $payBadge = 'bg-blue-100 text-blue-900 border-blue-300';
+                                    $payIcon = '💳';
+                                    $payTitle = 'Credit / Debit Card';
+                                    $paySub = 'Online Gateway';
+                                } elseif (str_contains($note, 'NET BANKING') || str_contains($note, 'HDFC') || str_contains($note, 'ICICI') || str_contains($note, 'SBI')) {
+                                    $payBadge = 'bg-indigo-100 text-indigo-900 border-indigo-300';
+                                    $payIcon = '🏦';
+                                    $payTitle = 'Net Banking';
+                                    $paySub = 'Direct Bank Transfer';
+                                } else {
+                                    $payBadge = 'bg-emerald-100 text-emerald-900 border-emerald-300';
+                                    $payIcon = '🛡️';
+                                    $payTitle = 'Online Verified (Prepaid)';
+                                    $paySub = 'Razorpay Secure';
+                                }
+                            @endphp
                             <tr class="hover:bg-[var(--color-offwhite)] transition-colors">
                                 <td class="p-3">
                                     <button @click="openViewOrder({{ json_encode($ord) }})" class="font-mono font-bold text-blue-700 hover:underline block text-left">
@@ -389,6 +421,20 @@
                                     <span class="text-[10px] text-[var(--color-ebony)]/60">{{ $ord->phone }} • {{ $ord->email }}</span>
                                 </td>
                                 <td class="p-3 text-[var(--color-ebony)]/70">{{ $ord->city }}, {{ $ord->state }} ({{ $ord->pincode }})</td>
+                                
+                                {{-- Payment Type Column --}}
+                                <td class="p-3">
+                                    <div class="space-y-0.5">
+                                        <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10.5px] font-bold border {{ $payBadge }}">
+                                            <span>{{ $payIcon }}</span>
+                                            <span>{{ $payTitle }}</span>
+                                        </span>
+                                        <span class="text-[10px] text-gray-500 font-mono block pl-1 truncate max-w-[140px]" title="{{ $ord->payment_id ?: $paySub }}">
+                                            {{ $ord->payment_id ?: $paySub }}
+                                        </span>
+                                    </div>
+                                </td>
+
                                 <td class="p-3 font-serif font-bold text-sm text-[var(--color-ebony)]">₹{{ number_format($ord->total, 0) }}</td>
                                 <td class="p-3">
                                     <span class="px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider
@@ -425,7 +471,7 @@
                             </tr>
                             @empty
                             <tr>
-                                <td colspan="6" class="p-6 text-center text-xs text-[var(--color-ebony)]/60">No orders recorded in system.</td>
+                                <td colspan="7" class="p-6 text-center text-xs text-[var(--color-ebony)]/60">No orders recorded in system.</td>
                             </tr>
                             @endforelse
                         </tbody>
@@ -1388,6 +1434,20 @@
                         <p x-text="selectedOrder.note"></p>
                     </div>
                 </template>
+
+                {{-- Payment Details Box --}}
+                <div class="bg-slate-50 p-3.5 rounded-xl space-y-1.5 border border-slate-200">
+                    <div class="flex items-center justify-between">
+                        <span class="font-bold text-[10px] uppercase tracking-wider text-slate-600">Payment Mode & Verification</span>
+                        <span class="text-[10.5px] font-bold px-2.5 py-0.5 rounded-full border"
+                              :class="(selectedOrder.payment_id || '').includes('COD') ? 'bg-amber-100 text-amber-950 border-amber-300' : 'bg-purple-100 text-purple-950 border-purple-300'"
+                              x-text="(selectedOrder.payment_id || '').includes('COD') ? '💵 Cash on Delivery (COD)' : ((selectedOrder.payment_id || '').includes('UPI') ? '⚡ UPI Instant (Verified)' : '💳 Prepaid Online (Verified)')"></span>
+                    </div>
+                    <div class="text-[11px] text-slate-700 flex justify-between font-mono pt-0.5">
+                        <span class="text-slate-500">Gateway Ref ID:</span>
+                        <span class="font-bold text-slate-900" x-text="selectedOrder.payment_id || 'RAZORPAY-CONFIRMED'"></span>
+                    </div>
+                </div>
 
                 {{-- Price Breakdown --}}
                 <div class="bg-gray-50 p-3.5 rounded-xl space-y-1.5 border border-gray-200">
