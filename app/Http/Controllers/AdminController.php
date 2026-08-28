@@ -40,6 +40,9 @@ class AdminController extends Controller
         $associates = User::whereIn('role', ['sales_associate', 'sales_executive', 'associate'])->latest()->get();
         $reviews = Review::latest()->get();
         $coupons = Coupon::latest()->get();
+        $announcedCoupons = Coupon::where('is_announced', true)->where('is_active', true)
+            ->where(function($q) { $q->whereNull('valid_until')->orWhere('valid_until', '>=', now()); })
+            ->get();
         $referralSales = ReferralSale::with('associate')->latest()->get();
 
         // Key KPI Metrics
@@ -68,6 +71,7 @@ class AdminController extends Controller
             'associates',
             'reviews',
             'coupons',
+            'announcedCoupons',
             'referralSales',
             'totalRevenue',
             'totalOrdersCount',
@@ -402,5 +406,43 @@ class AdminController extends Controller
         $code = $coupon->code;
         $coupon->delete();
         return redirect('/admin?tab=offers')->with('success', "Coupon '{$code}' deleted successfully.");
+    }
+
+    /**
+     * Toggle Coupon Announcement in Storefront Ticker
+     * Allows admin to broadcast a coupon as a marquee announcement to all visitors.
+     */
+    public function announceCoupon(Request $request, $id)
+    {
+        $coupon = Coupon::findOrFail($id);
+
+        // If custom announcement text provided, save it; otherwise auto-generate
+        $announcementText = $request->filled('announcement_text')
+            ? trim($request->input('announcement_text'))
+            : null;
+
+        if (!$announcementText) {
+            $discountLabel = $coupon->discount_type === 'percentage'
+                ? "{$coupon->discount_value}% OFF"
+                : "₹{$coupon->discount_value} OFF";
+            $announcementText = "🎉 Use code {$coupon->code} and get {$discountLabel}! {$coupon->title}";
+            if ($coupon->valid_until) {
+                $announcementText .= ' — Valid till ' . $coupon->valid_until->format('d M Y');
+            }
+        }
+
+        // Toggle: if already announced with same text, turn it off
+        $isNowAnnounced = !($coupon->is_announced && $coupon->announcement_text === $announcementText);
+
+        $coupon->update([
+            'is_announced'      => $isNowAnnounced,
+            'announcement_text' => $isNowAnnounced ? $announcementText : null,
+        ]);
+
+        $msg = $isNowAnnounced
+            ? "📢 Coupon '{$coupon->code}' is now announced on the storefront!"
+            : "🔕 Announcement for '{$coupon->code}' has been removed from the storefront.";
+
+        return redirect('/admin?tab=offers')->with('success', $msg);
     }
 }

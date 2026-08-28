@@ -581,20 +581,61 @@
 
         {{-- TAB 7: 4.8 OFFERS & COUPONS --}}
         <div x-show="activeTab === 'offers'" class="space-y-6">
+
+            {{-- LIVE ANNOUNCEMENTS PANEL --}}
+            @if($announcedCoupons->count() > 0)
+            <div class="bg-amber-50 border border-amber-200 rounded-2xl p-5 space-y-3">
+                <div class="flex items-center gap-2">
+                    <span class="text-lg">📢</span>
+                    <h3 class="font-sans font-bold text-amber-900 text-sm uppercase tracking-wider">Currently Live on Storefront Ticker</h3>
+                    <span class="ml-auto bg-amber-200 text-amber-900 text-[10px] font-bold px-2.5 py-0.5 rounded-full">{{ $announcedCoupons->count() }} Active</span>
+                </div>
+                <div class="space-y-2">
+                    @foreach($announcedCoupons as $ann)
+                    <div class="flex items-center gap-3 bg-white border border-amber-100 rounded-xl px-4 py-2.5">
+                        <span class="text-amber-500 animate-pulse">📢</span>
+                        <span class="text-xs font-sans text-amber-900 font-medium flex-1">{{ $ann->announcement_text }}</span>
+                        <span class="font-mono text-[10px] font-bold text-emerald-700 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded-full">{{ $ann->code }}</span>
+                        <form action="/admin/coupons/{{ $ann->id }}/announce" method="POST" class="inline m-0">
+                            @csrf
+                            <button type="submit" class="text-[10px] font-bold text-rose-600 hover:text-rose-800 hover:underline">Remove</button>
+                        </form>
+                    </div>
+                    @endforeach
+                </div>
+                <p class="text-[10px] text-amber-700 font-sans">These announcements are scrolling in the storefront ticker bar right now. Customers on the shop page can see them live.</p>
+            </div>
+            @else
+            <div class="bg-gray-50 border border-dashed border-gray-200 rounded-2xl p-4 flex items-center gap-3">
+                <span class="text-2xl opacity-40">📢</span>
+                <p class="text-xs text-gray-400 font-sans">No coupon announcements are currently live. Click <strong>"Announce"</strong> on any active coupon below to broadcast it in the storefront ticker.</p>
+            </div>
+            @endif
+
+            {{-- COUPONS LIST WITH ANNOUNCE FEATURE --}}
             <div class="bg-white rounded-3xl border border-[var(--color-bisque)] p-6 sm:p-8 shadow-sm space-y-6">
                 <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 border-b border-[var(--color-bisque)]/60 pb-3">
                     <div>
                         <h2 class="font-serif text-xl sm:text-2xl font-bold text-[var(--color-ebony)]">Offers, Festival Discounts & Coupons</h2>
-                        <p class="text-xs font-sans text-[var(--color-ebony)]/60">Generate promotional discount coupons for Diwali, Festive, and Monthly boutique sales.</p>
+                        <p class="text-xs font-sans text-[var(--color-ebony)]/60">Generate promotional discount coupons and 📢 announce them to customers via the storefront ticker.</p>
                     </div>
                     <button @click="showAddCouponModal = true" class="bg-[var(--color-ebony)] hover:bg-[var(--color-rose-deep)] text-white text-xs font-sans font-bold uppercase tracking-wider px-5 py-2.5 rounded-full transition-all shadow-md">
                         + New Coupon
                     </button>
                 </div>
 
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
                     @forelse($coupons as $coup)
-                    <div class="bg-[var(--color-offwhite)] rounded-2xl border border-[var(--color-bisque)] p-5 space-y-3 relative overflow-hidden shadow-sm">
+                    <div x-data="{ showAnnounceForm: false }"
+                         class="bg-[var(--color-offwhite)] rounded-2xl border {{ $coup->is_announced ? 'border-amber-300 ring-1 ring-amber-200' : 'border-[var(--color-bisque)]' }} p-5 space-y-3 relative overflow-hidden shadow-sm">
+
+                        {{-- Announced Live Badge --}}
+                        @if($coup->is_announced)
+                        <div class="absolute top-0 right-0 bg-amber-400 text-amber-950 text-[9px] font-bold uppercase tracking-widest px-3 py-1 rounded-bl-xl rounded-tr-2xl flex items-center gap-1">
+                            <span class="animate-pulse">●</span> Live on Ticker
+                        </div>
+                        @endif
+
                         <div class="flex items-center justify-between">
                             <span class="text-[9px] font-sans font-bold uppercase tracking-wider px-2 py-0.5 rounded-full {{ $coup->campaign_type === 'festival' ? 'bg-amber-100 text-amber-900' : 'bg-pink-100 text-pink-900' }}">
                                 {{ ucfirst($coup->campaign_type) }} Campaign
@@ -615,17 +656,58 @@
                             <p class="text-[11px] text-[var(--color-ebony)]/60">Min Order: ₹{{ number_format($coup->min_order_value, 0) }} • Used: {{ $coup->usage_count }} times</p>
                         </div>
 
-                        <div class="pt-2 border-t border-[var(--color-bisque)]/60 flex items-center justify-between">
+                        {{-- Announcement Text Preview (if announced) --}}
+                        @if($coup->is_announced && $coup->announcement_text)
+                        <div class="bg-amber-50 border border-amber-100 rounded-xl px-3 py-2 flex items-start gap-2">
+                            <span class="text-amber-500 text-xs mt-0.5 shrink-0">📢</span>
+                            <p class="text-[10px] text-amber-800 font-medium leading-snug">{{ $coup->announcement_text }}</p>
+                        </div>
+                        @endif
+
+                        {{-- Announce Custom Text Form (collapsible) --}}
+                        <div x-show="showAnnounceForm" x-transition class="bg-white border border-amber-200 rounded-xl p-3 space-y-2">
+                            <label class="text-[10px] font-bold uppercase tracking-wider text-amber-800 block">Custom Announcement Text (optional)</label>
+                            <form action="/admin/coupons/{{ $coup->id }}/announce" method="POST">
+                                @csrf
+                                <textarea name="announcement_text" rows="2" placeholder="🎉 Use code {{ $coup->code }} and get {{ $coup->discount_value }}% OFF! Leave blank to auto-generate." class="w-full text-xs border border-amber-200 rounded-lg px-2.5 py-2 focus:outline-none focus:ring-2 focus:ring-amber-300 font-sans resize-none">{{ $coup->announcement_text }}</textarea>
+                                <div class="flex gap-2 mt-2">
+                                    <button type="submit" class="flex-1 bg-amber-500 hover:bg-amber-600 text-white text-[10px] font-bold uppercase tracking-wider py-1.5 rounded-lg transition-colors">
+                                        {{ $coup->is_announced ? '🔄 Update Announcement' : '📢 Announce Now' }}
+                                    </button>
+                                    <button type="button" @click="showAnnounceForm = false" class="text-[10px] text-gray-500 hover:underline px-2">Cancel</button>
+                                </div>
+                            </form>
+                        </div>
+
+                        {{-- Action Buttons Row --}}
+                        <div class="pt-2 border-t border-[var(--color-bisque)]/60 flex items-center justify-between flex-wrap gap-2">
                             <span class="text-[10px] text-[var(--color-ebony)]/50">Expires: {{ $coup->valid_until ? $coup->valid_until->format('d M Y') : 'Never' }}</span>
-                            <div class="flex items-center gap-2">
-                                <form action="/admin/coupons/{{ $coup->id }}/toggle" method="POST">
+                            <div class="flex items-center gap-2 flex-wrap">
+
+                                {{-- Announce / Unannounce --}}
+                                @if($coup->is_announced)
+                                <form action="/admin/coupons/{{ $coup->id }}/announce" method="POST" class="inline m-0">
+                                    @csrf
+                                    <button type="submit" class="text-[10px] font-bold text-amber-700 bg-amber-100 hover:bg-amber-200 px-2 py-0.5 rounded-full transition-colors">
+                                        🔕 Unannounce
+                                    </button>
+                                </form>
+                                @else
+                                <button @click="showAnnounceForm = !showAnnounceForm"
+                                        class="text-[10px] font-bold text-amber-700 bg-amber-100 hover:bg-amber-200 px-2 py-0.5 rounded-full transition-colors">
+                                    📢 Announce
+                                </button>
+                                @endif
+
+                                <span class="text-gray-300">|</span>
+                                <form action="/admin/coupons/{{ $coup->id }}/toggle" method="POST" class="inline m-0">
                                     @csrf
                                     <button type="submit" class="text-[10px] font-bold text-[var(--color-rose-antique)] hover:underline">
                                         {{ $coup->is_active ? 'Deactivate' : 'Activate' }}
                                     </button>
                                 </form>
                                 <span class="text-gray-300">|</span>
-                                <form action="/admin/coupons/{{ $coup->id }}" method="POST" onsubmit="return confirm('Delete coupon {{ $coup->code }}?');">
+                                <form action="/admin/coupons/{{ $coup->id }}" method="POST" onsubmit="return confirm('Delete coupon {{ $coup->code }}?');" class="inline m-0">
                                     @csrf
                                     @method('DELETE')
                                     <button type="submit" class="text-[10px] font-bold text-rose-600 hover:underline">
@@ -643,6 +725,7 @@
                 </div>
             </div>
         </div>
+
 
         {{-- TAB 8: RATINGS & REVIEWS MODERATION (Edit 1-5 Stars & Modify Bad Reviews) --}}
         <div x-show="activeTab === 'reviews'" class="space-y-6">

@@ -7,14 +7,37 @@
     class="sticky top-0 z-50">
     
     @if(!request()->is('admin*'))
+    {{-- Pull live announced coupons from DB --}}
+    @php
+        $tickerCoupons = \App\Models\Coupon::where('is_announced', true)
+            ->where('is_active', true)
+            ->where(function($q) { $q->whereNull('valid_until')->orWhere('valid_until', '>=', now()); })
+            ->get();
+    @endphp
+
     <!-- 1. Continuous Right-to-Left Announcement Ticker -->
     <div class="bg-white text-[var(--color-ebony)] text-[11px] font-sans tracking-[0.22em] uppercase py-2 border-b border-[var(--color-bisque)]/40 overflow-hidden relative select-none z-40">
-        <div class="flex whitespace-nowrap gap-12 items-center w-max" style="animation: marquee 25s linear infinite;">
+        <div class="flex whitespace-nowrap gap-12 items-center w-max" style="animation: marquee 30s linear infinite;">
             <style>
                 @keyframes marquee { 0% { transform: translateX(0%); } 100% { transform: translateX(-50%); } }
             </style>
-            
+
+            {{-- Render twice for seamless loop --}}
+            @foreach([1,2] as $loop)
             <div class="flex items-center gap-8 shrink-0">
+
+                {{-- Dynamic DB-driven coupon announcements --}}
+                @if($tickerCoupons->count() > 0)
+                    @foreach($tickerCoupons as $tc)
+                        <span class="flex items-center gap-2">
+                            <span class="text-amber-500 text-xs animate-pulse">📢</span>
+                            <span>{{ strtoupper($tc->announcement_text) }}</span>
+                        </span>
+                        <span class="text-[var(--color-bisque)] font-bold">|</span>
+                    @endforeach
+                @endif
+
+                {{-- Static fallback messages always shown --}}
                 <span class="flex items-center gap-2">
                     <span class="text-[var(--color-rose-antique)] text-xs animate-pulse">✨</span>
                     <span>COMPLIMENTARY EXPRESS SHIPPING ON ORDERS OVER ₹1,499</span>
@@ -22,37 +45,20 @@
                 <span class="text-[var(--color-bisque)] font-bold">|</span>
                 <span class="flex items-center gap-2">
                     <span class="text-[var(--color-thyme)] text-xs animate-pulse">✨</span>
-                    <span>USE CODE <strong class="text-[var(--color-rose-antique)] font-bold">BOUTIQUE10</strong> FOR 10% OFF</span>
-                </span>
-                <span class="text-[var(--color-bisque)] font-bold">|</span>
-                <span class="flex items-center gap-2">
-                    <span class="text-[var(--color-rose-antique)] text-xs animate-pulse">✨</span>
                     <span>AUTHENTIC HANDLOOM BOUTIQUE COUTURE</span>
                 </span>
                 <span class="text-[var(--color-bisque)] font-bold">|</span>
-            </div>
-            
-            <!-- Duplicate for continuous loop -->
-            <div class="flex items-center gap-8 shrink-0">
                 <span class="flex items-center gap-2">
                     <span class="text-[var(--color-rose-antique)] text-xs animate-pulse">✨</span>
-                    <span>COMPLIMENTARY EXPRESS SHIPPING ON ORDERS OVER ₹1,499</span>
-                </span>
-                <span class="text-[var(--color-bisque)] font-bold">|</span>
-                <span class="flex items-center gap-2">
-                    <span class="text-[var(--color-thyme)] text-xs animate-pulse">✨</span>
-                    <span>USE CODE <strong class="text-[var(--color-rose-antique)] font-bold">BOUTIQUE10</strong> FOR 10% OFF</span>
-                </span>
-                <span class="text-[var(--color-bisque)] font-bold">|</span>
-                <span class="flex items-center gap-2">
-                    <span class="text-[var(--color-rose-antique)] text-xs animate-pulse">✨</span>
-                    <span>AUTHENTIC HANDLOOM BOUTIQUE COUTURE</span>
+                    <span>EASY RETURNS · SECURE PAYMENTS · COD AVAILABLE</span>
                 </span>
                 <span class="text-[var(--color-bisque)] font-bold">|</span>
             </div>
+            @endforeach
         </div>
     </div>
     @endif
+
 
     <!-- 2. Premium Fixed Header -->
     <header :class="isScrolled ? 'bg-[#181818]/98 backdrop-blur-md shadow-2xl py-2.5 border-b border-white/10' : 'bg-[#1a1a1a] py-3.5 border-b border-white/5'" class="w-full transition-all duration-500 text-white">

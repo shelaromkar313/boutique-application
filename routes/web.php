@@ -113,6 +113,7 @@ Route::prefix('admin')->middleware('admin')->group(function () {
     // 4.8 Offers & Coupons
     Route::post('/coupons', [AdminController::class, 'storeCoupon']);
     Route::post('/coupons/{id}/toggle', [AdminController::class, 'toggleCoupon']);
+    Route::post('/coupons/{id}/announce', [AdminController::class, 'announceCoupon']);
     Route::delete('/coupons/{id}', [AdminController::class, 'deleteCoupon']);
 });
 
