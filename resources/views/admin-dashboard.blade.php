@@ -956,6 +956,46 @@
                     </div>
                     @endforelse
                 </div>
+
+                {{-- Synchronized Announced Coupons Feed --}}
+                @if(isset($announcedCoupons) && $announcedCoupons->isNotEmpty())
+                <div class="pt-6 border-t border-[var(--color-bisque)]/60 space-y-4">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <h3 class="font-serif text-base font-bold text-[var(--color-ebony)] flex items-center gap-2">
+                                <span>🎟️</span>
+                                <span>Active Coupon Broadcasts (Live in Marquee Ticker)</span>
+                            </h3>
+                            <p class="text-[11px] font-sans text-[var(--color-ebony)]/60">Coupons marked as 'Announced' that are automatically streaming into the storefront ticker.</p>
+                        </div>
+                        <a href="/admin?tab=coupons" class="text-xs font-sans font-bold text-amber-800 hover:text-amber-950 bg-amber-50 border border-amber-200 px-3 py-1.5 rounded-xl transition-colors">
+                            Manage All Coupons →
+                        </a>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        @foreach($announcedCoupons as $ac)
+                        <div class="bg-gradient-to-r from-amber-50 to-orange-50/40 p-4 rounded-2xl border border-amber-200/80 flex items-center justify-between gap-3">
+                            <div class="space-y-1">
+                                <div class="flex items-center gap-2">
+                                    <span class="font-mono text-xs font-bold px-2 py-0.5 rounded-lg bg-amber-900 text-amber-100 uppercase tracking-wider">{{ $ac->code }}</span>
+                                    <span class="text-[10px] font-sans font-bold text-emerald-800 bg-emerald-100 px-2 py-0.5 rounded-full">● Broadcasting</span>
+                                </div>
+                                <p class="text-xs font-sans text-amber-950 font-medium">
+                                    {{ $ac->announcement_text ?? ('USE CODE ' . $ac->code . ' FOR ' . $ac->discount_value . '% OFF') }}
+                                </p>
+                            </div>
+                            <form action="/admin/coupons/{{ $ac->id }}/announce" method="POST" class="inline m-0">
+                                @csrf
+                                <button type="submit" class="text-[11px] font-bold text-rose-700 hover:text-rose-900 bg-white border border-rose-200 px-3 py-1.5 rounded-xl transition-all shadow-xs" title="Remove from Ticker Broadcast">
+                                    ✕ Stop Ticker
+                                </button>
+                            </form>
+                        </div>
+                        @endforeach
+                    </div>
+                </div>
+                @endif
             </div>
         </div>
 

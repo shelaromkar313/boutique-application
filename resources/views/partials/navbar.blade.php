@@ -51,7 +51,8 @@
                     @endforeach
                 @endif
 
-                {{-- Static fallback messages --}}
+                {{-- Fallback messages only if database has no active announcements --}}
+                @if($tickerAnnouncements->isEmpty() && $tickerCoupons->isEmpty())
                 <span class="flex items-center gap-2">
                     <span class="text-[var(--color-rose-antique)] text-xs animate-pulse">✨</span>
                     <span>COMPLIMENTARY EXPRESS SHIPPING ON ORDERS OVER ₹1,499</span>
@@ -67,6 +68,7 @@
                     <span>EASY RETURNS · SECURE PAYMENTS · COD AVAILABLE</span>
                 </span>
                 <span class="text-[var(--color-bisque)] font-bold">|</span>
+                @endif
             </div>
             @endforeach
         </div>
