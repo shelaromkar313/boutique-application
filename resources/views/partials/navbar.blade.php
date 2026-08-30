@@ -18,8 +18,8 @@
     @endphp
 
     <!-- 1. Continuous Right-to-Left Announcement Ticker -->
-    <div class="bg-white text-[var(--color-ebony)] text-[11px] font-sans tracking-[0.22em] uppercase py-2 border-b border-[var(--color-bisque)]/40 overflow-hidden relative select-none z-40">
-        <div class="flex whitespace-nowrap gap-12 items-center w-max" style="animation: marquee 30s linear infinite;">
+    <div class="bg-white text-[var(--color-ebony)] text-[11px] font-sans tracking-[0.22em] uppercase py-2 border-b border-[var(--color-bisque)]/40 overflow-hidden relative select-none z-40 group/ticker">
+        <div class="flex whitespace-nowrap gap-12 items-center w-max group-hover/ticker:[animation-play-state:paused]" style="animation: marquee 75s linear infinite;">
             <style>
                 @keyframes marquee { 0% { transform: translateX(0%); } 100% { transform: translateX(-50%); } }
             </style>
