@@ -78,6 +78,8 @@
 
     openEditReview(rev) {
         this.selectedReview = Object.assign({}, rev);
+        this.selectedReview.is_approved = Boolean(Number(rev.is_approved));
+        this.selectedReview.rating = Number(rev.rating || 5);
         this.editReviewModal = true;
     },
 
@@ -1684,7 +1686,7 @@
 
                 {{-- Live Visibility Checkbox --}}
                 <div class="flex items-center gap-2 p-3 bg-emerald-50/50 rounded-xl border border-emerald-200/60">
-                    <input type="checkbox" name="is_approved" id="edit_is_approved" :checked="selectedReview.is_approved" class="w-4 h-4 rounded text-emerald-600 focus:ring-emerald-500" />
+                    <input type="checkbox" name="is_approved" value="1" id="edit_is_approved" x-model="selectedReview.is_approved" class="w-4 h-4 rounded text-emerald-600 focus:ring-emerald-500" />
                     <label for="edit_is_approved" class="text-xs font-sans font-bold text-emerald-900 cursor-pointer">
                         Approve & Display Live on Product Storefront Page
                     </label>

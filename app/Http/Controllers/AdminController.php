@@ -260,7 +260,7 @@ class AdminController extends Controller
             'user_name'   => $request->input('user_name', $review->user_name),
             'rating'      => (int) $request->input('rating', $review->rating),
             'comment'     => trim($request->input('comment', $review->comment)),
-            'is_approved' => $request->has('is_approved') ? $request->boolean('is_approved') : $review->is_approved,
+            'is_approved' => $request->boolean('is_approved'),
         ]);
 
         // Recalculate product overall star rating
