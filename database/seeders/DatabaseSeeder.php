@@ -16,11 +16,14 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {    
-        // User::factory(10)->create();
-
-        $this->call(BoutiqueSeeder::class);
-        $this->call(AuthSeeder::class);
-        $this->call(ImageSeeder::class);
+        $this->call([
+            BoutiqueSeeder::class,
+            AuthSeeder::class,
+            ImageSeeder::class,
+            DemoOrdersAndUsersSeeder::class,
+            ReviewsSeeder::class,
+            StorefrontAnnouncementsSeeder::class,
+        ]);
 
         // 1. Customer User
         $customer = User::updateOrCreate(
