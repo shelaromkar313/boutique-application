@@ -234,8 +234,8 @@ class AdminSessionAuthTest extends TestCase
 
         $response = $this->actingAs($admin)->get('/admin');
         $response->assertStatus(200)
-            ->assertSee('Atelier Master Administration Suite')
-            ->assertSee('Estilo Boutique Management Console');
+            ->assertSee('Executive Administration Suite')
+            ->assertSee('Estilo Management Console');
     }
 
     public function test_admin_can_create_update_and_delete_product(): void
