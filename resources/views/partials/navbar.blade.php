@@ -103,67 +103,50 @@
                 </div>
 
                 <!-- Center: Admin Features Navigation Tabs -->
+                @php $curTab = request('tab', 'overview'); @endphp
                 <nav class="hidden lg:flex flex-1 justify-center items-center gap-0.5 px-1 min-w-0 overflow-x-auto scrollbar-none">
                     <a href="/estilo-hq-console?tab=overview"
-                       @click="if (typeof activeTab !== 'undefined') { activeTab = 'overview'; window.history.pushState({}, '', '/estilo-hq-console?tab=overview'); }"
-                       :class="(typeof activeTab !== 'undefined' && activeTab === 'overview') ? 'bg-[#FBEAD6] text-[#1A1818] font-bold shadow-md' : 'text-white/75 hover:text-white hover:bg-white/10'"
-                       class="px-2.5 py-1.5 rounded-full text-[9.5px] font-sans font-semibold uppercase tracking-wide transition-all whitespace-nowrap">
+                       class="px-2.5 py-1.5 rounded-full text-[9.5px] font-sans font-semibold uppercase tracking-wide transition-all whitespace-nowrap {{ $curTab === 'overview' ? 'bg-[#FBEAD6] text-[#1A1818] font-bold shadow-md' : 'text-white/75 hover:text-white hover:bg-white/10' }}">
                         Overview
                     </a>
 
                     <a href="/estilo-hq-console?tab=inventory"
-                       @click="if (typeof activeTab !== 'undefined') { activeTab = 'inventory'; window.history.pushState({}, '', '/estilo-hq-console?tab=inventory'); }"
-                       :class="(typeof activeTab !== 'undefined' && activeTab === 'inventory') ? 'bg-[#FBEAD6] text-[#1A1818] font-bold shadow-md' : 'text-white/75 hover:text-white hover:bg-white/10'"
-                       class="px-2.5 py-1.5 rounded-full text-[9.5px] font-sans font-semibold uppercase tracking-wide transition-all whitespace-nowrap">
+                       class="px-2.5 py-1.5 rounded-full text-[9.5px] font-sans font-semibold uppercase tracking-wide transition-all whitespace-nowrap {{ $curTab === 'inventory' ? 'bg-[#FBEAD6] text-[#1A1818] font-bold shadow-md' : 'text-white/75 hover:text-white hover:bg-white/10' }}">
                         Inventory
                     </a>
 
                     <a href="/estilo-hq-console?tab=orders"
-                       @click="if (typeof activeTab !== 'undefined') { activeTab = 'orders'; window.history.pushState({}, '', '/estilo-hq-console?tab=orders'); }"
-                       :class="(typeof activeTab !== 'undefined' && activeTab === 'orders') ? 'bg-[#FBEAD6] text-[#1A1818] font-bold shadow-md' : 'text-white/75 hover:text-white hover:bg-white/10'"
-                       class="px-2.5 py-1.5 rounded-full text-[9.5px] font-sans font-semibold uppercase tracking-wide transition-all whitespace-nowrap">
+                       class="px-2.5 py-1.5 rounded-full text-[9.5px] font-sans font-semibold uppercase tracking-wide transition-all whitespace-nowrap {{ $curTab === 'orders' ? 'bg-[#FBEAD6] text-[#1A1818] font-bold shadow-md' : 'text-white/75 hover:text-white hover:bg-white/10' }}">
                         Orders
                     </a>
 
                     <a href="/estilo-hq-console?tab=customers"
-                       @click="if (typeof activeTab !== 'undefined') { activeTab = 'customers'; window.history.pushState({}, '', '/estilo-hq-console?tab=customers'); }"
-                       :class="(typeof activeTab !== 'undefined' && activeTab === 'customers') ? 'bg-[#FBEAD6] text-[#1A1818] font-bold shadow-md' : 'text-white/75 hover:text-white hover:bg-white/10'"
-                       class="px-2.5 py-1.5 rounded-full text-[9.5px] font-sans font-semibold uppercase tracking-wide transition-all whitespace-nowrap">
+                       class="px-2.5 py-1.5 rounded-full text-[9.5px] font-sans font-semibold uppercase tracking-wide transition-all whitespace-nowrap {{ $curTab === 'customers' ? 'bg-[#FBEAD6] text-[#1A1818] font-bold shadow-md' : 'text-white/75 hover:text-white hover:bg-white/10' }}">
                         Customers
                     </a>
 
                     <a href="/estilo-hq-console?tab=associates"
-                       @click="if (typeof activeTab !== 'undefined') { activeTab = 'associates'; window.history.pushState({}, '', '/estilo-hq-console?tab=associates'); }"
-                       :class="(typeof activeTab !== 'undefined' && activeTab === 'associates') ? 'bg-[#FBEAD6] text-[#1A1818] font-bold shadow-md' : 'text-white/75 hover:text-white hover:bg-white/10'"
-                       class="px-2.5 py-1.5 rounded-full text-[9.5px] font-sans font-semibold uppercase tracking-wide transition-all whitespace-nowrap">
+                       class="px-2.5 py-1.5 rounded-full text-[9.5px] font-sans font-semibold uppercase tracking-wide transition-all whitespace-nowrap {{ $curTab === 'associates' ? 'bg-[#FBEAD6] text-[#1A1818] font-bold shadow-md' : 'text-white/75 hover:text-white hover:bg-white/10' }}">
                         Associates
                     </a>
 
                     <a href="/estilo-hq-console?tab=reports"
-                       @click="if (typeof activeTab !== 'undefined') { activeTab = 'reports'; window.history.pushState({}, '', '/estilo-hq-console?tab=reports'); }"
-                       :class="(typeof activeTab !== 'undefined' && activeTab === 'reports') ? 'bg-[#FBEAD6] text-[#1A1818] font-bold shadow-md' : 'text-white/75 hover:text-white hover:bg-white/10'"
-                       class="px-2.5 py-1.5 rounded-full text-[9.5px] font-sans font-semibold uppercase tracking-wide transition-all whitespace-nowrap">
+                       class="px-2.5 py-1.5 rounded-full text-[9.5px] font-sans font-semibold uppercase tracking-wide transition-all whitespace-nowrap {{ $curTab === 'reports' ? 'bg-[#FBEAD6] text-[#1A1818] font-bold shadow-md' : 'text-white/75 hover:text-white hover:bg-white/10' }}">
                         Reports
                     </a>
 
                     <a href="/estilo-hq-console?tab=offers"
-                       @click="if (typeof activeTab !== 'undefined') { activeTab = 'offers'; window.history.pushState({}, '', '/estilo-hq-console?tab=offers'); }"
-                       :class="(typeof activeTab !== 'undefined' && activeTab === 'offers') ? 'bg-[#FBEAD6] text-[#1A1818] font-bold shadow-md' : 'text-white/75 hover:text-white hover:bg-white/10'"
-                       class="px-2.5 py-1.5 rounded-full text-[9.5px] font-sans font-semibold uppercase tracking-wide transition-all whitespace-nowrap">
+                       class="px-2.5 py-1.5 rounded-full text-[9.5px] font-sans font-semibold uppercase tracking-wide transition-all whitespace-nowrap {{ $curTab === 'offers' ? 'bg-[#FBEAD6] text-[#1A1818] font-bold shadow-md' : 'text-white/75 hover:text-white hover:bg-white/10' }}">
                         Coupons
                     </a>
 
                     <a href="/estilo-hq-console?tab=announcements"
-                       @click="if (typeof activeTab !== 'undefined') { activeTab = 'announcements'; window.history.pushState({}, '', '/estilo-hq-console?tab=announcements'); }"
-                       :class="(typeof activeTab !== 'undefined' && activeTab === 'announcements') ? 'bg-[#FBEAD6] text-[#1A1818] font-bold shadow-md' : 'text-white/75 hover:text-white hover:bg-white/10'"
-                       class="px-2.5 py-1.5 rounded-full text-[9.5px] font-sans font-semibold uppercase tracking-wide transition-all whitespace-nowrap flex items-center gap-1">
+                       class="px-2.5 py-1.5 rounded-full text-[9.5px] font-sans font-semibold uppercase tracking-wide transition-all whitespace-nowrap flex items-center gap-1 {{ $curTab === 'announcements' ? 'bg-[#FBEAD6] text-[#1A1818] font-bold shadow-md' : 'text-white/75 hover:text-white hover:bg-white/10' }}">
                         <span>📢 Announcements</span>
                     </a>
 
                     <a href="/estilo-hq-console?tab=reviews"
-                       @click="if (typeof activeTab !== 'undefined') { activeTab = 'reviews'; window.history.pushState({}, '', '/estilo-hq-console?tab=reviews'); }"
-                       :class="(typeof activeTab !== 'undefined' && activeTab === 'reviews') ? 'bg-[#FBEAD6] text-[#1A1818] font-bold shadow-md' : 'text-white/75 hover:text-white hover:bg-white/10'"
-                       class="px-2.5 py-1.5 rounded-full text-[9.5px] font-sans font-semibold uppercase tracking-wide transition-all whitespace-nowrap">
+                       class="px-2.5 py-1.5 rounded-full text-[9.5px] font-sans font-semibold uppercase tracking-wide transition-all whitespace-nowrap {{ $curTab === 'reviews' ? 'bg-[#FBEAD6] text-[#1A1818] font-bold shadow-md' : 'text-white/75 hover:text-white hover:bg-white/10' }}">
                         Reviews
                     </a>
                 </nav>

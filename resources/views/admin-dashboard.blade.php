@@ -148,7 +148,7 @@ document.addEventListener('alpine:init', function() {
                 {{-- Action shortcuts --}}
                 <button onclick="adminShowModal('modal-add-product')" class="inline-flex items-center gap-1.5 bg-[var(--color-ebony)] hover:bg-[var(--color-rose-deep)] text-white text-xs font-sans font-bold uppercase tracking-wider px-4 py-2.5 rounded-full shadow-md transition-all hover:scale-105 active:scale-95">
                     <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
-                    Product
+                    + Product
                 </button>
                 <button onclick="adminShowModal('modal-add-coupon')" class="inline-flex items-center gap-1.5 bg-amber-50 hover:bg-amber-100 border border-amber-300 text-amber-900 text-xs font-sans font-bold uppercase tracking-wider px-3.5 py-2.5 rounded-full transition-colors">
                     + Coupon
@@ -1373,15 +1373,15 @@ document.addEventListener('alpine:init', function() {
     </div>
 
     {{-- MODAL 2: EDIT PRODUCT --}}
-    <div x-show="editProductModal" style="display: none;" class="fixed inset-0 z-50 flex items-center justify-center p-4 overflow-y-auto">
-        <div x-show="editProductModal" x-transition.opacity @click="editProductModal = false" class="fixed inset-0 bg-black/60 backdrop-blur-sm"></div>
+    <div id="modal-edit-product" style="display: none;" class="fixed inset-0 z-50 flex items-center justify-center p-4 overflow-y-auto">
+        <div onclick="adminHideModal('modal-edit-product')" class="fixed inset-0 bg-black/60 backdrop-blur-sm"></div>
         <div class="relative w-full max-w-2xl bg-white rounded-3xl p-8 shadow-2xl z-10 border border-[var(--color-bisque)] my-8 max-h-[90vh] overflow-y-auto space-y-5">
             <div class="flex items-center justify-between border-b border-[var(--color-bisque)]/60 pb-3">
                 <div>
                     <h3 class="font-serif text-2xl font-bold text-[var(--color-ebony)]">Edit Couture Outfit & Inventory</h3>
                     <p class="text-xs font-sans text-gray-500">Update product name, category, price, and adjust stock counts per size.</p>
                 </div>
-                <button @click="editProductModal = false" class="text-gray-400 hover:text-gray-600 text-lg">✕</button>
+                <button onclick="adminHideModal('modal-edit-product')" class="text-gray-400 hover:text-gray-600 text-lg">✕</button>
             </div>
 
             <form :action="'/estilo-hq-console/products/' + selectedProduct.id" method="POST" enctype="multipart/form-data" class="space-y-4">
@@ -1445,15 +1445,15 @@ document.addEventListener('alpine:init', function() {
                 </div>
 
                 <div class="flex gap-3 pt-4 border-t border-[var(--color-bisque)]/60">
-                    <button type="button" @click="editProductModal = false" class="flex-1 bg-gray-100 hover:bg-gray-200 text-[var(--color-ebony)] font-sans text-xs font-bold py-3 rounded-xl">Cancel</button>
+                    <button type="button" onclick="adminHideModal('modal-edit-product')" class="flex-1 bg-gray-100 hover:bg-gray-200 text-[var(--color-ebony)] font-sans text-xs font-bold py-3 rounded-xl">Cancel</button>
                     <button type="submit" class="flex-1 bg-[var(--color-ebony)] hover:bg-[var(--color-rose-deep)] text-white font-sans text-xs font-bold py-3 rounded-xl shadow-md">Update Product</button>
                 </div>
             </form>
     </div>
 
     {{-- MODAL 3: VIEW ORDER DETAILS --}}
-    <div x-show="viewOrderModal" style="display: none;" class="fixed inset-0 z-50 flex items-center justify-center p-4 overflow-y-auto">
-        <div x-show="viewOrderModal" x-transition.opacity @click="viewOrderModal = false" class="fixed inset-0 bg-black/60 backdrop-blur-sm"></div>
+    <div id="modal-view-order" style="display: none;" class="fixed inset-0 z-50 flex items-center justify-center p-4 overflow-y-auto">
+        <div onclick="adminHideModal('modal-view-order')" class="fixed inset-0 bg-black/60 backdrop-blur-sm"></div>
         <div class="relative w-full max-w-xl bg-white rounded-3xl p-6 sm:p-8 shadow-2xl z-10 border border-[var(--color-bisque)] my-8 space-y-5">
             <div class="flex items-center justify-between border-b border-[var(--color-bisque)]/60 pb-3">
                 <div>
@@ -1464,7 +1464,7 @@ document.addEventListener('alpine:init', function() {
                         <span class="text-[10px] text-gray-500 font-mono" x-text="selectedOrder.payment_id ? ('Payment: ' + selectedOrder.payment_id) : 'Payment: Verified'"></span>
                     </div>
                 </div>
-                <button @click="viewOrderModal = false" class="text-gray-400 hover:text-gray-600 text-lg">✕</button>
+                <button onclick="adminHideModal('modal-view-order')" class="text-gray-400 hover:text-gray-600 text-lg">✕</button>
             </div>
 
             <div class="space-y-3 text-xs font-sans">
@@ -1539,14 +1539,14 @@ document.addEventListener('alpine:init', function() {
             </div>
 
             <div class="pt-2">
-                <button type="button" @click="viewOrderModal = false" class="w-full bg-[var(--color-ebony)] hover:bg-[var(--color-rose-deep)] text-white text-xs font-bold py-3 rounded-xl transition-colors">Close Details</button>
+                <button type="button" onclick="adminHideModal('modal-view-order')" class="w-full bg-[var(--color-ebony)] hover:bg-[var(--color-rose-deep)] text-white text-xs font-bold py-3 rounded-xl transition-colors">Close Details</button>
             </div>
         </div>
     </div>
 
     {{-- MODAL 4: APPROVE PAYOUT --}}
-    <div x-show="payoutModal" style="display: none;" class="fixed inset-0 z-50 flex items-center justify-center p-4">
-        <div x-show="payoutModal" x-transition.opacity @click="payoutModal = false" class="fixed inset-0 bg-black/60 backdrop-blur-sm"></div>
+    <div id="modal-payout" style="display: none;" class="fixed inset-0 z-50 flex items-center justify-center p-4">
+        <div onclick="adminHideModal('modal-payout')" class="fixed inset-0 bg-black/60 backdrop-blur-sm"></div>
         <div class="relative w-full max-w-md bg-white rounded-3xl p-8 shadow-2xl z-10 border border-[var(--color-bisque)] space-y-4">
             <h3 class="font-serif text-xl font-bold text-[var(--color-ebony)]">Approve Associate Payout</h3>
             <p class="text-xs font-sans text-[var(--color-ebony)]/60">Disburse pending commission balance to registered UPI address.</p>
@@ -1567,7 +1567,7 @@ document.addEventListener('alpine:init', function() {
                 </div>
 
                 <div class="flex gap-3 pt-3">
-                    <button type="button" @click="payoutModal = false" class="flex-1 bg-gray-100 text-xs font-bold py-2.5 rounded-xl">Cancel</button>
+                    <button type="button" onclick="adminHideModal('modal-payout')" class="flex-1 bg-gray-100 text-xs font-bold py-2.5 rounded-xl">Cancel</button>
                     <button type="submit" class="flex-1 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold py-2.5 rounded-xl shadow-md">Confirm & Disburse</button>
                 </div>
             </form>
@@ -1710,8 +1710,8 @@ document.addEventListener('alpine:init', function() {
     </div>
 
     {{-- MODAL 5B: EDIT COUPON --}}
-    <div x-show="editCouponModal" style="display: none;" class="fixed inset-0 z-50 flex items-center justify-center p-4 overflow-y-auto">
-        <div x-show="editCouponModal" x-transition.opacity @click="editCouponModal = false" class="fixed inset-0 bg-black/60 backdrop-blur-sm"></div>
+    <div id="modal-edit-coupon" style="display: none;" class="fixed inset-0 z-50 flex items-center justify-center p-4 overflow-y-auto">
+        <div onclick="adminHideModal('modal-edit-coupon')" class="fixed inset-0 bg-black/60 backdrop-blur-sm"></div>
         <div class="relative w-full max-w-lg bg-white rounded-3xl p-6 sm:p-8 shadow-2xl z-10 border border-[var(--color-bisque)] space-y-4 my-8">
             
             <div class="flex items-center justify-between border-b border-[var(--color-bisque)] pb-3">
@@ -1719,7 +1719,7 @@ document.addEventListener('alpine:init', function() {
                     <h3 class="font-serif text-xl font-bold text-[var(--color-ebony)]">Edit Discount Coupon</h3>
                     <p class="text-xs text-[var(--color-ebony)]/60">Update coupon parameters, discount rate, or validity.</p>
                 </div>
-                <button type="button" @click="editCouponModal = false" class="w-8 h-8 rounded-full bg-gray-100 hover:bg-gray-200 text-gray-500 hover:text-gray-800 flex items-center justify-center text-sm font-bold transition-colors">
+                <button type="button" onclick="adminHideModal('modal-edit-coupon')" class="w-8 h-8 rounded-full bg-gray-100 hover:bg-gray-200 text-gray-500 hover:text-gray-800 flex items-center justify-center text-sm font-bold transition-colors">
                     ✕
                 </button>
             </div>
@@ -1786,7 +1786,7 @@ document.addEventListener('alpine:init', function() {
                 </div>
 
                 <div class="flex gap-3 pt-3 border-t border-[var(--color-bisque)]">
-                    <button type="button" @click="editCouponModal = false"
+                    <button type="button" onclick="adminHideModal('modal-edit-coupon')"
                             class="flex-1 bg-gray-100 hover:bg-gray-200 text-gray-700 text-xs font-bold py-2.5 rounded-xl transition-colors">
                         Cancel
                     </button>
@@ -1876,8 +1876,8 @@ document.addEventListener('alpine:init', function() {
     </div>
 
     {{-- MODAL 8: EDIT RATING & REVIEW (OVERRIDE BAD/LOW RATINGS) --}}
-    <div x-show="editReviewModal" style="display: none;" class="fixed inset-0 z-50 flex items-center justify-center p-4 overflow-y-auto">
-        <div x-show="editReviewModal" x-transition.opacity @click="editReviewModal = false" class="fixed inset-0 bg-black/60 backdrop-blur-sm"></div>
+    <div id="modal-edit-review" style="display: none;" class="fixed inset-0 z-50 flex items-center justify-center p-4 overflow-y-auto">
+        <div onclick="adminHideModal('modal-edit-review')" class="fixed inset-0 bg-black/60 backdrop-blur-sm"></div>
         <div class="relative w-full max-w-lg bg-white rounded-3xl p-6 sm:p-8 shadow-2xl z-10 border border-[var(--color-bisque)] my-8 space-y-5">
             
             <div class="flex items-center justify-between border-b border-[var(--color-bisque)]/60 pb-3">
@@ -1888,7 +1888,7 @@ document.addEventListener('alpine:init', function() {
                         <span class="text-[10px] font-sans text-gray-500">Modify low stars, refine feedback comments, and set public status</span>
                     </div>
                 </div>
-                <button type="button" @click="editReviewModal = false" class="text-gray-400 hover:text-gray-600 text-lg">✕</button>
+                <button type="button" onclick="adminHideModal('modal-edit-review')" class="text-gray-400 hover:text-gray-600 text-lg">✕</button>
             </div>
 
             <form :action="'/estilo-hq-console/reviews/' + selectedReview.id" method="POST" class="space-y-4">
@@ -1949,7 +1949,7 @@ document.addEventListener('alpine:init', function() {
                 </div>
 
                 <div class="flex gap-3 pt-2">
-                    <button type="button" @click="editReviewModal = false" class="flex-1 bg-gray-100 text-xs font-bold py-3 rounded-xl">Cancel</button>
+                    <button type="button" onclick="adminHideModal('modal-edit-review')" class="flex-1 bg-gray-100 text-xs font-bold py-3 rounded-xl">Cancel</button>
                     <button type="submit" class="flex-1 bg-[var(--color-ebony)] hover:bg-[var(--color-rose-deep)] text-white text-xs font-bold py-3 rounded-xl shadow-md transition-colors">
                         Save Rating & Review
                     </button>
@@ -2054,8 +2054,8 @@ document.addEventListener('alpine:init', function() {
     </div>
 
     {{-- MODAL 10: EDIT STOREFRONT ANNOUNCEMENT --}}
-    <div x-show="editAnnouncementModal" style="display: none;" class="fixed inset-0 z-50 flex items-center justify-center p-4 overflow-y-auto">
-        <div x-show="editAnnouncementModal" x-transition.opacity @click="editAnnouncementModal = false" class="fixed inset-0 bg-black/60 backdrop-blur-sm"></div>
+    <div id="modal-edit-announcement" style="display: none;" class="fixed inset-0 z-50 flex items-center justify-center p-4 overflow-y-auto">
+        <div onclick="adminHideModal('modal-edit-announcement')" class="fixed inset-0 bg-black/60 backdrop-blur-sm"></div>
         <div class="relative w-full max-w-lg bg-white rounded-3xl p-6 sm:p-8 shadow-2xl z-10 border border-[var(--color-bisque)] my-8 space-y-5">
             <div class="flex items-center justify-between border-b border-[var(--color-bisque)]/60 pb-3">
                 <div class="flex items-center gap-2.5">
@@ -2065,7 +2065,7 @@ document.addEventListener('alpine:init', function() {
                         <span class="text-[10px] font-sans text-gray-500">Update broadcast text, placements, and active status</span>
                     </div>
                 </div>
-                <button type="button" @click="editAnnouncementModal = false" class="text-gray-400 hover:text-gray-600 text-lg">✕</button>
+                <button type="button" onclick="adminHideModal('modal-edit-announcement')" class="text-gray-400 hover:text-gray-600 text-lg">✕</button>
             </div>
 
             <form :action="'/estilo-hq-console/announcements/' + selectedAnnouncement.id" method="POST" class="space-y-4">
@@ -2119,7 +2119,7 @@ document.addEventListener('alpine:init', function() {
                 </div>
 
                 <div class="flex gap-3 pt-2">
-                    <button type="button" @click="editAnnouncementModal = false" class="flex-1 bg-gray-100 text-xs font-bold py-3 rounded-xl">Cancel</button>
+                    <button type="button" onclick="adminHideModal('modal-edit-announcement')" class="flex-1 bg-gray-100 text-xs font-bold py-3 rounded-xl">Cancel</button>
                     <button type="submit" class="flex-1 bg-[var(--color-ebony)] hover:bg-[var(--color-rose-deep)] text-white text-xs font-bold py-3 rounded-xl shadow-md transition-colors">
                         Save Changes
                     </button>
