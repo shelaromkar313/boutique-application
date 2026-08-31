@@ -115,6 +115,11 @@ Route::prefix('estilo-hq-console')->middleware('admin')->group(function () {
     Route::post('/associates/{id}', [AdminController::class, 'updateAssociate']);
     Route::post('/associates/{id}/payout', [AdminController::class, 'approvePayout']);
 
+    // Dedicated Create Pages
+    Route::get('/products/create', [AdminController::class, 'createProduct']);
+    Route::get('/coupons/create', [AdminController::class, 'createCoupon']);
+    Route::get('/announcements/create', [AdminController::class, 'createAnnouncement']);
+
     // 4.8 Offers & Coupons
     Route::post('/coupons', [AdminController::class, 'storeCoupon']);
     Route::post('/coupons/{id}', [AdminController::class, 'updateCoupon']);

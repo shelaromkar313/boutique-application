@@ -423,6 +423,34 @@ class AdminController extends Controller
     }
 
     /**
+     * Dedicated Create Coupon Page
+     */
+    public function createCoupon()
+    {
+        $admin = Auth::user();
+        return view('admin-create-coupon', compact('admin'));
+    }
+
+    /**
+     * Dedicated Create Announcement Page
+     */
+    public function createAnnouncement()
+    {
+        $admin = Auth::user();
+        return view('admin-create-announcement', compact('admin'));
+    }
+
+    /**
+     * Dedicated Create Product Page
+     */
+    public function createProduct()
+    {
+        $admin = Auth::user();
+        $categories = Category::all();
+        return view('admin-create-product', compact('admin', 'categories'));
+    }
+
+    /**
      * Create Offers & Discount Coupons
      */
     public function storeCoupon(Request $request)

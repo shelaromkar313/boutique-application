@@ -146,16 +146,16 @@ document.addEventListener('alpine:init', function() {
                 </div>
 
                 {{-- Action shortcuts --}}
-                <button onclick="adminShowModal('modal-add-product')" class="inline-flex items-center gap-1.5 bg-[var(--color-ebony)] hover:bg-[var(--color-rose-deep)] text-white text-xs font-sans font-bold uppercase tracking-wider px-4 py-2.5 rounded-full shadow-md transition-all hover:scale-105 active:scale-95">
+                <a href="/estilo-hq-console/products/create" class="inline-flex items-center gap-1.5 bg-[var(--color-ebony)] hover:bg-[var(--color-rose-deep)] text-white text-xs font-sans font-bold uppercase tracking-wider px-4 py-2.5 rounded-full shadow-md transition-all hover:scale-105 active:scale-95">
                     <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
                     + Product
-                </button>
-                <button onclick="adminShowModal('modal-add-coupon')" class="inline-flex items-center gap-1.5 bg-amber-50 hover:bg-amber-100 border border-amber-300 text-amber-900 text-xs font-sans font-bold uppercase tracking-wider px-3.5 py-2.5 rounded-full transition-colors">
+                </a>
+                <a href="/estilo-hq-console/coupons/create" class="inline-flex items-center gap-1.5 bg-amber-50 hover:bg-amber-100 border border-amber-300 text-amber-900 text-xs font-sans font-bold uppercase tracking-wider px-3.5 py-2.5 rounded-full transition-colors hover:scale-105 active:scale-95 shadow-xs">
                     + Coupon
-                </button>
-                <button onclick="adminShowModal('modal-add-announcement')" class="inline-flex items-center gap-1.5 bg-rose-50 hover:bg-rose-100 border border-rose-200 text-rose-900 text-xs font-sans font-bold uppercase tracking-wider px-3.5 py-2.5 rounded-full transition-colors shadow-xs">
+                </a>
+                <a href="/estilo-hq-console/announcements/create" class="inline-flex items-center gap-1.5 bg-rose-50 hover:bg-rose-100 border border-rose-200 text-rose-900 text-xs font-sans font-bold uppercase tracking-wider px-3.5 py-2.5 rounded-full transition-colors hover:scale-105 active:scale-95 shadow-xs">
                     + Announcement
-                </button>
+                </a>
                 <a href="/shop" target="_blank" class="inline-flex items-center gap-1.5 bg-gray-50 hover:bg-gray-100 border border-[var(--color-bisque)] text-[var(--color-ebony)] text-xs font-sans font-bold uppercase tracking-wider px-3.5 py-2.5 rounded-full transition-colors">
                     Store ↗
                 </a>
@@ -257,9 +257,9 @@ document.addEventListener('alpine:init', function() {
                         <button onclick="adminShowModal('modal-add-category')" class="bg-white border border-[var(--color-bisque)] hover:bg-gray-50 text-xs font-sans font-bold px-4 py-2 rounded-full shrink-0">
                             + Category
                         </button>
-                        <button onclick="adminShowModal('modal-add-product')" class="bg-[var(--color-ebony)] hover:bg-[var(--color-rose-deep)] text-white text-xs font-sans font-bold px-4 py-2 rounded-full shrink-0 shadow-sm">
+                        <a href="/estilo-hq-console/products/create" class="bg-[var(--color-ebony)] hover:bg-[var(--color-rose-deep)] text-white text-xs font-sans font-bold px-4 py-2 rounded-full shrink-0 shadow-sm transition-all hover:scale-105 active:scale-95">
                             + Add Product
-                        </button>
+                        </a>
                     </div>
                 </div>
 
@@ -693,9 +693,9 @@ document.addEventListener('alpine:init', function() {
                         <h2 class="font-serif text-xl sm:text-2xl font-bold text-[var(--color-ebony)]">Offers, Festival Discounts & Coupons</h2>
                         <p class="text-xs font-sans text-[var(--color-ebony)]/60">Generate promotional discount coupons and 📢 announce them to customers via the storefront ticker.</p>
                     </div>
-                    <button onclick="adminShowModal('modal-add-coupon')" class="bg-[var(--color-ebony)] hover:bg-[var(--color-rose-deep)] text-white text-xs font-sans font-bold uppercase tracking-wider px-5 py-2.5 rounded-full transition-all shadow-md">
+                    <a href="/estilo-hq-console/coupons/create" class="bg-[var(--color-ebony)] hover:bg-[var(--color-rose-deep)] text-white text-xs font-sans font-bold uppercase tracking-wider px-5 py-2.5 rounded-full transition-all shadow-md hover:scale-105 active:scale-95">
                         + New Coupon
-                    </button>
+                    </a>
                 </div>
 
                 <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
@@ -821,9 +821,9 @@ document.addEventListener('alpine:init', function() {
                         </p>
                     </div>
                     <div class="flex items-center gap-2">
-                        <button type="button" onclick="adminShowModal('modal-add-announcement')" class="bg-[var(--color-ebony)] hover:bg-[var(--color-rose-deep)] text-white text-xs font-sans font-bold uppercase tracking-wider px-5 py-2.5 rounded-full transition-all shadow-md flex items-center gap-2">
+                        <a href="/estilo-hq-console/announcements/create" class="bg-[var(--color-ebony)] hover:bg-[var(--color-rose-deep)] text-white text-xs font-sans font-bold uppercase tracking-wider px-5 py-2.5 rounded-full transition-all shadow-md flex items-center gap-2 hover:scale-105 active:scale-95">
                             <span>📢</span> + Create Announcement
-                        </button>
+                        </a>
                     </div>
                 </div>
 
@@ -967,9 +967,9 @@ document.addEventListener('alpine:init', function() {
                         <p class="text-xs text-[var(--color-ebony)]/60 max-w-md mx-auto">
                             Broadcast promotional sales, festive coupons, or shipping notices to customers by creating your first announcement.
                         </p>
-                        <button type="button" onclick="adminShowModal('modal-add-announcement')" class="inline-flex items-center gap-1.5 bg-[var(--color-ebony)] hover:bg-[var(--color-rose-deep)] text-white text-xs font-sans font-bold uppercase tracking-wider px-5 py-2.5 rounded-full transition-all shadow-md">
+                        <a href="/estilo-hq-console/announcements/create" class="inline-flex items-center gap-1.5 bg-[var(--color-ebony)] hover:bg-[var(--color-rose-deep)] text-white text-xs font-sans font-bold uppercase tracking-wider px-5 py-2.5 rounded-full transition-all shadow-md hover:scale-105 active:scale-95">
                             <span>📢</span> Create First Announcement
-                        </button>
+                        </a>
                     </div>
                     @endforelse
                 </div>
