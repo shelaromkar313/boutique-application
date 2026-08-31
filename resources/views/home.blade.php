@@ -24,14 +24,35 @@
     </section>
 
     {{-- ══ 2. CIRCULAR CATEGORY SECTION (HORIZONTAL SLIDER) ══ --}}
+    {{-- ══ 2. CIRCULAR CATEGORY SECTION (AUTO-SCROLLING SLIDER) ══ --}}
     <section class="bg-white border-b border-[var(--color-bisque)]/30 py-5 sm:py-7 relative group"
              x-data="{
+                 timer: null,
+                 init() {
+                     this.startAutoScroll();
+                 },
+                 startAutoScroll() {
+                     this.timer = setInterval(() => {
+                         const el = this.$refs.circleSlider;
+                         if (!el) return;
+                         if (el.scrollLeft + el.clientWidth >= el.scrollWidth - 10) {
+                             el.scrollTo({ left: 0, behavior: 'smooth' });
+                         } else {
+                             el.scrollBy({ left: 240, behavior: 'smooth' });
+                         }
+                     }, 3500);
+                 },
+                 stopAutoScroll() {
+                     if (this.timer) clearInterval(this.timer);
+                 },
                  scroll(dir) {
                      const el = this.$refs.circleSlider;
                      const amt = el.clientWidth * 0.6;
                      el.scrollBy({ left: dir === 'left' ? -amt : amt, behavior: 'smooth' });
                  }
-             }">
+             }"
+             @mouseenter="stopAutoScroll()"
+             @mouseleave="startAutoScroll()">
         <div class="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 relative">
             <!-- Left Arrow -->
             <button @click="scroll('left')"
@@ -116,7 +137,7 @@
                  startTimer() {
                      this.timer = setInterval(() => {
                          this.nextSlide();
-                     }, 5000);
+                     }, 3500);
                  },
                  stopTimer() {
                      if (this.timer) clearInterval(this.timer);
