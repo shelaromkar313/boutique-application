@@ -215,12 +215,12 @@
         @yield('content')
     </main>
 
-    @if(!request()->is('admin*'))
+    @if(!request()->is('estilo-hq-console*'))
         @include('partials.footer')
     @endif
 
     {{-- Interactive Global Overlays & Modals --}}
-    @if(!request()->is('admin*'))
+    @if(!request()->is('estilo-hq-console*'))
         @include('partials.mobile-bottom-nav')
     @endif
     @include('partials.cart-drawer')

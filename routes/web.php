@@ -84,7 +84,7 @@ Route::prefix('sales')->group(function () {
 // ─────────────────────────────────────────────────────────────────────────────
 // 4. Admin Management Suite (Protected by Admin Middleware)
 // ─────────────────────────────────────────────────────────────────────────────
-Route::prefix('admin')->middleware('admin')->group(function () {
+Route::prefix('estilo-hq-console')->middleware('admin')->group(function () {
     Route::get('/', [AdminController::class, 'index']);
     Route::get('/dashboard', [AdminController::class, 'index']);
     Route::post('/profile', [AdminController::class, 'updateProfile']);

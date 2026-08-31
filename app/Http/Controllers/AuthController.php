@@ -374,7 +374,7 @@ class AuthController extends Controller
         $user = Auth::user();
 
         if ($user->isAdmin()) {
-            return redirect('/admin?tab=profile');
+            return redirect('/estilo-hq-console?tab=profile');
         }
 
         if ($user->isSalesAssociate()) {
@@ -431,7 +431,7 @@ class AuthController extends Controller
     protected function redirectBasedOnRole(User $user)
     {
         if ($user->isAdmin()) {
-            return redirect('/admin')->with('success', 'Welcome back, Administrator!');
+            return redirect('/estilo-hq-console')->with('success', 'Welcome back, Administrator!');
         }
 
         if ($user->isSalesAssociate()) {

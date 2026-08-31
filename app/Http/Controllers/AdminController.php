@@ -115,7 +115,7 @@ class AdminController extends Controller
 
         $admin->update($data);
 
-        return redirect('/admin?tab=overview')->with('success', 'Administrator profile details updated successfully!');
+        return redirect('/estilo-hq-console?tab=overview')->with('success', 'Administrator profile details updated successfully!');
     }
 
     /**
@@ -204,7 +204,7 @@ class AdminController extends Controller
             'images'         => $images,
         ]);
 
-        return redirect('/admin?tab=inventory')->with('success', "✨ New Couture Outfit added successfully with {$totalUnits} units in stock!");
+        return redirect('/estilo-hq-console?tab=inventory')->with('success', "✨ New Couture Outfit added successfully with {$totalUnits} units in stock!");
     }
 
     /**
@@ -262,7 +262,7 @@ class AdminController extends Controller
 
         $product->update($data);
 
-        return redirect('/admin?tab=inventory')->with('success', "✨ Product '{$product->name}' updated successfully ({$totalUnits} units in stock)!");
+        return redirect('/estilo-hq-console?tab=inventory')->with('success', "✨ Product '{$product->name}' updated successfully ({$totalUnits} units in stock)!");
     }
 
     /**
@@ -272,7 +272,7 @@ class AdminController extends Controller
     {
         $product = Product::findOrFail($id);
         $product->delete();
-        return redirect('/admin?tab=inventory')->with('success', 'Product removed from catalog.');
+        return redirect('/estilo-hq-console?tab=inventory')->with('success', 'Product removed from catalog.');
     }
 
     /**
@@ -285,14 +285,14 @@ class AdminController extends Controller
             'name' => $request->name,
             'slug' => Str::slug($request->name),
         ]);
-        return redirect('/admin?tab=inventory')->with('success', 'New Category created successfully!');
+        return redirect('/estilo-hq-console?tab=inventory')->with('success', 'New Category created successfully!');
     }
 
     public function deleteCategory($id)
     {
         $cat = Category::findOrFail($id);
         $cat->delete();
-        return redirect('/admin?tab=inventory')->with('success', 'Category removed.');
+        return redirect('/estilo-hq-console?tab=inventory')->with('success', 'Category removed.');
     }
 
     /**
@@ -320,7 +320,7 @@ class AdminController extends Controller
             $product->updateRatingStats();
         }
 
-        return redirect('/admin?tab=reviews')->with('success', "✨ Review #{$review->id} updated successfully! Rating set to {$review->rating} Stars.");
+        return redirect('/estilo-hq-console?tab=reviews')->with('success', "✨ Review #{$review->id} updated successfully! Rating set to {$review->rating} Stars.");
     }
 
     /**
@@ -338,7 +338,7 @@ class AdminController extends Controller
             $product->updateRatingStats();
         }
 
-        return redirect('/admin?tab=reviews')->with('success', "⭐ Review #{$review->id} boosted to 5 Stars & Approved!");
+        return redirect('/estilo-hq-console?tab=reviews')->with('success', "⭐ Review #{$review->id} boosted to 5 Stars & Approved!");
     }
 
     /**
@@ -356,7 +356,7 @@ class AdminController extends Controller
         }
 
         $status = $review->is_approved ? 'Approved & Live' : 'Hidden from Store';
-        return redirect('/admin?tab=reviews')->with('success', "Review #{$review->id} is now {$status}.");
+        return redirect('/estilo-hq-console?tab=reviews')->with('success', "Review #{$review->id} is now {$status}.");
     }
 
     /**
@@ -373,7 +373,7 @@ class AdminController extends Controller
             $product->updateRatingStats();
         }
 
-        return redirect('/admin?tab=reviews')->with('success', 'Review removed from database.');
+        return redirect('/estilo-hq-console?tab=reviews')->with('success', 'Review removed from database.');
     }
 
     /**
@@ -384,7 +384,7 @@ class AdminController extends Controller
         $order = Order::findOrFail($id);
         $status = $request->input('status', 'confirmed');
         $order->update(['status' => $status]);
-        return redirect('/admin?tab=orders')->with('success', "Order #{$order->order_no} status updated to " . strtoupper($status));
+        return redirect('/estilo-hq-console?tab=orders')->with('success', "Order #{$order->order_no} status updated to " . strtoupper($status));
     }
 
     /**
@@ -398,7 +398,7 @@ class AdminController extends Controller
             'balance'         => $request->input('balance', $associate->balance),
             'upi_id'          => $request->input('upi_id', $associate->upi_id),
         ]);
-        return redirect('/admin?tab=associates')->with('success', "Settings for {$associate->name} updated successfully.");
+        return redirect('/estilo-hq-console?tab=associates')->with('success', "Settings for {$associate->name} updated successfully.");
     }
 
     /**
@@ -416,10 +416,10 @@ class AdminController extends Controller
                 ->where('status', 'pending')
                 ->update(['status' => 'paid']);
 
-            return redirect('/admin?tab=associates')->with('success', "✨ Payout of ₹" . number_format($amount, 2) . " processed successfully for {$associate->name} ({$associate->upi_id}).");
+            return redirect('/estilo-hq-console?tab=associates')->with('success', "✨ Payout of ₹" . number_format($amount, 2) . " processed successfully for {$associate->name} ({$associate->upi_id}).");
         }
 
-        return redirect('/admin?tab=associates')->withErrors(['payout' => 'Invalid payout amount.']);
+        return redirect('/estilo-hq-console?tab=associates')->withErrors(['payout' => 'Invalid payout amount.']);
     }
 
     /**
@@ -444,14 +444,14 @@ class AdminController extends Controller
             'is_active'       => true,
         ]);
 
-        return redirect('/admin?tab=offers')->with('success', "Coupon '{$request->code}' generated and published successfully!");
+        return redirect('/estilo-hq-console?tab=offers')->with('success', "Coupon '{$request->code}' generated and published successfully!");
     }
 
     public function toggleCoupon($id)
     {
         $coupon = Coupon::findOrFail($id);
         $coupon->update(['is_active' => !$coupon->is_active]);
-        return redirect('/admin?tab=offers')->with('success', "Coupon '{$coupon->code}' status updated.");
+        return redirect('/estilo-hq-console?tab=offers')->with('success', "Coupon '{$coupon->code}' status updated.");
     }
 
     public function deleteCoupon($id)
@@ -459,7 +459,7 @@ class AdminController extends Controller
         $coupon = Coupon::findOrFail($id);
         $code = $coupon->code;
         $coupon->delete();
-        return redirect('/admin?tab=offers')->with('success', "Coupon '{$code}' deleted successfully.");
+        return redirect('/estilo-hq-console?tab=offers')->with('success', "Coupon '{$code}' deleted successfully.");
     }
 
     /**
@@ -497,7 +497,7 @@ class AdminController extends Controller
             ? "📢 Coupon '{$coupon->code}' is now announced on the storefront!"
             : "🔕 Announcement for '{$coupon->code}' has been removed from the storefront.";
 
-        return redirect('/admin?tab=offers')->with('success', $msg);
+        return redirect('/estilo-hq-console?tab=offers')->with('success', $msg);
     }
 
     /**
@@ -527,7 +527,7 @@ class AdminController extends Controller
             'sort_order'     => (int) $request->input('sort_order', 0),
         ]);
 
-        return redirect('/admin?tab=announcements')->with('success', '📢 Announcement published live to storefront!');
+        return redirect('/estilo-hq-console?tab=announcements')->with('success', '📢 Announcement published live to storefront!');
     }
 
     public function updateAnnouncement(Request $request, $id)
@@ -551,7 +551,7 @@ class AdminController extends Controller
             'ends_at'        => $request->filled('ends_at') ? $request->ends_at : null,
         ]);
 
-        return redirect('/admin?tab=announcements')->with('success', 'Announcement updated successfully!');
+        return redirect('/estilo-hq-console?tab=announcements')->with('success', 'Announcement updated successfully!');
     }
 
     public function toggleAnnouncement($id)
@@ -559,7 +559,7 @@ class AdminController extends Controller
         $announcement = Announcement::findOrFail($id);
         $announcement->update(['is_active' => !$announcement->is_active]);
         $status = $announcement->is_active ? 'Active (Live)' : 'Paused (Hidden)';
-        return redirect('/admin?tab=announcements')->with('success', "Announcement '{$announcement->title}' status set to {$status}.");
+        return redirect('/estilo-hq-console?tab=announcements')->with('success', "Announcement '{$announcement->title}' status set to {$status}.");
     }
 
     public function deleteAnnouncement($id)
@@ -567,6 +567,6 @@ class AdminController extends Controller
         $announcement = Announcement::findOrFail($id);
         $title = $announcement->title;
         $announcement->delete();
-        return redirect('/admin?tab=announcements')->with('success', "Announcement '{$title}' removed.");
+        return redirect('/estilo-hq-console?tab=announcements')->with('success', "Announcement '{$title}' removed.");
     }
 }

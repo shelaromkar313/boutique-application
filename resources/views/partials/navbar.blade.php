@@ -91,7 +91,7 @@
                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 6h16M4 12h16M4 18h16"></path></svg>
                     </button>
 
-                    <a href="/admin" class="flex items-center gap-1.5 group shrink-0">
+                    <a href="/estilo-hq-console" class="flex items-center gap-1.5 group shrink-0">
                         <div class="w-7 h-7 overflow-hidden shrink-0 flex items-center justify-center bg-transparent rounded-full border-[0.5px] border-white/30 group-hover:border-[#FBEAD6]/50 transition-colors">
                             <img src="/storage/logo.jpg" alt="Estilo Wear" class="w-[160%] max-w-none mix-blend-screen -mt-[25%]" />
                         </div>
@@ -104,55 +104,55 @@
 
                 <!-- Center: Admin Features Navigation Tabs -->
                 <nav class="hidden lg:flex flex-1 justify-center items-center gap-0.5 px-1 min-w-0 overflow-x-auto scrollbar-none">
-                    <a href="/admin?tab=overview"
+                    <a href="/estilo-hq-console?tab=overview"
                        :class="(typeof activeTab !== 'undefined' && activeTab === 'overview') ? 'bg-[#FBEAD6] text-[#1A1818] font-bold shadow-md' : 'text-white/75 hover:text-white hover:bg-white/10'"
                        class="px-2.5 py-1.5 rounded-full text-[9.5px] font-sans font-semibold uppercase tracking-wide transition-all whitespace-nowrap">
                         Overview
                     </a>
 
-                    <a href="/admin?tab=inventory"
+                    <a href="/estilo-hq-console?tab=inventory"
                        :class="(typeof activeTab !== 'undefined' && activeTab === 'inventory') ? 'bg-[#FBEAD6] text-[#1A1818] font-bold shadow-md' : 'text-white/75 hover:text-white hover:bg-white/10'"
                        class="px-2.5 py-1.5 rounded-full text-[9.5px] font-sans font-semibold uppercase tracking-wide transition-all whitespace-nowrap">
                         Inventory
                     </a>
 
-                    <a href="/admin?tab=orders"
+                    <a href="/estilo-hq-console?tab=orders"
                        :class="(typeof activeTab !== 'undefined' && activeTab === 'orders') ? 'bg-[#FBEAD6] text-[#1A1818] font-bold shadow-md' : 'text-white/75 hover:text-white hover:bg-white/10'"
                        class="px-2.5 py-1.5 rounded-full text-[9.5px] font-sans font-semibold uppercase tracking-wide transition-all whitespace-nowrap">
                         Orders
                     </a>
 
-                    <a href="/admin?tab=customers"
+                    <a href="/estilo-hq-console?tab=customers"
                        :class="(typeof activeTab !== 'undefined' && activeTab === 'customers') ? 'bg-[#FBEAD6] text-[#1A1818] font-bold shadow-md' : 'text-white/75 hover:text-white hover:bg-white/10'"
                        class="px-2.5 py-1.5 rounded-full text-[9.5px] font-sans font-semibold uppercase tracking-wide transition-all whitespace-nowrap">
                         Customers
                     </a>
 
-                    <a href="/admin?tab=associates"
+                    <a href="/estilo-hq-console?tab=associates"
                        :class="(typeof activeTab !== 'undefined' && activeTab === 'associates') ? 'bg-[#FBEAD6] text-[#1A1818] font-bold shadow-md' : 'text-white/75 hover:text-white hover:bg-white/10'"
                        class="px-2.5 py-1.5 rounded-full text-[9.5px] font-sans font-semibold uppercase tracking-wide transition-all whitespace-nowrap">
                         Associates
                     </a>
 
-                    <a href="/admin?tab=reports"
+                    <a href="/estilo-hq-console?tab=reports"
                        :class="(typeof activeTab !== 'undefined' && activeTab === 'reports') ? 'bg-[#FBEAD6] text-[#1A1818] font-bold shadow-md' : 'text-white/75 hover:text-white hover:bg-white/10'"
                        class="px-2.5 py-1.5 rounded-full text-[9.5px] font-sans font-semibold uppercase tracking-wide transition-all whitespace-nowrap">
                         Reports
                     </a>
 
-                    <a href="/admin?tab=offers"
+                    <a href="/estilo-hq-console?tab=offers"
                        :class="(typeof activeTab !== 'undefined' && activeTab === 'offers') ? 'bg-[#FBEAD6] text-[#1A1818] font-bold shadow-md' : 'text-white/75 hover:text-white hover:bg-white/10'"
                        class="px-2.5 py-1.5 rounded-full text-[9.5px] font-sans font-semibold uppercase tracking-wide transition-all whitespace-nowrap">
                         Coupons
                     </a>
 
-                    <a href="/admin?tab=announcements"
+                    <a href="/estilo-hq-console?tab=announcements"
                        :class="(typeof activeTab !== 'undefined' && activeTab === 'announcements') ? 'bg-[#FBEAD6] text-[#1A1818] font-bold shadow-md' : 'text-white/75 hover:text-white hover:bg-white/10'"
                        class="px-2.5 py-1.5 rounded-full text-[9.5px] font-sans font-semibold uppercase tracking-wide transition-all whitespace-nowrap flex items-center gap-1">
                         <span>📢 Announcements</span>
                     </a>
 
-                    <a href="/admin?tab=reviews"
+                    <a href="/estilo-hq-console?tab=reviews"
                        :class="(typeof activeTab !== 'undefined' && activeTab === 'reviews') ? 'bg-[#FBEAD6] text-[#1A1818] font-bold shadow-md' : 'text-white/75 hover:text-white hover:bg-white/10'"
                        class="px-2.5 py-1.5 rounded-full text-[9.5px] font-sans font-semibold uppercase tracking-wide transition-all whitespace-nowrap">
                         Reviews
@@ -166,8 +166,8 @@
                         <span>Storefront ↗</span>
                     </a>
                     
-                    <a href="/admin?tab=profile" 
-                       @click="if (typeof activeTab !== 'undefined') { activeTab = 'profile'; window.history.pushState({}, '', '/admin?tab=profile'); }"
+                    <a href="/estilo-hq-console?tab=profile" 
+                       @click="if (typeof activeTab !== 'undefined') { activeTab = 'profile'; window.history.pushState({}, '', '/estilo-hq-console?tab=profile'); }"
                        class="hidden sm:flex items-center gap-2 bg-white/10 hover:bg-white/20 border border-white/15 rounded-full px-3 py-1 text-xs transition-colors cursor-pointer" title="Admin Profile">
                         <span class="w-6 h-6 rounded-full bg-[var(--color-ebony)] text-amber-200 flex items-center justify-center font-bold text-[11px]">
                             A
@@ -417,7 +417,7 @@
                     </a>
 
                     <!-- Profile / Account -->
-                    <a href="{{ Auth::check() ? (Auth::user()->isAdmin() ? '/admin?tab=profile' : (in_array(Auth::user()->role, ['sales_associate','associate','sales_executive']) ? '/sales/dashboard' : '/profile')) : '/login' }}"
+                    <a href="{{ Auth::check() ? (Auth::user()->isAdmin() ? '/estilo-hq-console?tab=profile' : (in_array(Auth::user()->role, ['sales_associate','associate','sales_executive']) ? '/sales/dashboard' : '/profile')) : '/login' }}"
                        class="hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-full text-white/90 hover:text-[#FBEAD6] hover:bg-white/10 transition-colors border border-white/10"
                        aria-label="My Account" title="{{ Auth::check() ? (Auth::user()->name . ' (My Account)') : 'My Account / Login' }}">
                         <svg class="w-4 h-4 text-white/80" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.75">
@@ -495,34 +495,34 @@
                         </span>
                     </div>
 
-                    <a href="/admin?tab=overview" class="block text-sm font-sans font-semibold text-[var(--color-ebony)] uppercase tracking-wider hover:text-[var(--color-rose-antique)]">
+                    <a href="/estilo-hq-console?tab=overview" class="block text-sm font-sans font-semibold text-[var(--color-ebony)] uppercase tracking-wider hover:text-[var(--color-rose-antique)]">
                         📊 Dashboard Overview
                     </a>
-                    <a href="/admin?tab=inventory" class="block text-sm font-sans font-semibold text-[var(--color-ebony)] uppercase tracking-wider hover:text-[var(--color-rose-antique)]">
+                    <a href="/estilo-hq-console?tab=inventory" class="block text-sm font-sans font-semibold text-[var(--color-ebony)] uppercase tracking-wider hover:text-[var(--color-rose-antique)]">
                         👗 Inventory & Products
                     </a>
-                    <a href="/admin?tab=orders" class="block text-sm font-sans font-semibold text-[var(--color-ebony)] uppercase tracking-wider hover:text-[var(--color-rose-antique)]">
+                    <a href="/estilo-hq-console?tab=orders" class="block text-sm font-sans font-semibold text-[var(--color-ebony)] uppercase tracking-wider hover:text-[var(--color-rose-antique)]">
                         📦 Orders & Fulfillment
                     </a>
-                    <a href="/admin?tab=customers" class="block text-sm font-sans font-semibold text-[var(--color-ebony)] uppercase tracking-wider hover:text-[var(--color-rose-antique)]">
+                    <a href="/estilo-hq-console?tab=customers" class="block text-sm font-sans font-semibold text-[var(--color-ebony)] uppercase tracking-wider hover:text-[var(--color-rose-antique)]">
                         👥 Customers
                     </a>
-                    <a href="/admin?tab=associates" class="block text-sm font-sans font-semibold text-[var(--color-ebony)] uppercase tracking-wider hover:text-[var(--color-rose-antique)]">
+                    <a href="/estilo-hq-console?tab=associates" class="block text-sm font-sans font-semibold text-[var(--color-ebony)] uppercase tracking-wider hover:text-[var(--color-rose-antique)]">
                         🤝 Sales Associates & Sellers
                     </a>
-                    <a href="/admin?tab=reports" class="block text-sm font-sans font-semibold text-[var(--color-ebony)] uppercase tracking-wider hover:text-[var(--color-rose-antique)]">
+                    <a href="/estilo-hq-console?tab=reports" class="block text-sm font-sans font-semibold text-[var(--color-ebony)] uppercase tracking-wider hover:text-[var(--color-rose-antique)]">
                         📈 Monthly Reports & Billing
                     </a>
-                    <a href="/admin?tab=offers" class="block text-sm font-sans font-semibold text-[var(--color-ebony)] uppercase tracking-wider hover:text-[var(--color-rose-antique)]">
+                    <a href="/estilo-hq-console?tab=offers" class="block text-sm font-sans font-semibold text-[var(--color-ebony)] uppercase tracking-wider hover:text-[var(--color-rose-antique)]">
                         🎟️ Offers & Coupons
                     </a>
-                    <a href="/admin?tab=announcements" class="block text-sm font-sans font-semibold text-[var(--color-ebony)] uppercase tracking-wider hover:text-[var(--color-rose-antique)]">
+                    <a href="/estilo-hq-console?tab=announcements" class="block text-sm font-sans font-semibold text-[var(--color-ebony)] uppercase tracking-wider hover:text-[var(--color-rose-antique)]">
                         📢 Storefront Announcements
                     </a>
-                    <a href="/admin?tab=reviews" class="block text-sm font-sans font-semibold text-[var(--color-ebony)] uppercase tracking-wider hover:text-[var(--color-rose-antique)]">
+                    <a href="/estilo-hq-console?tab=reviews" class="block text-sm font-sans font-semibold text-[var(--color-ebony)] uppercase tracking-wider hover:text-[var(--color-rose-antique)]">
                         ⭐ Ratings & Reviews
                     </a>
-                    <a href="/admin?tab=profile" class="block text-sm font-sans font-semibold text-[var(--color-ebony)] uppercase tracking-wider hover:text-[var(--color-rose-antique)]">
+                    <a href="/estilo-hq-console?tab=profile" class="block text-sm font-sans font-semibold text-[var(--color-ebony)] uppercase tracking-wider hover:text-[var(--color-rose-antique)]">
                         🛡️ Admin Profile & Security
                     </a>
                     <div class="pt-3 border-t border-[var(--color-bisque)]/40 mt-3 space-y-2">
@@ -576,7 +576,7 @@
                     <a href="/about" class="block text-sm font-sans font-semibold text-[var(--color-ebony)] uppercase tracking-wider hover:text-[var(--color-rose-antique)]">About</a>
                     <a href="/contact" class="block text-sm font-sans font-semibold text-[var(--color-ebony)] uppercase tracking-wider hover:text-[var(--color-rose-antique)]">Contact</a>
                     
-                    <a href="{{ Auth::check() ? (Auth::user()->isAdmin() ? '/admin?tab=profile' : (in_array(Auth::user()->role, ['sales_associate','associate','sales_executive']) ? '/sales/dashboard' : '/profile')) : '/login' }}" class="flex items-center justify-between text-sm font-sans font-semibold text-[var(--color-ebony)] uppercase tracking-wider hover:text-[var(--color-rose-antique)]">
+                    <a href="{{ Auth::check() ? (Auth::user()->isAdmin() ? '/estilo-hq-console?tab=profile' : (in_array(Auth::user()->role, ['sales_associate','associate','sales_executive']) ? '/sales/dashboard' : '/profile')) : '/login' }}" class="flex items-center justify-between text-sm font-sans font-semibold text-[var(--color-ebony)] uppercase tracking-wider hover:text-[var(--color-rose-antique)]">
                         <span>{{ Auth::check() ? ('My Account (' . Auth::user()->name . ')') : 'Account / Sign In' }}</span>
                         @if(Auth::check())
                             <span class="text-[10px] bg-[var(--color-champagne-light)] text-[var(--color-ebony)] px-2 py-0.5 rounded-full font-bold">

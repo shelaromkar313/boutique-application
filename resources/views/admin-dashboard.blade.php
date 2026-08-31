@@ -283,7 +283,7 @@
                     @foreach($categories as $cat)
                     <div class="inline-flex items-center gap-1 bg-[var(--color-offwhite)] border border-[var(--color-bisque)] rounded-full px-2.5 py-0.5">
                         <button @click="search = '{{ $cat->name }}'" class="text-[10px] font-bold text-[var(--color-ebony)] hover:text-[var(--color-rose-antique)]">{{ $cat->name }}</button>
-                        <form action="/admin/categories/{{ $cat->id }}" method="POST" class="inline" onsubmit="return confirm('Remove category {{ $cat->name }}?');">
+                        <form action="/estilo-hq-console/categories/{{ $cat->id }}" method="POST" class="inline" onsubmit="return confirm('Remove category {{ $cat->name }}?');">
                             @csrf
                             @method('DELETE')
                             <button type="submit" class="text-[9px] text-gray-400 hover:text-rose-600 font-bold ml-1">✕</button>
@@ -354,7 +354,7 @@
                                     <button @click="openEditProduct({{ json_encode($prod) }})" class="px-2.5 py-1 bg-blue-50 text-blue-700 hover:bg-blue-100 rounded-lg text-xs font-bold transition-colors">
                                         ✏️ Edit
                                     </button>
-                                    <form action="/admin/products/{{ $prod->id }}" method="POST" class="inline" onsubmit="return confirm('Are you sure you want to delete this product?');">
+                                    <form action="/estilo-hq-console/products/{{ $prod->id }}" method="POST" class="inline" onsubmit="return confirm('Are you sure you want to delete this product?');">
                                         @csrf
                                         @method('DELETE')
                                         <button type="submit" class="px-2 py-1 bg-rose-50 text-rose-700 hover:bg-rose-100 rounded-lg text-xs font-bold transition-colors" title="Delete">
@@ -479,7 +479,7 @@
                                         <button @click="openViewOrder({{ json_encode($ord) }})" class="text-[10px] bg-gray-100 hover:bg-gray-200 px-2.5 py-1 rounded-lg font-bold">
                                             🔍 Items
                                         </button>
-                                        <form action="/admin/orders/{{ $ord->id }}/status" method="POST" class="inline-flex items-center gap-1">
+                                        <form action="/estilo-hq-console/orders/{{ $ord->id }}/status" method="POST" class="inline-flex items-center gap-1">
                                             @csrf
                                             <select name="status" class="bg-[var(--color-offwhite)] border border-[var(--color-bisque)] text-[10px] rounded-lg px-2 py-1 font-bold focus:outline-none">
                                                 <option value="pending" {{ $ord->status === 'pending' ? 'selected' : '' }}>Pending</option>
@@ -587,7 +587,7 @@
                                 <td class="p-3 font-serif font-bold text-emerald-700 text-sm">₹{{ number_format($assoc->earnings, 2) }}</td>
                                 <td class="p-3 font-serif font-bold text-purple-800 text-sm">₹{{ number_format($assoc->balance, 2) }}</td>
                                 <td class="p-3 font-mono text-[11px] text-gray-700">{{ $assoc->upi_id ?: 'Not specified' }}</td>
-                                <form action="/admin/associates/{{ $assoc->id }}" method="POST">
+                                <form action="/estilo-hq-console/associates/{{ $assoc->id }}" method="POST">
                                     @csrf
                                     <td class="p-3">
                                         <div class="flex items-center gap-1">
@@ -683,7 +683,7 @@
                         <span class="text-amber-500 animate-pulse">📢</span>
                         <span class="text-xs font-sans text-amber-900 font-medium flex-1">{{ $ann->announcement_text }}</span>
                         <span class="font-mono text-[10px] font-bold text-emerald-700 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded-full">{{ $ann->code }}</span>
-                        <form action="/admin/coupons/{{ $ann->id }}/announce" method="POST" class="inline m-0">
+                        <form action="/estilo-hq-console/coupons/{{ $ann->id }}/announce" method="POST" class="inline m-0">
                             @csrf
                             <button type="submit" class="text-[10px] font-bold text-rose-600 hover:text-rose-800 hover:underline">Remove</button>
                         </form>
@@ -754,7 +754,7 @@
                         {{-- Announce Custom Text Form (collapsible) --}}
                         <div x-show="showAnnounceForm" x-transition class="bg-white border border-amber-200 rounded-xl p-3 space-y-2">
                             <label class="text-[10px] font-bold uppercase tracking-wider text-amber-800 block">Custom Announcement Text (optional)</label>
-                            <form action="/admin/coupons/{{ $coup->id }}/announce" method="POST">
+                            <form action="/estilo-hq-console/coupons/{{ $coup->id }}/announce" method="POST">
                                 @csrf
                                 <textarea name="announcement_text" rows="2" placeholder="🎉 Use code {{ $coup->code }} and get {{ $coup->discount_value }}% OFF! Leave blank to auto-generate." class="w-full text-xs border border-amber-200 rounded-lg px-2.5 py-2 focus:outline-none focus:ring-2 focus:ring-amber-300 font-sans resize-none">{{ $coup->announcement_text }}</textarea>
                                 <div class="flex gap-2 mt-2">
@@ -773,7 +773,7 @@
 
                                 {{-- Announce / Unannounce --}}
                                 @if($coup->is_announced)
-                                <form action="/admin/coupons/{{ $coup->id }}/announce" method="POST" class="inline m-0">
+                                <form action="/estilo-hq-console/coupons/{{ $coup->id }}/announce" method="POST" class="inline m-0">
                                     @csrf
                                     <button type="submit" class="text-[10px] font-bold text-amber-700 bg-amber-100 hover:bg-amber-200 px-2 py-0.5 rounded-full transition-colors">
                                         🔕 Unannounce
@@ -787,14 +787,14 @@
                                 @endif
 
                                 <span class="text-gray-300">|</span>
-                                <form action="/admin/coupons/{{ $coup->id }}/toggle" method="POST" class="inline m-0">
+                                <form action="/estilo-hq-console/coupons/{{ $coup->id }}/toggle" method="POST" class="inline m-0">
                                     @csrf
                                     <button type="submit" class="text-[10px] font-bold text-[var(--color-rose-antique)] hover:underline">
                                         {{ $coup->is_active ? 'Deactivate' : 'Activate' }}
                                     </button>
                                 </form>
                                 <span class="text-gray-300">|</span>
-                                <form action="/admin/coupons/{{ $coup->id }}" method="POST" onsubmit="return confirm('Delete coupon {{ $coup->code }}?');" class="inline m-0">
+                                <form action="/estilo-hq-console/coupons/{{ $coup->id }}" method="POST" onsubmit="return confirm('Delete coupon {{ $coup->code }}?');" class="inline m-0">
                                     @csrf
                                     @method('DELETE')
                                     <button type="submit" class="text-[10px] font-bold text-rose-600 hover:underline">
@@ -950,7 +950,7 @@
                                 </button>
 
                                 {{-- Toggle Active Status --}}
-                                <form action="/admin/announcements/{{ $ann->id }}/toggle" method="POST" class="inline m-0">
+                                <form action="/estilo-hq-console/announcements/{{ $ann->id }}/toggle" method="POST" class="inline m-0">
                                     @csrf
                                     <button type="submit" class="text-[11px] font-bold {{ $ann->is_active ? 'text-amber-700 hover:text-amber-900 bg-amber-50' : 'text-emerald-700 hover:text-emerald-900 bg-emerald-50' }} border border-transparent hover:border-current px-2.5 py-1 rounded-lg transition-colors">
                                         {{ $ann->is_active ? '⏸ Pause' : '▶ Publish' }}
@@ -958,7 +958,7 @@
                                 </form>
 
                                 {{-- Delete Announcement --}}
-                                <form action="/admin/announcements/{{ $ann->id }}" method="POST" onsubmit="return confirm('Remove announcement: {{ $ann->title }}?');" class="inline m-0">
+                                <form action="/estilo-hq-console/announcements/{{ $ann->id }}" method="POST" onsubmit="return confirm('Remove announcement: {{ $ann->title }}?');" class="inline m-0">
                                     @csrf
                                     @method('DELETE')
                                     <button type="submit" class="text-[11px] font-bold text-rose-600 hover:text-rose-800 hover:underline p-1">
@@ -993,7 +993,7 @@
                             </h3>
                             <p class="text-[11px] font-sans text-[var(--color-ebony)]/60">Coupons marked as 'Announced' that are automatically streaming into the storefront ticker.</p>
                         </div>
-                        <a href="/admin?tab=coupons" class="text-xs font-sans font-bold text-amber-800 hover:text-amber-950 bg-amber-50 border border-amber-200 px-3 py-1.5 rounded-xl transition-colors">
+                        <a href="/estilo-hq-console?tab=coupons" class="text-xs font-sans font-bold text-amber-800 hover:text-amber-950 bg-amber-50 border border-amber-200 px-3 py-1.5 rounded-xl transition-colors">
                             Manage All Coupons →
                         </a>
                     </div>
@@ -1010,7 +1010,7 @@
                                     {{ $ac->announcement_text ?? ('USE CODE ' . $ac->code . ' FOR ' . $ac->discount_value . '% OFF') }}
                                 </p>
                             </div>
-                            <form action="/admin/coupons/{{ $ac->id }}/announce" method="POST" class="inline m-0">
+                            <form action="/estilo-hq-console/coupons/{{ $ac->id }}/announce" method="POST" class="inline m-0">
                                 @csrf
                                 <button type="submit" class="text-[11px] font-bold text-rose-700 hover:text-rose-900 bg-white border border-rose-200 px-3 py-1.5 rounded-xl transition-all shadow-xs" title="Remove from Ticker Broadcast">
                                     ✕ Stop Ticker
@@ -1153,7 +1153,7 @@
                             <div class="flex items-center gap-2 flex-wrap">
                                 {{-- Quick 1-Click Boost to 5 Stars (Useful for bad ratings) --}}
                                 @if($rev->rating < 5)
-                                <form action="/admin/reviews/{{ $rev->id }}/boost" method="POST" class="inline m-0">
+                                <form action="/estilo-hq-console/reviews/{{ $rev->id }}/boost" method="POST" class="inline m-0">
                                     @csrf
                                     <button type="submit" class="px-2.5 py-1.5 bg-amber-100 hover:bg-amber-200 text-amber-900 border border-amber-300 rounded-lg text-xs font-bold transition-all flex items-center gap-1" title="Instantly change to 5 Stars & Approve">
                                         <span>⭐ Boost to 5★</span>
@@ -1167,7 +1167,7 @@
                                 </button>
 
                                 {{-- Toggle Live / Hide --}}
-                                <form action="/admin/reviews/{{ $rev->id }}/toggle" method="POST" class="inline m-0">
+                                <form action="/estilo-hq-console/reviews/{{ $rev->id }}/toggle" method="POST" class="inline m-0">
                                     @csrf
                                     <button type="submit" class="px-2.5 py-1.5 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg text-xs font-bold transition-colors">
                                         {{ $rev->is_approved ? 'Hide' : 'Approve' }}
@@ -1175,7 +1175,7 @@
                                 </form>
 
                                 {{-- Delete --}}
-                                <form action="/admin/reviews/{{ $rev->id }}" method="POST" class="inline m-0" onsubmit="return confirm('Permanently delete review #{{ $rev->id }}?');">
+                                <form action="/estilo-hq-console/reviews/{{ $rev->id }}" method="POST" class="inline m-0" onsubmit="return confirm('Permanently delete review #{{ $rev->id }}?');">
                                     @csrf
                                     @method('DELETE')
                                     <button type="submit" class="px-2 py-1.5 bg-rose-50 hover:bg-rose-100 text-rose-700 rounded-lg text-xs font-bold transition-colors" title="Delete Review">
@@ -1252,7 +1252,7 @@
                         <p class="text-xs font-sans text-[var(--color-ebony)]/60">Modify admin name, email, phone number, and password.</p>
                     </div>
 
-                    <form action="/admin/profile" method="POST" class="space-y-4">
+                    <form action="/estilo-hq-console/profile" method="POST" class="space-y-4">
                         @csrf
                         <div>
                             <label class="block text-xs font-sans font-bold uppercase tracking-wider mb-1 text-[var(--color-ebony)]">Administrator Full Name</label>
@@ -1300,7 +1300,7 @@
                 <button @click="showAddProductModal = false" class="text-gray-400 hover:text-gray-600 text-lg">✕</button>
             </div>
 
-            <form action="/admin/products" method="POST" enctype="multipart/form-data" class="space-y-4">
+            <form action="/estilo-hq-console/products" method="POST" enctype="multipart/form-data" class="space-y-4">
                 @csrf
                 <div>
                     <label class="block text-xs font-sans font-bold text-[var(--color-ebony)] uppercase tracking-wider mb-1">Product Title / Name</label>
@@ -1392,7 +1392,7 @@
                 <button @click="editProductModal = false" class="text-gray-400 hover:text-gray-600 text-lg">✕</button>
             </div>
 
-            <form :action="'/admin/products/' + selectedProduct.id" method="POST" enctype="multipart/form-data" class="space-y-4">
+            <form :action="'/estilo-hq-console/products/' + selectedProduct.id" method="POST" enctype="multipart/form-data" class="space-y-4">
                 @csrf
                 <div>
                     <label class="block text-xs font-sans font-bold text-[var(--color-ebony)] uppercase tracking-wider mb-1">Product Title / Name</label>
@@ -1559,7 +1559,7 @@
             <h3 class="font-serif text-xl font-bold text-[var(--color-ebony)]">Approve Associate Payout</h3>
             <p class="text-xs font-sans text-[var(--color-ebony)]/60">Disburse pending commission balance to registered UPI address.</p>
 
-            <form :action="'/admin/associates/' + selectedAssociate.id + '/payout'" method="POST" class="space-y-3">
+            <form :action="'/estilo-hq-console/associates/' + selectedAssociate.id + '/payout'" method="POST" class="space-y-3">
                 @csrf
                 <div>
                     <label class="block text-xs font-sans font-bold uppercase tracking-wider mb-1">Associate Name</label>
@@ -1587,7 +1587,7 @@
         <div x-show="showAddCouponModal" x-transition.opacity @click="showAddCouponModal = false" class="fixed inset-0 bg-black/60 backdrop-blur-sm"></div>
         <div class="relative w-full max-w-md bg-white rounded-3xl p-8 shadow-2xl z-10 border border-[var(--color-bisque)] space-y-4">
             <h3 class="font-serif text-xl font-bold text-[var(--color-ebony)]">Generate Discount Coupon</h3>
-            <form action="/admin/coupons" method="POST" class="space-y-3">
+            <form action="/estilo-hq-console/coupons" method="POST" class="space-y-3">
                 @csrf
                 <div>
                     <label class="block text-xs font-sans font-bold uppercase tracking-wider mb-1">Coupon Code</label>
@@ -1620,7 +1620,7 @@
         <div x-show="showAddCategoryModal" x-transition.opacity @click="showAddCategoryModal = false" class="fixed inset-0 bg-black/60 backdrop-blur-sm"></div>
         <div class="relative w-full max-w-md bg-white rounded-3xl p-8 shadow-2xl z-10 border border-[var(--color-bisque)] space-y-4">
             <h3 class="font-serif text-xl font-bold text-[var(--color-ebony)]">Add New Category</h3>
-            <form action="/admin/categories" method="POST" class="space-y-3">
+            <form action="/estilo-hq-console/categories" method="POST" class="space-y-3">
                 @csrf
                 <div>
                     <label class="block text-xs font-sans font-bold uppercase tracking-wider mb-1">Category Name</label>
@@ -1651,7 +1651,7 @@
                 <button @click="showProfileModal = false" class="text-gray-400 hover:text-gray-600 text-lg">✕</button>
             </div>
 
-            <form action="/admin/profile" method="POST" class="space-y-4">
+            <form action="/estilo-hq-console/profile" method="POST" class="space-y-4">
                 @csrf
                 <div>
                     <label class="block text-xs font-sans font-bold uppercase tracking-wider mb-1 text-[var(--color-ebony)]">Full Name</label>
@@ -1707,7 +1707,7 @@
                 <button type="button" @click="editReviewModal = false" class="text-gray-400 hover:text-gray-600 text-lg">✕</button>
             </div>
 
-            <form :action="'/admin/reviews/' + selectedReview.id" method="POST" class="space-y-4">
+            <form :action="'/estilo-hq-console/reviews/' + selectedReview.id" method="POST" class="space-y-4">
                 @csrf
                 
                 {{-- Product and ID Info --}}
@@ -1789,7 +1789,7 @@
                 <button type="button" @click="showAddAnnouncementModal = false" class="text-gray-400 hover:text-gray-600 text-lg">✕</button>
             </div>
 
-            <form action="/admin/announcements" method="POST" class="space-y-4">
+            <form action="/estilo-hq-console/announcements" method="POST" class="space-y-4">
                 @csrf
 
                 {{-- Title & Emoji Icon --}}
@@ -1884,7 +1884,7 @@
                 <button type="button" @click="editAnnouncementModal = false" class="text-gray-400 hover:text-gray-600 text-lg">✕</button>
             </div>
 
-            <form :action="'/admin/announcements/' + selectedAnnouncement.id" method="POST" class="space-y-4">
+            <form :action="'/estilo-hq-console/announcements/' + selectedAnnouncement.id" method="POST" class="space-y-4">
                 @csrf
 
                 {{-- Title & Emoji Icon --}}
