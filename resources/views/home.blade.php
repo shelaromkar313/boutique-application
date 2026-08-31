@@ -65,49 +65,196 @@
         </div>
     </section>
 
-    {{-- ══ 3. HERO BANNER ══ --}}
-    <section class="relative w-full overflow-hidden bg-[var(--color-ebony)]" style="height: clamp(480px, 80vh, 900px);" aria-label="Hero Banner — New Collection">
-        <img src="/storage/hero/hero-main.jpg" alt="Estilo Wear — Royal Traditional Saree Collection" class="absolute inset-0 w-full h-full object-cover object-[78%_top] sm:object-[82%_top] md:object-[right_top]" fetchpriority="high" />
-        <div class="absolute inset-0 bg-gradient-to-r from-black/90 via-black/50 to-transparent lg:to-transparent"></div>
-        <div class="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-black/20"></div>
+    {{-- ══ 3. HERO SLIDESHOW BANNER ══ --}}
+    <section class="relative w-full overflow-hidden bg-[var(--color-ebony)] group"
+             style="height: clamp(480px, 80vh, 900px);"
+             aria-label="Hero Banner — New Collection"
+             x-data="{
+                 currentSlide: 0,
+                 slides: [
+                     {
+                         tag: 'NEW COLLECTION — 2025',
+                         titleline1: 'Timeless',
+                         titleline2: 'Indian',
+                         titleline3: 'Elegance',
+                         desc: 'Handcrafted Indian fashion for the modern woman — curated from artisan weavers across India.',
+                         image: '/storage/hero/hero-main.jpg',
+                         btnText: 'Shop Now',
+                         btnLink: '/shop',
+                         subLinkText: 'View New Arrivals',
+                         subLink: '/shop?filter=new'
+                     },
+                     {
+                         tag: 'LUXURY SILK EDIT',
+                         titleline1: 'Royal',
+                         titleline2: 'Banarasi',
+                         titleline3: 'Sarees',
+                         desc: 'Pure silk mark certified sarees featuring gold zari brocade & Kadwa weaving from Varanasi.',
+                         image: '/storage/hero/hero-slide-2.jpg',
+                         btnText: 'Explore Sarees',
+                         btnLink: '/shop?category=Sarees',
+                         subLinkText: 'View Banarasi Silk',
+                         subLink: '/shop?category=Sarees'
+                     },
+                     {
+                         tag: 'ROYAL HERITAGE CRAFT',
+                         titleline1: 'Lucknowi',
+                         titleline2: 'Chikankari',
+                         titleline3: 'Couture',
+                         desc: 'Airy mulmul cotton & silk Anarkalis with hand-embroidered shadow work & silver Mukaish.',
+                         image: '/storage/hero/hero-slide-3.jpg',
+                         btnText: 'Explore Chikankari',
+                         btnLink: '/shop?category=Chikankari+Kurtis',
+                         subLinkText: 'View Anarkalis',
+                         subLink: '/shop?category=Anarkali'
+                     }
+                 ],
+                 timer: null,
+                 init() {
+                     this.startTimer();
+                 },
+                 startTimer() {
+                     this.timer = setInterval(() => {
+                         this.nextSlide();
+                     }, 5000);
+                 },
+                 stopTimer() {
+                     if (this.timer) clearInterval(this.timer);
+                 },
+                 nextSlide() {
+                     this.currentSlide = (this.currentSlide + 1) % this.slides.length;
+                 },
+                 prevSlide() {
+                     this.currentSlide = (this.currentSlide - 1 + this.slides.length) % this.slides.length;
+                 },
+                 goToSlide(idx) {
+                     this.currentSlide = idx;
+                 }
+             }"
+             @mouseenter="stopTimer()"
+             @mouseleave="startTimer()">
 
-        <div class="relative h-full flex items-center">
+        {{-- Background Images with Crossfade --}}
+        <template x-for="(slide, idx) in slides" :key="idx">
+            <div class="absolute inset-0 transition-opacity duration-1000 ease-in-out"
+                 :class="currentSlide === idx ? 'opacity-100 z-10' : 'opacity-0 z-0'">
+                <img :src="slide.image"
+                     :alt="slide.titleline1 + ' ' + slide.titleline2"
+                     class="w-full h-full object-cover object-[78%_top] sm:object-[82%_top] md:object-[right_top] transition-transform duration-10000 ease-out transform scale-105"
+                     :class="currentSlide === idx ? 'scale-100' : 'scale-105'"
+                     fetchpriority="high" />
+                <div class="absolute inset-0 bg-gradient-to-r from-black/90 via-black/55 to-transparent lg:to-transparent"></div>
+                <div class="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-black/20"></div>
+            </div>
+        </template>
+
+        {{-- Content Overlay --}}
+        <div class="relative z-20 h-full flex items-center">
             <div class="max-w-7xl mx-auto px-5 sm:px-10 lg:px-16 w-full">
-                <div class="max-w-[580px] space-y-4 sm:space-y-6 text-white">
-                    <div class="flex items-center gap-2 sm:gap-3 animate-[fadeIn_0.75s_ease-out]">
-                        <span class="block w-7 sm:w-10 h-px bg-[var(--color-champagne)] flex-none"></span>
-                        <span class="text-[10px] sm:text-xs font-sans font-bold tracking-[0.25em] sm:tracking-[0.35em] text-[var(--color-champagne)] uppercase">NEW COLLECTION — 2025</span>
+                <template x-for="(slide, idx) in slides" :key="idx">
+                    <div x-show="currentSlide === idx"
+                         x-transition:enter="transition ease-out duration-700 delay-150"
+                         x-transition:enter-start="opacity-0 translate-y-6"
+                         x-transition:enter-end="opacity-100 translate-y-0"
+                         class="max-w-[580px] space-y-4 sm:space-y-6 text-white">
+
+                        <div class="flex items-center gap-2 sm:gap-3">
+                            <span class="block w-7 sm:w-10 h-px bg-[var(--color-champagne)] flex-none"></span>
+                            <span class="text-[10px] sm:text-xs font-sans font-bold tracking-[0.25em] sm:tracking-[0.35em] text-[var(--color-champagne)] uppercase" x-text="slide.tag"></span>
+                        </div>
+
+                        <h1 class="font-serif text-4xl sm:text-6xl lg:text-7xl font-bold leading-[1.05] tracking-tight">
+                            <span x-text="slide.titleline1"></span><br />
+                            <em class="not-italic text-[var(--color-blush)]" x-text="slide.titleline2"></em><br />
+                            <span x-text="slide.titleline3"></span>
+                        </h1>
+
+                        <p class="text-xs sm:text-base font-sans text-white/80 leading-relaxed font-light max-w-[340px] sm:max-w-[440px]" x-text="slide.desc">
+                        </p>
+
+                        <div class="flex flex-wrap items-center gap-4 sm:gap-6 pt-2 sm:pt-3">
+                            <a :href="slide.btnLink" class="inline-flex items-center gap-2 sm:gap-3 bg-white text-[var(--color-ebony)] hover:bg-[var(--color-blush)] font-sans text-xs font-bold uppercase tracking-[0.15em] sm:tracking-[0.2em] px-6 sm:px-8 py-3 sm:py-4 rounded-full shadow-2xl transition-all duration-300 hover:scale-[1.03] group">
+                                <span x-text="slide.btnText"></span>
+                                <svg class="w-4 h-4 transition-transform duration-200 group-hover:translate-x-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
+                            </a>
+                            <a :href="slide.subLink" class="text-xs font-sans font-semibold text-white/85 hover:text-white uppercase tracking-[0.15em] sm:tracking-[0.2em] border-b border-white/40 hover:border-white pb-1 transition-all duration-200" x-text="slide.subLinkText">
+                            </a>
+                        </div>
                     </div>
-
-                    <h1 class="font-serif text-4xl sm:text-6xl lg:text-7xl font-bold leading-[1.05] tracking-tight animate-[fadeIn_0.85s_ease-out]">
-                        Timeless<br />
-                        <em class="not-italic text-[var(--color-blush)]">Indian</em><br />
-                        Elegance
-                    </h1>
-
-                    <p class="text-xs sm:text-base font-sans text-white/80 leading-relaxed font-light max-w-[340px] sm:max-w-[440px] animate-[fadeIn_0.75s_ease-out]">
-                        Handcrafted Indian fashion for the modern woman — curated from artisan weavers across India.
-                    </p>
-
-                    <div class="flex flex-wrap items-center gap-4 sm:gap-6 pt-2 sm:pt-3 animate-[fadeIn_0.75s_ease-out]">
-                        <a href="/shop" class="inline-flex items-center gap-2 sm:gap-3 bg-white text-[var(--color-ebony)] hover:bg-[var(--color-blush)] font-sans text-xs font-bold uppercase tracking-[0.15em] sm:tracking-[0.2em] px-6 sm:px-8 py-3 sm:py-4 rounded-full shadow-2xl transition-all duration-300 hover:scale-[1.03] group">
-                            Shop Now
-                            <svg class="w-4 h-4 transition-transform duration-200 group-hover:translate-x-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
-                        </a>
-                        <a href="/shop?filter=new" class="text-xs font-sans font-semibold text-white/85 hover:text-white uppercase tracking-[0.15em] sm:tracking-[0.2em] border-b border-white/40 hover:border-white pb-1 transition-all duration-200">
-                            View New Arrivals
-                        </a>
-                    </div>
-                </div>
+                </template>
             </div>
         </div>
-        <div class="absolute bottom-0 left-0 right-0 h-16 bg-gradient-to-t from-[var(--color-offwhite)]/30 to-transparent pointer-events-none"></div>
+
+        {{-- Left / Right Navigation Arrows --}}
+        <button @click="prevSlide()" class="absolute left-3 sm:left-6 top-1/2 -translate-y-1/2 z-30 w-10 h-10 rounded-full bg-black/40 hover:bg-[var(--color-rose-antique)] text-white backdrop-blur-md border border-white/20 flex items-center justify-center transition-all opacity-0 group-hover:opacity-100 hover:scale-110 cursor-pointer" aria-label="Previous Slide">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
+        </button>
+
+        <button @click="nextSlide()" class="absolute right-3 sm:right-6 top-1/2 -translate-y-1/2 z-30 w-10 h-10 rounded-full bg-black/40 hover:bg-[var(--color-rose-antique)] text-white backdrop-blur-md border border-white/20 flex items-center justify-center transition-all opacity-0 group-hover:opacity-100 hover:scale-110 cursor-pointer" aria-label="Next Slide">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+        </button>
+
+        {{-- Slide Dot Indicators --}}
+        <div class="absolute bottom-6 left-1/2 -translate-x-1/2 z-30 flex items-center gap-2">
+            <template x-for="(slide, idx) in slides" :key="idx">
+                <button @click="goToSlide(idx)"
+                        class="h-2 rounded-full transition-all duration-300 cursor-pointer"
+                        :class="currentSlide === idx ? 'w-8 bg-white' : 'w-2 bg-white/40 hover:bg-white/70'"
+                        :aria-label="'Go to slide ' + (idx + 1)">
+                </button>
+            </template>
+        </div>
+
+        <div class="absolute bottom-0 left-0 right-0 h-16 bg-gradient-to-t from-[var(--color-offwhite)]/30 to-transparent pointer-events-none z-20"></div>
     </section>
 
     {{-- ══ MAIN CONTENT SECTIONS ══ --}}
     <div class="space-y-6 sm:space-y-10 pt-6 sm:pt-10">
 
-        {{-- ── 1. Featured Categories Horizontal Slider ── --}}
+        {{-- ── 1. Trending Collection Horizontal Slider (Top of page) ── --}}
+        <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 bg-[var(--color-champagne-light)]/30 py-6 sm:py-10 rounded-2xl sm:rounded-3xl border border-[var(--color-bisque)]/40 relative group"
+                 x-data="{
+                     scroll(dir) {
+                         const el = this.$refs.trendingSlider;
+                         const amt = el.clientWidth * 0.75;
+                         el.scrollBy({ left: dir === 'left' ? -amt : amt, behavior: 'smooth' });
+                     }
+                 }">
+            <div class="flex flex-col sm:flex-row items-start sm:items-end justify-between mb-5 sm:mb-7 gap-3">
+                <div>
+                    <span class="text-xs font-sans font-bold text-[var(--color-rose-antique)] uppercase tracking-[0.3em]">Handpicked Styles</span>
+                    <h2 class="font-serif text-2xl sm:text-4xl font-bold text-[var(--color-ebony)] mt-1">Trending This Season</h2>
+                </div>
+                <div class="flex items-center gap-3 sm:gap-4">
+                    <a href="/shop?filter=trending" class="inline-flex items-center gap-1.5 text-xs font-sans font-bold uppercase tracking-widest text-[var(--color-ebony)] hover:text-[var(--color-rose-antique)] transition-colors border-b border-[var(--color-ebony)] pb-1">
+                        View All
+                        <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
+                    </a>
+                    <div class="flex items-center gap-1.5">
+                        <button @click="scroll('left')"
+                                class="w-8 h-8 sm:w-9 sm:h-9 rounded-full border border-[var(--color-bisque)]/80 bg-white text-[var(--color-ebony)] shadow-sm flex items-center justify-center hover:bg-[var(--color-rose-antique)] hover:text-white transition-all cursor-pointer"
+                                aria-label="Previous Trending">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
+                        </button>
+                        <button @click="scroll('right')"
+                                class="w-8 h-8 sm:w-9 sm:h-9 rounded-full border border-[var(--color-bisque)]/80 bg-white text-[var(--color-ebony)] shadow-sm flex items-center justify-center hover:bg-[var(--color-rose-antique)] hover:text-white transition-all cursor-pointer"
+                                aria-label="Next Trending">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <div x-ref="trendingSlider" class="flex gap-4 sm:gap-6 overflow-x-auto pb-4 pt-1 scroll-smooth snap-x snap-mandatory" style="scrollbar-width:none;-ms-overflow-style:none;">
+                @foreach($trendingProducts as $product)
+                <div class="flex-none snap-start w-[220px] sm:w-[260px] lg:w-[280px]">
+                    @include('partials.product-card', ['product' => $product])
+                </div>
+                @endforeach
+            </div>
+        </section>
+
+        {{-- ── 2. Featured Categories Horizontal Slider ── --}}
         <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8"
                  x-data="{
                      scroll(dir) {
@@ -160,51 +307,6 @@
             </div>
         </section>
 
-        {{-- ── 2. Trending Collection Horizontal Slider ── --}}
-        <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 bg-[var(--color-champagne-light)]/30 py-6 sm:py-10 rounded-2xl sm:rounded-3xl border border-[var(--color-bisque)]/40 relative group"
-                 x-data="{
-                     scroll(dir) {
-                         const el = this.$refs.trendingSlider;
-                         const amt = el.clientWidth * 0.75;
-                         el.scrollBy({ left: dir === 'left' ? -amt : amt, behavior: 'smooth' });
-                     }
-                 }">
-            <div class="flex flex-col sm:flex-row items-start sm:items-end justify-between mb-5 sm:mb-7 gap-3">
-                <div>
-                    <span class="text-xs font-sans font-bold text-[var(--color-rose-antique)] uppercase tracking-[0.3em]">Handpicked Styles</span>
-                    <h2 class="font-serif text-2xl sm:text-4xl font-bold text-[var(--color-ebony)] mt-1">Trending This Season</h2>
-                </div>
-                <div class="flex items-center gap-3 sm:gap-4">
-                    <a href="/shop?filter=trending" class="inline-flex items-center gap-1.5 text-xs font-sans font-bold uppercase tracking-widest text-[var(--color-ebony)] hover:text-[var(--color-rose-antique)] transition-colors border-b border-[var(--color-ebony)] pb-1">
-                        View All
-                        <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
-                    </a>
-                    <!-- Arrow Controls -->
-                    <div class="flex items-center gap-1.5">
-                        <button @click="scroll('left')"
-                                class="w-8 h-8 sm:w-9 sm:h-9 rounded-full border border-[var(--color-bisque)]/80 bg-white text-[var(--color-ebony)] shadow-sm flex items-center justify-center hover:bg-[var(--color-rose-antique)] hover:text-white transition-all cursor-pointer"
-                                aria-label="Previous Trending">
-                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
-                        </button>
-                        <button @click="scroll('right')"
-                                class="w-8 h-8 sm:w-9 sm:h-9 rounded-full border border-[var(--color-bisque)]/80 bg-white text-[var(--color-ebony)] shadow-sm flex items-center justify-center hover:bg-[var(--color-rose-antique)] hover:text-white transition-all cursor-pointer"
-                                aria-label="Next Trending">
-                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
-                        </button>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Horizontal Products Slider -->
-            <div x-ref="trendingSlider" class="flex gap-4 sm:gap-6 overflow-x-auto pb-4 pt-1 scroll-smooth snap-x snap-mandatory" style="scrollbar-width:none;-ms-overflow-style:none;">
-                @foreach($trendingProducts as $product)
-                <div class="flex-none snap-start w-[220px] sm:w-[260px] lg:w-[280px]">
-                    @include('partials.product-card', ['product' => $product])
-                </div>
-                @endforeach
-            </div>
-        </section>
-
         {{-- ── Chikankari Editorial Banner ── --}}
         <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="relative rounded-2xl sm:rounded-3xl overflow-hidden bg-[var(--color-ebony)] text-white shadow-2xl">
@@ -230,94 +332,6 @@
                             </a>
                         </div>
                     </div>
-                </div>
-            </div>
-        </section>
-
-        {{-- ── 3. Luxury Sarees Spotlight Horizontal Slider ── --}}
-        <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8"
-                 x-data="{
-                     scroll(dir) {
-                         const el = this.$refs.sareeSlider;
-                         const amt = el.clientWidth * 0.75;
-                         el.scrollBy({ left: dir === 'left' ? -amt : amt, behavior: 'smooth' });
-                     }
-                 }">
-            <div class="flex flex-col sm:flex-row items-start sm:items-end justify-between mb-5 sm:mb-7 gap-3">
-                <div>
-                    <span class="text-xs font-sans font-bold text-[var(--color-rose-antique)] uppercase tracking-[0.3em]">Six Yards of Royalty</span>
-                    <h2 class="font-serif text-2xl sm:text-4xl font-bold text-[var(--color-ebony)] mt-1">Luxury Banarasi & Silk Sarees</h2>
-                    <p class="text-xs text-[var(--color-ebony)]/60 font-sans mt-1">Pure silk mark certified sarees featuring gold zari brocade Kadwa weaving.</p>
-                </div>
-                <div class="flex items-center gap-3 sm:gap-4">
-                    <a href="/shop?category=Sarees" class="inline-flex items-center gap-1.5 text-xs font-sans font-bold uppercase tracking-widest text-[var(--color-ebony)] hover:text-[var(--color-rose-antique)] transition-colors border-b border-[var(--color-ebony)] pb-1">
-                        View All Sarees
-                        <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
-                    </a>
-                    <!-- Arrow Controls -->
-                    <div class="flex items-center gap-1.5">
-                        <button @click="scroll('left')"
-                                class="w-8 h-8 sm:w-9 sm:h-9 rounded-full border border-[var(--color-bisque)]/80 bg-white text-[var(--color-ebony)] shadow-sm flex items-center justify-center hover:bg-[var(--color-rose-antique)] hover:text-white transition-all cursor-pointer"
-                                aria-label="Previous Sarees">
-                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
-                        </button>
-                        <button @click="scroll('right')"
-                                class="w-8 h-8 sm:w-9 sm:h-9 rounded-full border border-[var(--color-bisque)]/80 bg-white text-[var(--color-ebony)] shadow-sm flex items-center justify-center hover:bg-[var(--color-rose-antique)] hover:text-white transition-all cursor-pointer"
-                                aria-label="Next Sarees">
-                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
-                        </button>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Horizontal Sarees Slider -->
-            <div x-ref="sareeSlider" class="flex gap-4 sm:gap-6 overflow-x-auto pb-4 pt-1 scroll-smooth snap-x snap-mandatory" style="scrollbar-width:none;-ms-overflow-style:none;">
-                @foreach($sareeSpotlight as $product)
-                <div class="flex-none snap-start w-[220px] sm:w-[260px] lg:w-[280px]">
-                    @include('partials.product-card', ['product' => $product])
-                </div>
-                @endforeach
-            </div>
-        </section>
-
-        {{-- ── 4. Shop By Heritage Fabric Horizontal Slider ── --}}
-        <section class="bg-[var(--color-bisque)]/20 py-6 sm:py-10"
-                 x-data="{
-                     scroll(dir) {
-                         const el = this.$refs.fabricSlider;
-                         const amt = el.clientWidth * 0.6;
-                         el.scrollBy({ left: dir === 'left' ? -amt : amt, behavior: 'smooth' });
-                     }
-                 }">
-            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                <div class="flex flex-col sm:flex-row items-start sm:items-end justify-between mb-5 sm:mb-7 gap-3">
-                    <div>
-                        <span class="text-xs font-sans font-bold text-[var(--color-rose-antique)] uppercase tracking-[0.3em]">Tactile Luxury</span>
-                        <h2 class="font-serif text-2xl sm:text-3xl font-bold text-[var(--color-ebony)] mt-1">Shop By Heritage Fabric</h2>
-                    </div>
-                    <div class="flex items-center gap-2 self-end sm:self-auto">
-                        <button @click="scroll('left')"
-                                class="w-8 h-8 sm:w-9 sm:h-9 rounded-full border border-[var(--color-bisque)]/80 bg-white text-[var(--color-ebony)] shadow-sm flex items-center justify-center hover:bg-[var(--color-rose-antique)] hover:text-white transition-all cursor-pointer"
-                                aria-label="Previous Fabrics">
-                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
-                        </button>
-                        <button @click="scroll('right')"
-                                class="w-8 h-8 sm:w-9 sm:h-9 rounded-full border border-[var(--color-bisque)]/80 bg-white text-[var(--color-ebony)] shadow-sm flex items-center justify-center hover:bg-[var(--color-rose-antique)] hover:text-white transition-all cursor-pointer"
-                                aria-label="Next Fabrics">
-                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
-                        </button>
-                    </div>
-                </div>
-
-                <div x-ref="fabricSlider" class="flex gap-3 sm:gap-4 overflow-x-auto pb-3 pt-1 scroll-smooth snap-x snap-mandatory" style="scrollbar-width:none;-ms-overflow-style:none;">
-                    @foreach($fabricsData as $fabric)
-                    <div class="flex-none snap-start w-[145px] sm:w-[185px] lg:w-[200px]">
-                        <a href="/shop?fabric={{ urlencode($fabric['name']) }}" class="block bg-white hover:bg-[var(--color-rose-antique)] hover:text-white p-4 sm:p-5 rounded-2xl border border-[var(--color-bisque)]/60 text-center shadow-sm hover:shadow-lg transition-all duration-300 group h-full">
-                            <h4 class="font-serif text-sm sm:text-base font-bold text-[var(--color-ebony)] group-hover:text-white transition-colors truncate">{{ $fabric['name'] }}</h4>
-                            <span class="text-[10px] sm:text-[11px] font-sans text-[var(--color-ebony)]/60 group-hover:text-white/80 transition-colors block mt-1">{{ $fabric['count'] }}</span>
-                        </a>
-                    </div>
-                    @endforeach
                 </div>
             </div>
         </section>
