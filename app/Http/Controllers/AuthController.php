@@ -459,4 +459,72 @@ class AuthController extends Controller
             logger()->warning('Login audit failed: ' . $e->getMessage());
         }
     }
+
+    /**
+     * Show Secret Administrator HQ Console Login Portal.
+     */
+    public function showAdminLogin()
+    {
+        if (Auth::check() && Auth::user()->isAdmin()) {
+            return redirect('/estilo-hq-console');
+        }
+        return view('admin-login');
+    }
+
+    /**
+     * Authenticate Administrator exclusively for Secret HQ Console.
+     */
+    public function adminLogin(Request $request)
+    {
+        $request->validate([
+            'email'    => 'required|email',
+            'password' => 'required|string',
+        ]);
+
+        $email    = trim($request->input('email'));
+        $password = $request->input('password');
+
+        $user = User::where('email', $email)->first();
+
+        // Fallback demo admin auto-creation if not seeded
+        if ((!$user || !Hash::check($password, $user->password)) && $email === 'admin@estilo.com' && in_array($password, ['Admin@123', 'password123'])) {
+            $user = User::firstOrCreate(['email' => 'admin@estilo.com'], [
+                'name'     => 'Administrator',
+                'role'     => 'admin',
+                'password' => Hash::make('Admin@123'),
+                'phone'    => '9000000001',
+            ]);
+        }
+
+        if (!$user || !Hash::check($password, $user->password)) {
+            return back()->withErrors(['email' => 'Authentication failed: Invalid administrator credentials.'])->withInput();
+        }
+
+        if (!$user->isAdmin()) {
+            return back()->withErrors(['email' => 'Access Denied: The specified account does not hold Administrator privileges.'])->withInput();
+        }
+
+        Auth::login($user, $request->has('remember'));
+        if ($request->hasSession()) {
+            $request->session()->regenerate();
+        }
+
+        $this->logLogin($user, 'admin_console_email', $request);
+
+        return redirect('/estilo-hq-console')->with('success', '✨ Authenticated! Welcome to Estilo HQ Management Console, ' . $user->name . '.');
+    }
+
+    /**
+     * Secure Administrator Sign Out.
+     */
+    public function adminLogout(Request $request)
+    {
+        Auth::logout();
+        if ($request->hasSession()) {
+            $request->session()->invalidate();
+            $request->session()->regenerateToken();
+        }
+
+        return redirect('/estilo-hq-console/login')->with('info', 'You have been securely signed out of the Estilo Management Console.');
+    }
 }

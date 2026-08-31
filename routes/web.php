@@ -82,8 +82,12 @@ Route::prefix('sales')->group(function () {
 });
 
 // ─────────────────────────────────────────────────────────────────────────────
-// 4. Admin Management Suite (Protected by Admin Middleware)
+// 4. Secret Admin Authentication & Management Suite
 // ─────────────────────────────────────────────────────────────────────────────
+Route::get('/estilo-hq-console/login', [AuthController::class, 'showAdminLogin'])->name('admin.login');
+Route::post('/estilo-hq-console/login', [AuthController::class, 'adminLogin']);
+Route::match(['get', 'post'], '/estilo-hq-console/logout', [AuthController::class, 'adminLogout'])->name('admin.logout');
+
 Route::prefix('estilo-hq-console')->middleware('admin')->group(function () {
     Route::get('/', [AdminController::class, 'index']);
     Route::get('/dashboard', [AdminController::class, 'index']);

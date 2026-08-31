@@ -150,7 +150,7 @@
                     <button @click="showProfileModal = true" class="text-[11px] bg-white border border-[var(--color-bisque)] hover:bg-gray-50 text-[var(--color-ebony)] font-bold px-3 py-1 rounded-full transition-colors ml-1 shadow-sm" title="View Profile">
                         Profile
                     </button>
-                    <form action="{{ route('logout') }}" method="POST" class="inline m-0">
+                    <form action="{{ route('admin.logout') }}" method="POST" class="inline m-0">
                         @csrf
                         <button type="submit" class="text-[11px] bg-rose-50 hover:bg-rose-100 border border-rose-200 text-rose-700 font-bold px-3 py-1 rounded-full transition-colors shadow-sm" title="Log Out">
                             Sign Out
