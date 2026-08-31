@@ -447,6 +447,30 @@ class AdminController extends Controller
         return redirect('/estilo-hq-console?tab=offers')->with('success', "Coupon '{$request->code}' generated and published successfully!");
     }
 
+    public function updateCoupon(Request $request, $id)
+    {
+        $coupon = Coupon::findOrFail($id);
+
+        $request->validate([
+            'code'           => 'required|string|unique:coupons,code,' . $coupon->id,
+            'title'          => 'required|string',
+            'discount_value' => 'required|numeric|min:1',
+        ]);
+
+        $coupon->update([
+            'code'            => strtoupper($request->code),
+            'title'           => $request->title,
+            'discount_type'   => $request->input('discount_type', 'percentage'),
+            'discount_value'  => $request->discount_value,
+            'min_order_value' => $request->input('min_order_value', 0),
+            'campaign_type'   => $request->input('campaign_type', 'festival'),
+            'valid_until'     => $request->input('valid_until', $coupon->valid_until),
+            'is_active'       => $request->boolean('is_active', true),
+        ]);
+
+        return redirect('/estilo-hq-console?tab=offers')->with('success', "Coupon '{$coupon->code}' updated successfully!");
+    }
+
     public function toggleCoupon($id)
     {
         $coupon = Coupon::findOrFail($id);

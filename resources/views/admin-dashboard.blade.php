@@ -87,6 +87,45 @@
     selectedAnnouncement: { id: null, title: '', message: '', type: 'sale', color: 'amber', icon: '📢', show_in_ticker: true, show_as_banner: false, is_active: true, starts_at: '', ends_at: '' },
     announcementFilter: 'all',
 
+    editCouponModal: false,
+    newCoupon: {
+        code: 'DIWALI30',
+        title: 'Diwali Royal Festive 30% Off',
+        discount_type: 'percentage',
+        discount_value: 30,
+        min_order_value: 1999,
+        campaign_type: 'festival',
+        valid_until: '2027-12-31'
+    },
+    selectedCoupon: {
+        id: null,
+        code: '',
+        title: '',
+        discount_type: 'percentage',
+        discount_value: 20,
+        min_order_value: 1999,
+        campaign_type: 'festival',
+        valid_until: '',
+        is_active: true
+    },
+
+    openEditCoupon(coup) {
+        this.selectedCoupon = Object.assign({}, coup);
+        if (coup.valid_until && typeof coup.valid_until === 'string') {
+            this.selectedCoupon.valid_until = coup.valid_until.split('T')[0];
+        }
+        this.editCouponModal = true;
+    },
+
+    applyPresetCoupon(code, title, discount, type, minOrder, campaign) {
+        this.newCoupon.code = code;
+        this.newCoupon.title = title;
+        this.newCoupon.discount_value = discount;
+        this.newCoupon.discount_type = type;
+        this.newCoupon.min_order_value = minOrder;
+        this.newCoupon.campaign_type = campaign;
+    },
+
     openEditReview(rev) {
         this.selectedReview = Object.assign({}, rev);
         this.selectedReview.is_approved = Boolean(Number(rev.is_approved));
@@ -785,6 +824,11 @@
                                     📢 Announce
                                 </button>
                                 @endif
+
+                                <span class="text-gray-300">|</span>
+                                <button type="button" @click="openEditCoupon({{ json_encode($coup) }})" class="text-[10px] font-bold text-amber-800 hover:underline">
+                                    ✏️ Edit
+                                </button>
 
                                 <span class="text-gray-300">|</span>
                                 <form action="/estilo-hq-console/coupons/{{ $coup->id }}/toggle" method="POST" class="inline m-0">
@@ -1582,34 +1626,226 @@
         </div>
     </div>
 
-    {{-- MODAL 5: GENERATE COUPON --}}
-    <div x-show="showAddCouponModal" style="display: none;" class="fixed inset-0 z-50 flex items-center justify-center p-4">
+    {{-- MODAL 5: GENERATE COUPON (INTERACTIVE WITH LIVE PREVIEW & PRESETS) --}}
+    <div x-show="showAddCouponModal" x-cloak class="fixed inset-0 z-50 flex items-center justify-center p-4 overflow-y-auto">
         <div x-show="showAddCouponModal" x-transition.opacity @click="showAddCouponModal = false" class="fixed inset-0 bg-black/60 backdrop-blur-sm"></div>
-        <div class="relative w-full max-w-md bg-white rounded-3xl p-8 shadow-2xl z-10 border border-[var(--color-bisque)] space-y-4">
-            <h3 class="font-serif text-xl font-bold text-[var(--color-ebony)]">Generate Discount Coupon</h3>
-            <form action="/estilo-hq-console/coupons" method="POST" class="space-y-3">
+        <div class="relative w-full max-w-lg bg-white rounded-3xl p-6 sm:p-8 shadow-2xl z-10 border border-[var(--color-bisque)] space-y-5 my-8">
+            
+            {{-- Modal Header --}}
+            <div class="flex items-center justify-between border-b border-[var(--color-bisque)] pb-3">
+                <div class="space-y-0.5">
+                    <div class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-amber-100 text-amber-900 text-[10px] font-sans font-bold uppercase tracking-wider">
+                        <span>✨ Festive Promotions</span>
+                    </div>
+                    <h3 class="font-serif text-xl font-bold text-[var(--color-ebony)]">Generate Discount Coupon</h3>
+                </div>
+                <button type="button" @click="showAddCouponModal = false" class="w-8 h-8 rounded-full bg-gray-100 hover:bg-gray-200 text-gray-500 hover:text-gray-800 flex items-center justify-center text-sm font-bold transition-colors">
+                    ✕
+                </button>
+            </div>
+
+            {{-- 1. Quick Presets Bar --}}
+            <div class="space-y-1.5">
+                <label class="block text-[10px] font-sans font-bold text-[var(--color-ebony)]/60 uppercase tracking-wider">
+                    ⚡ Quick Presets (Click to auto-fill):
+                </label>
+                <div class="grid grid-cols-2 sm:grid-cols-4 gap-1.5">
+                    <button type="button" @click="applyPresetCoupon('DIWALI30', 'Diwali Royal Festive 30% Off', 30, 'percentage', 1999, 'festival')"
+                            class="px-2 py-1.5 rounded-lg bg-amber-50 hover:bg-amber-100 border border-amber-200 text-[10px] font-mono font-bold text-amber-900 text-center transition-colors">
+                        🎉 DIWALI30
+                    </button>
+                    <button type="button" @click="applyPresetCoupon('ROYAL500', 'Flat ₹500 Off Luxury Collection', 500, 'fixed', 3500, 'festival')"
+                            class="px-2 py-1.5 rounded-lg bg-rose-50 hover:bg-rose-100 border border-rose-200 text-[10px] font-mono font-bold text-rose-900 text-center transition-colors">
+                        👑 ROYAL500
+                    </button>
+                    <button type="button" @click="applyPresetCoupon('FESTIVE25', 'Festive Season 25% Off', 25, 'percentage', 1499, 'festival')"
+                            class="px-2 py-1.5 rounded-lg bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 text-[10px] font-mono font-bold text-emerald-900 text-center transition-colors">
+                        ✨ FESTIVE25
+                    </button>
+                    <button type="button" @click="applyPresetCoupon('WELCOME10', '10% Welcome Discount For New Customers', 10, 'percentage', 999, 'welcome')"
+                            class="px-2 py-1.5 rounded-lg bg-indigo-50 hover:bg-indigo-100 border border-indigo-200 text-[10px] font-mono font-bold text-indigo-900 text-center transition-colors">
+                        👗 WELCOME10
+                    </button>
+                </div>
+            </div>
+
+            {{-- 2. Live Interactive Voucher Card Preview --}}
+            <div class="bg-gradient-to-br from-[#FBEAD6] to-[#F5DBC3] border border-amber-300 rounded-2xl p-4 shadow-sm relative overflow-hidden space-y-2">
+                <div class="flex items-center justify-between">
+                    <span class="text-[9px] font-sans font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-white/80 text-[var(--color-ebony)] shadow-xs">
+                        <span x-text="newCoupon.campaign_type.toUpperCase()"></span> CAMPAIGN
+                    </span>
+                    <span class="text-[10px] font-bold text-emerald-700">● Live Preview</span>
+                </div>
+                <div class="flex items-baseline justify-between">
+                    <span class="font-mono text-2xl font-black text-[var(--color-ebony)] tracking-wider" x-text="newCoupon.code || 'COUPON_CODE'"></span>
+                    <span class="text-sm font-black text-amber-900 bg-white/90 px-2 py-0.5 rounded-lg shadow-xs" x-text="newCoupon.discount_type === 'percentage' ? (newCoupon.discount_value + '% OFF') : ('₹' + newCoupon.discount_value + ' OFF')"></span>
+                </div>
+                <p class="font-serif text-xs font-bold text-[var(--color-ebony)]" x-text="newCoupon.title || 'Campaign Title Preview'"></p>
+                <div class="text-[10px] text-[var(--color-ebony)]/70 flex items-center justify-between pt-1 border-t border-amber-300/60 font-sans">
+                    <span>Min Order: ₹<span x-text="Number(newCoupon.min_order_value || 0).toLocaleString()"></span></span>
+                    <span>Valid until: <span x-text="newCoupon.valid_until || '2027-12-31'"></span></span>
+                </div>
+            </div>
+
+            {{-- 3. Form Body --}}
+            <form action="/estilo-hq-console/coupons" method="POST" class="space-y-3.5">
                 @csrf
-                <div>
-                    <label class="block text-xs font-sans font-bold uppercase tracking-wider mb-1">Coupon Code</label>
-                    <input type="text" name="code" placeholder="DIWALI30" required class="w-full bg-[var(--color-offwhite)] border border-[var(--color-bisque)] rounded-xl px-4 py-2.5 text-xs font-mono font-bold uppercase" />
+                
+                {{-- Code & Title --}}
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                    <div class="sm:col-span-1">
+                        <label class="block text-[11px] font-sans font-bold uppercase tracking-wider mb-1 text-[var(--color-ebony)]">Coupon Code</label>
+                        <input type="text" name="code" x-model="newCoupon.code" @input="newCoupon.code = newCoupon.code.toUpperCase()" placeholder="DIWALI30" required
+                               class="w-full bg-[var(--color-offwhite)] border border-[var(--color-bisque)] rounded-xl px-3.5 py-2.5 text-xs font-mono font-bold uppercase focus:outline-none focus:border-amber-400" />
+                    </div>
+                    <div class="sm:col-span-2">
+                        <label class="block text-[11px] font-sans font-bold uppercase tracking-wider mb-1 text-[var(--color-ebony)]">Campaign Title</label>
+                        <input type="text" name="title" x-model="newCoupon.title" placeholder="Diwali Royal Festive 30% Off" required
+                               class="w-full bg-[var(--color-offwhite)] border border-[var(--color-bisque)] rounded-xl px-3.5 py-2.5 text-xs font-sans focus:outline-none focus:border-amber-400" />
+                    </div>
                 </div>
-                <div>
-                    <label class="block text-xs font-sans font-bold uppercase tracking-wider mb-1">Campaign Title</label>
-                    <input type="text" name="title" placeholder="Diwali Royal Festive 30% Off" required class="w-full bg-[var(--color-offwhite)] border border-[var(--color-bisque)] rounded-xl px-4 py-2.5 text-xs font-sans" />
+
+                {{-- Discount Type & Value & Min Order --}}
+                <div class="grid grid-cols-3 gap-2.5">
+                    <div>
+                        <label class="block text-[10px] font-sans font-bold uppercase tracking-wider mb-1 text-[var(--color-ebony)]">Type</label>
+                        <select name="discount_type" x-model="newCoupon.discount_type" class="w-full bg-[var(--color-offwhite)] border border-[var(--color-bisque)] rounded-xl px-2.5 py-2 text-xs font-bold focus:outline-none">
+                            <option value="percentage">% Percentage</option>
+                            <option value="fixed">₹ Flat INR</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-[10px] font-sans font-bold uppercase tracking-wider mb-1 text-[var(--color-ebony)]">Discount</label>
+                        <input type="number" name="discount_value" x-model="newCoupon.discount_value" required min="1"
+                               class="w-full bg-[var(--color-offwhite)] border border-[var(--color-bisque)] rounded-xl px-3 py-2 text-xs font-bold focus:outline-none focus:border-amber-400" />
+                    </div>
+                    <div>
+                        <label class="block text-[10px] font-sans font-bold uppercase tracking-wider mb-1 text-[var(--color-ebony)]">Min Order (₹)</label>
+                        <input type="number" name="min_order_value" x-model="newCoupon.min_order_value" min="0" step="100"
+                               class="w-full bg-[var(--color-offwhite)] border border-[var(--color-bisque)] rounded-xl px-3 py-2 text-xs font-bold focus:outline-none focus:border-amber-400" />
+                    </div>
                 </div>
+
+                {{-- Campaign Category & Expiry Date --}}
                 <div class="grid grid-cols-2 gap-3">
                     <div>
-                        <label class="block text-xs font-sans font-bold uppercase tracking-wider mb-1">Discount %</label>
-                        <input type="number" name="discount_value" value="20" required class="w-full bg-[var(--color-offwhite)] border border-[var(--color-bisque)] rounded-xl px-4 py-2.5 text-xs font-bold" />
+                        <label class="block text-[10px] font-sans font-bold uppercase tracking-wider mb-1 text-[var(--color-ebony)]">Campaign Category</label>
+                        <select name="campaign_type" x-model="newCoupon.campaign_type" class="w-full bg-[var(--color-offwhite)] border border-[var(--color-bisque)] rounded-xl px-3 py-2 text-xs font-sans focus:outline-none">
+                            <option value="festival">Festival Campaign</option>
+                            <option value="monthly">Monthly Campaign</option>
+                            <option value="welcome">Welcome Discount</option>
+                            <option value="seasonal">Seasonal Sale</option>
+                            <option value="clearance">Clearance</option>
+                        </select>
                     </div>
                     <div>
-                        <label class="block text-xs font-sans font-bold uppercase tracking-wider mb-1">Min Order (₹)</label>
-                        <input type="number" name="min_order_value" value="1999" class="w-full bg-[var(--color-offwhite)] border border-[var(--color-bisque)] rounded-xl px-4 py-2.5 text-xs font-bold" />
+                        <label class="block text-[10px] font-sans font-bold uppercase tracking-wider mb-1 text-[var(--color-ebony)]">Expiry Date</label>
+                        <input type="date" name="valid_until" x-model="newCoupon.valid_until"
+                               class="w-full bg-[var(--color-offwhite)] border border-[var(--color-bisque)] rounded-xl px-3 py-2 text-xs font-sans focus:outline-none" />
                     </div>
                 </div>
-                <div class="flex gap-3 pt-3">
-                    <button type="button" @click="showAddCouponModal = false" class="flex-1 bg-gray-100 text-xs font-bold py-2.5 rounded-xl">Cancel</button>
-                    <button type="submit" class="flex-1 bg-[var(--color-ebony)] text-white text-xs font-bold py-2.5 rounded-xl shadow-md">Create Coupon</button>
+
+                {{-- Modal Action Buttons --}}
+                <div class="flex gap-3 pt-3 border-t border-[var(--color-bisque)]">
+                    <button type="button" @click="showAddCouponModal = false"
+                            class="flex-1 bg-gray-100 hover:bg-gray-200 text-gray-700 text-xs font-bold py-3 rounded-xl transition-colors">
+                        Cancel
+                    </button>
+                    <button type="submit"
+                            class="flex-1 bg-[var(--color-ebony)] hover:bg-[var(--color-rose-deep)] text-white text-xs font-sans font-bold uppercase tracking-wider py-3 rounded-xl shadow-lg transition-all hover:scale-[1.02] active:scale-[0.98]">
+                        ✨ Publish Coupon
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    {{-- MODAL 5B: EDIT COUPON --}}
+    <div x-show="editCouponModal" x-cloak class="fixed inset-0 z-50 flex items-center justify-center p-4 overflow-y-auto">
+        <div x-show="editCouponModal" x-transition.opacity @click="editCouponModal = false" class="fixed inset-0 bg-black/60 backdrop-blur-sm"></div>
+        <div class="relative w-full max-w-lg bg-white rounded-3xl p-6 sm:p-8 shadow-2xl z-10 border border-[var(--color-bisque)] space-y-4 my-8">
+            
+            <div class="flex items-center justify-between border-b border-[var(--color-bisque)] pb-3">
+                <div>
+                    <h3 class="font-serif text-xl font-bold text-[var(--color-ebony)]">Edit Discount Coupon</h3>
+                    <p class="text-xs text-[var(--color-ebony)]/60">Update coupon parameters, discount rate, or validity.</p>
+                </div>
+                <button type="button" @click="editCouponModal = false" class="w-8 h-8 rounded-full bg-gray-100 hover:bg-gray-200 text-gray-500 hover:text-gray-800 flex items-center justify-center text-sm font-bold transition-colors">
+                    ✕
+                </button>
+            </div>
+
+            <form :action="'/estilo-hq-console/coupons/' + selectedCoupon.id" method="POST" class="space-y-3.5">
+                @csrf
+                
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                    <div class="sm:col-span-1">
+                        <label class="block text-[11px] font-sans font-bold uppercase tracking-wider mb-1">Coupon Code</label>
+                        <input type="text" name="code" x-model="selectedCoupon.code" @input="selectedCoupon.code = selectedCoupon.code.toUpperCase()" required
+                               class="w-full bg-[var(--color-offwhite)] border border-[var(--color-bisque)] rounded-xl px-3.5 py-2 text-xs font-mono font-bold uppercase focus:outline-none" />
+                    </div>
+                    <div class="sm:col-span-2">
+                        <label class="block text-[11px] font-sans font-bold uppercase tracking-wider mb-1">Campaign Title</label>
+                        <input type="text" name="title" x-model="selectedCoupon.title" required
+                               class="w-full bg-[var(--color-offwhite)] border border-[var(--color-bisque)] rounded-xl px-3.5 py-2 text-xs font-sans focus:outline-none" />
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-3 gap-2.5">
+                    <div>
+                        <label class="block text-[10px] font-sans font-bold uppercase tracking-wider mb-1">Type</label>
+                        <select name="discount_type" x-model="selectedCoupon.discount_type" class="w-full bg-[var(--color-offwhite)] border border-[var(--color-bisque)] rounded-xl px-2.5 py-2 text-xs font-bold focus:outline-none">
+                            <option value="percentage">% Percentage</option>
+                            <option value="fixed">₹ Flat INR</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-[10px] font-sans font-bold uppercase tracking-wider mb-1">Discount</label>
+                        <input type="number" name="discount_value" x-model="selectedCoupon.discount_value" required min="1"
+                               class="w-full bg-[var(--color-offwhite)] border border-[var(--color-bisque)] rounded-xl px-3 py-2 text-xs font-bold focus:outline-none" />
+                    </div>
+                    <div>
+                        <label class="block text-[10px] font-sans font-bold uppercase tracking-wider mb-1">Min Order (₹)</label>
+                        <input type="number" name="min_order_value" x-model="selectedCoupon.min_order_value" min="0" step="100"
+                               class="w-full bg-[var(--color-offwhite)] border border-[var(--color-bisque)] rounded-xl px-3 py-2 text-xs font-bold focus:outline-none" />
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="block text-[10px] font-sans font-bold uppercase tracking-wider mb-1">Campaign Category</label>
+                        <select name="campaign_type" x-model="selectedCoupon.campaign_type" class="w-full bg-[var(--color-offwhite)] border border-[var(--color-bisque)] rounded-xl px-3 py-2 text-xs font-sans focus:outline-none">
+                            <option value="festival">Festival Campaign</option>
+                            <option value="monthly">Monthly Campaign</option>
+                            <option value="welcome">Welcome Discount</option>
+                            <option value="seasonal">Seasonal Sale</option>
+                            <option value="clearance">Clearance</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-[10px] font-sans font-bold uppercase tracking-wider mb-1">Expiry Date</label>
+                        <input type="date" name="valid_until" x-model="selectedCoupon.valid_until"
+                               class="w-full bg-[var(--color-offwhite)] border border-[var(--color-bisque)] rounded-xl px-3 py-2 text-xs font-sans focus:outline-none" />
+                    </div>
+                </div>
+
+                <div class="pt-2">
+                    <label class="flex items-center gap-2 cursor-pointer text-xs font-sans font-bold text-[var(--color-ebony)]">
+                        <input type="checkbox" name="is_active" value="1" :checked="Boolean(selectedCoupon.is_active)" class="accent-emerald-600 rounded" />
+                        <span>Coupon Active & Usable at Checkout</span>
+                    </label>
+                </div>
+
+                <div class="flex gap-3 pt-3 border-t border-[var(--color-bisque)]">
+                    <button type="button" @click="editCouponModal = false"
+                            class="flex-1 bg-gray-100 hover:bg-gray-200 text-gray-700 text-xs font-bold py-2.5 rounded-xl transition-colors">
+                        Cancel
+                    </button>
+                    <button type="submit"
+                            class="flex-1 bg-amber-600 hover:bg-amber-700 text-white text-xs font-bold py-2.5 rounded-xl shadow-md transition-colors">
+                        Save Changes
+                    </button>
                 </div>
             </form>
         </div>
