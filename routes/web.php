@@ -23,6 +23,7 @@ Route::get('/checkout', function () { return view('checkout'); });
 Route::post('/checkout/place-order', [PaymentController::class, 'placeOrder']);
 Route::post('/api/payments/create-order', [PaymentController::class, 'createOrder']);
 Route::post('/api/payments/verify', [PaymentController::class, 'verify']);
+Route::post('/api/coupons/validate', [PaymentController::class, 'validateCoupon']);
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Referral Tracking — Short Link + Session Cookie

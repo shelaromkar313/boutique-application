@@ -5,18 +5,14 @@
 @section('content')
 
 <div class="pb-16 sm:pb-24 pt-4 sm:pt-8" x-data="{
-    promoCode: '',
-    appliedDiscount: 0,
-    promoApplied: false,
+    promoCode: $store.shop.couponCode || '',
     
-    applyPromo() {
-        if (this.promoCode.trim().toUpperCase() === 'BOUTIQUE10') {
-            this.appliedDiscount = Math.round($store.shop.cartSubtotal * 0.10);
-            this.promoApplied = true;
-            $store.shop.showToast('10% Promo Code BOUTIQUE10 applied successfully!');
-        } else {
-            $store.shop.showToast('Invalid promo code. Use BOUTIQUE10');
+    async applyPromo() {
+        if (!this.promoCode || !this.promoCode.trim()) {
+            $store.shop.showToast('Please enter a coupon code.');
+            return;
         }
+        await $store.shop.applyCoupon(this.promoCode);
     },
 
     get shipping() {
@@ -24,7 +20,7 @@
     },
 
     get finalTotal() {
-        return Math.max(0, $store.shop.cartSubtotal - this.appliedDiscount + this.shipping);
+        return Math.max(0, $store.shop.cartSubtotal - $store.shop.discountAmount + this.shipping);
     }
 }">
 
@@ -93,13 +89,27 @@
                             <div class="relative flex-1">
                                 <input type="text"
                                     x-model="promoCode"
-                                    placeholder="Promo (BOUTIQUE10)"
-                                    class="w-full px-4 py-2.5 bg-[var(--color-offwhite)] border border-[var(--color-bisque)] rounded-full text-xs font-sans uppercase focus:outline-none focus:border-[var(--color-rose-antique)]" />
+                                    placeholder="Enter Coupon Code"
+                                    class="w-full px-4 py-2.5 bg-[var(--color-offwhite)] border border-[var(--color-bisque)] rounded-full text-xs font-mono font-bold uppercase focus:outline-none focus:border-[var(--color-rose-antique)]" />
                             </div>
-                            <button type="submit" class="px-4 py-2.5 bg-[var(--color-rose-antique)] hover:bg-[var(--color-rose-deep)] text-white text-xs font-sans font-bold uppercase tracking-wider rounded-full transition-colors">
+                            <button type="submit" class="px-5 py-2.5 bg-[var(--color-rose-antique)] hover:bg-[var(--color-rose-deep)] text-white text-xs font-sans font-bold uppercase tracking-wider rounded-full transition-colors shadow-xs">
                                 Apply
                             </button>
                         </form>
+
+                        {{-- Applied Coupon Badge --}}
+                        <template x-if="$store.shop.couponCode && $store.shop.discountAmount > 0">
+                            <div class="flex items-center justify-between bg-emerald-50 border border-emerald-200 rounded-2xl px-3.5 py-2 text-xs font-sans text-emerald-900">
+                                <div class="flex items-center gap-1.5">
+                                    <span>🎉</span>
+                                    <span class="font-mono font-bold uppercase" x-text="$store.shop.couponCode"></span>
+                                    <span class="text-[10px] text-emerald-700">applied</span>
+                                </div>
+                                <button type="button" @click="$store.shop.removeCoupon(); promoCode='';" class="text-[11px] font-bold text-rose-600 hover:underline">
+                                    Remove
+                                </button>
+                            </div>
+                        </template>
 
                         {{-- Cost Breakdown --}}
                         <div class="space-y-3 text-xs font-sans text-[var(--color-ebony)]/80 pt-2 border-t border-[var(--color-bisque)]/30">
@@ -107,10 +117,10 @@
                                 <span>Bag Subtotal</span>
                                 <span class="font-bold" x-text="'₹' + $store.shop.cartSubtotal.toLocaleString('en-IN')"></span>
                             </div>
-                            <template x-if="appliedDiscount > 0">
+                            <template x-if="$store.shop.discountAmount > 0">
                                 <div class="flex justify-between text-[var(--color-rose-antique)] font-bold">
-                                    <span>Promo Discount</span>
-                                    <span x-text="'-₹' + appliedDiscount.toLocaleString('en-IN')"></span>
+                                    <span>Coupon Discount</span>
+                                    <span x-text="'-₹' + $store.shop.discountAmount.toLocaleString('en-IN')"></span>
                                 </div>
                             </template>
                             <div class="flex justify-between">

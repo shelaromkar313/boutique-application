@@ -389,6 +389,12 @@
                                     <span class="text-[var(--color-ebony)]/70">Subtotal</span>
                                     <span class="font-bold text-[var(--color-ebony)]" x-text="'₹' + $store.shop.cartSubtotal.toLocaleString('en-IN')"></span>
                                 </div>
+                                <template x-if="$store.shop.discountAmount > 0">
+                                    <div class="flex justify-between text-[var(--color-rose-antique)] font-bold">
+                                        <span>Coupon Discount (<span x-text="$store.shop.couponCode"></span>)</span>
+                                        <span x-text="'-₹' + $store.shop.discountAmount.toLocaleString('en-IN')"></span>
+                                    </div>
+                                </template>
                                 <div class="flex justify-between">
                                     <span class="text-[var(--color-ebony)]/70">Shipping</span>
                                     <span class="text-[var(--color-thyme)] font-bold" x-text="shipping === 0 ? 'FREE' : '₹' + shipping"></span>

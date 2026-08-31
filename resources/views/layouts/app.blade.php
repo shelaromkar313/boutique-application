@@ -28,6 +28,7 @@
                 toast: { show: false, message: '' },
                 couponCode: localStorage.getItem('estilo_coupon') || '',
                 discountPercent: parseInt(localStorage.getItem('estilo_discount') || '0'),
+                fixedDiscount: parseFloat(localStorage.getItem('estilo_fixed_discount') || '0'),
 
                 get cartCount() {
                     return this.cart.reduce((sum, item) => sum + (item.qty || 1), 0);
@@ -38,11 +39,17 @@
                 },
 
                 get discountAmount() {
-                    return Math.round(this.cartSubtotal * (this.discountPercent / 100));
+                    if (this.fixedDiscount > 0) {
+                        return Math.min(this.cartSubtotal, Math.round(this.fixedDiscount));
+                    }
+                    if (this.discountPercent > 0) {
+                        return Math.round(this.cartSubtotal * (this.discountPercent / 100));
+                    }
+                    return 0;
                 },
 
                 get cartTotal() {
-                    let total = this.cartSubtotal - this.discountAmount;
+                    let total = Math.max(0, this.cartSubtotal - this.discountAmount);
                     if (this.cartSubtotal > 0 && this.cartSubtotal < 1999) {
                         total += 199; // shipping
                     }
@@ -71,16 +78,46 @@
                     setTimeout(() => { this.toast.show = false; }, 3500);
                 },
 
-                applyCoupon(code) {
-                    if (code.toUpperCase() === 'BOUTIQUE10') {
-                        this.couponCode = code.toUpperCase();
-                        this.discountPercent = 10;
-                        localStorage.setItem('estilo_coupon', this.couponCode);
-                        localStorage.setItem('estilo_discount', '10');
-                        this.showToast('Promo code applied: 10% OFF');
-                        return true;
-                    } else {
-                        this.showToast('Invalid or expired promo code.');
+                async applyCoupon(code) {
+                    if (!code || !code.trim()) {
+                        this.showToast('Please enter a coupon code.');
+                        return false;
+                    }
+                    try {
+                        const csrf = document.querySelector('meta[name="csrf-token"]')?.content || '';
+                        const res = await fetch('/api/coupons/validate', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'X-CSRF-TOKEN': csrf,
+                                'Accept': 'application/json'
+                            },
+                            body: JSON.stringify({
+                                code: code.trim(),
+                                subtotal: this.cartSubtotal
+                            })
+                        });
+                        const data = await res.json();
+                        if (data.success) {
+                            this.couponCode = data.code;
+                            if (data.discount_type === 'percentage') {
+                                this.discountPercent = Number(data.discount_value);
+                                this.fixedDiscount = 0;
+                            } else {
+                                this.discountPercent = 0;
+                                this.fixedDiscount = Number(data.discount_value);
+                            }
+                            localStorage.setItem('estilo_coupon', this.couponCode);
+                            localStorage.setItem('estilo_discount', this.discountPercent);
+                            localStorage.setItem('estilo_fixed_discount', this.fixedDiscount);
+                            this.showToast(data.message || `Coupon ${data.code} applied!`);
+                            return true;
+                        } else {
+                            this.showToast(data.message || 'Invalid coupon code.');
+                            return false;
+                        }
+                    } catch (e) {
+                        this.showToast('Error validating coupon. Please try again.');
                         return false;
                     }
                 },
@@ -88,8 +125,10 @@
                 removeCoupon() {
                     this.couponCode = '';
                     this.discountPercent = 0;
+                    this.fixedDiscount = 0;
                     localStorage.removeItem('estilo_coupon');
                     localStorage.removeItem('estilo_discount');
+                    localStorage.removeItem('estilo_fixed_discount');
                     this.showToast('Promo code removed.');
                 },
 
