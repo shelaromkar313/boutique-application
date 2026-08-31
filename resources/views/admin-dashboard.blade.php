@@ -3,140 +3,85 @@
 @section('title', 'Estilo Management Console - Dashboard Overview')
 
 @section('content')
+
+{{-- ================================================================
+     ADMIN MODAL MANAGER — Pure Vanilla JS (no Alpine dependency)
+     Works 100% regardless of Alpine initialization timing
+     ================================================================ --}}
 <script>
-document.addEventListener('alpine:init', () => {
-    Alpine.data('adminDashboard', () => ({
-        activeTab: '{{ request('tab', 'overview') }}',
-        search: '',
-        showAddProductModal: false,
-        showAddCategoryModal: false,
-        showAddCouponModal: false,
-        showAddAnnouncementModal: false,
-        showProfileModal: false,
-        editProductModal: false,
-        editCouponModal: false,
-        editAnnouncementModal: false,
-        editReviewModal: false,
-        viewOrderModal: false,
-        payoutModal: false,
+// Open / close admin modals via plain JS — always reliable
+function adminShowModal(id) {
+    var el = document.getElementById(id);
+    if (el) { el.style.display = 'flex'; document.body.style.overflow = 'hidden'; }
+}
+function adminHideModal(id) {
+    var el = document.getElementById(id);
+    if (el) { el.style.display = 'none'; document.body.style.overflow = ''; }
+}
 
-        selectedProduct: {
-            id: null, name: '', price: 0, category: '',
-            colors: [], colors_str: '', description: '',
-            size_stock: { XS: 1, S: 2, M: 4, L: 2, XL: 3, XXL: 2 }
-        },
-        selectedOrder: { id: null, items: [], parsedItems: [] },
-        selectedAssociate: { id: null, name: '', balance: 0 },
-        selectedReview: { id: null, rating: 5, comment: '', user_name: '', is_approved: true },
-        selectedAnnouncement: {
-            id: null, title: '', message: '', type: 'sale',
-            color: 'amber', icon: '\u{1F4E2}', show_in_ticker: true,
-            show_as_banner: false, is_active: true, starts_at: '', ends_at: ''
-        },
-        selectedCoupon: {
-            id: null, code: '', title: '', discount_type: 'percentage',
-            discount_value: 20, min_order_value: 1999,
-            campaign_type: 'festival', valid_until: '', is_active: true
-        },
+// Alpine component for form data binding (x-model, live preview etc.)
+document.addEventListener('alpine:init', function() {
+    Alpine.data('adminDashboard', function() {
+        return {
+            activeTab: '{{ request('tab', 'overview') }}',
+            search: '',
+            reviewFilter: 'all',
+            announcementFilter: 'all',
 
-        newSizeStock: { XS: 1, S: 2, M: 4, L: 2, XL: 3, XXL: 2 },
-        newCoupon: {
-            code: 'DIWALI30',
-            title: 'Diwali Royal Festive 30% Off',
-            discount_type: 'percentage',
-            discount_value: 30,
-            min_order_value: 1999,
-            campaign_type: 'festival',
-            valid_until: '2027-12-31'
-        },
+            newCoupon: {
+                code: 'DIWALI30',
+                title: 'Diwali Royal Festive 30% Off',
+                discount_type: 'percentage',
+                discount_value: 30,
+                min_order_value: 1999,
+                campaign_type: 'festival',
+                valid_until: '2027-12-31'
+            },
 
-        reviewFilter: 'all',
-        announcementFilter: 'all',
+            selectedProduct: {
+                id: null, name: '', price: 0, category: '',
+                colors: [], colors_str: '', description: '',
+                size_stock: { XS: 1, S: 2, M: 4, L: 2, XL: 3, XXL: 2 }
+            },
+            selectedOrder:       { id: null, items: [], parsedItems: [] },
+            selectedAssociate:   { id: null, name: '', balance: 0 },
+            selectedReview:      { id: null, rating: 5, comment: '', user_name: '', is_approved: true },
+            selectedAnnouncement:{ id: null, title: '', message: '', type: 'sale', color: 'amber', icon: '📢', show_in_ticker: true, show_as_banner: false, is_active: true, starts_at: '', ends_at: '' },
+            selectedCoupon:      { id: null, code: '', title: '', discount_type: 'percentage', discount_value: 20, min_order_value: 1999, campaign_type: 'festival', valid_until: '', is_active: true },
 
-        init() {
-            const tabTitles = {
-                overview:      'Dashboard Overview',
-                inventory:     'Inventory & Products',
-                orders:        'Orders & Fulfillment',
-                customers:     'Customers',
-                associates:    'Sales Associates & Sellers',
-                reports:       'Monthly Reports & Billing',
-                offers:        'Offers & Coupons',
-                announcements: 'Storefront Announcements & Alerts',
-                reviews:       'Ratings & Reviews',
-                profile:       'Admin Profile & Security'
-            };
-            const setTitle = (tab) => {
-                document.title = 'Estilo HQ — ' + (tabTitles[tab] || 'Dashboard');
-            };
-            setTitle(this.activeTab);
-            this.$watch('activeTab', setTitle);
-        },
+            init() {
+                const titles = { overview:'Dashboard', inventory:'Inventory', orders:'Orders', customers:'Customers', associates:'Associates', reports:'Reports', offers:'Offers & Coupons', announcements:'Announcements', reviews:'Reviews' };
+                this.$watch('activeTab', t => document.title = 'Estilo HQ — ' + (titles[t] || 'Dashboard'));
+            },
 
-        openEditProduct(p) {
-            this.selectedProduct = Object.assign({}, p);
-            this.selectedProduct.colors_str = Array.isArray(p.colors)
-                ? p.colors.join(', ')
-                : (p.colors || '');
-            let stock = p.size_stock || {};
-            if (typeof stock === 'string') {
-                try { stock = JSON.parse(stock); } catch(e) { stock = {}; }
-            }
-            if (!stock || !Object.keys(stock).length) {
-                ['XS','S','M','L','XL','XXL'].forEach(sz => { stock[sz] = 2; });
-            }
-            this.selectedProduct.size_stock = Object.assign(
-                { XS: 1, S: 2, M: 4, L: 2, XL: 3, XXL: 2 }, stock
-            );
-            this.editProductModal = true;
-        },
+            applyPresetCoupon(code, title, discount, type, minOrder, campaign) {
+                this.newCoupon.code = code; this.newCoupon.title = title;
+                this.newCoupon.discount_value = discount; this.newCoupon.discount_type = type;
+                this.newCoupon.min_order_value = minOrder; this.newCoupon.campaign_type = campaign;
+            },
 
-        openViewOrder(ord) {
-            this.selectedOrder = Object.assign({}, ord);
-            try {
-                this.selectedOrder.parsedItems = typeof ord.items === 'string'
-                    ? JSON.parse(ord.items || '[]')
-                    : (ord.items || []);
-            } catch(e) {
-                this.selectedOrder.parsedItems = [];
-            }
-            this.viewOrderModal = true;
-        },
+            openEditProduct(p) {
+                this.selectedProduct = Object.assign({}, p);
+                this.selectedProduct.colors_str = Array.isArray(p.colors) ? p.colors.join(', ') : (p.colors || '');
+                let stock = p.size_stock || {};
+                if (typeof stock === 'string') { try { stock = JSON.parse(stock); } catch(e) { stock = {}; } }
+                if (!stock || !Object.keys(stock).length) { ['XS','S','M','L','XL','XXL'].forEach(sz => { stock[sz] = 2; }); }
+                this.selectedProduct.size_stock = Object.assign({ XS:1, S:2, M:4, L:2, XL:3, XXL:2 }, stock);
+                adminShowModal('modal-edit-product');
+            },
 
-        openPayoutModal(assoc) {
-            this.selectedAssociate = Object.assign({}, assoc);
-            this.payoutModal = true;
-        },
+            openViewOrder(ord) {
+                this.selectedOrder = Object.assign({}, ord);
+                try { this.selectedOrder.parsedItems = typeof ord.items === 'string' ? JSON.parse(ord.items||'[]') : (ord.items||[]); } catch(e) { this.selectedOrder.parsedItems = []; }
+                adminShowModal('modal-view-order');
+            },
 
-        openEditCoupon(coup) {
-            this.selectedCoupon = Object.assign({}, coup);
-            if (coup.valid_until && typeof coup.valid_until === 'string') {
-                this.selectedCoupon.valid_until = coup.valid_until.split('T')[0];
-            }
-            this.editCouponModal = true;
-        },
-
-        applyPresetCoupon(code, title, discount, type, minOrder, campaign) {
-            this.newCoupon.code        = code;
-            this.newCoupon.title       = title;
-            this.newCoupon.discount_value = discount;
-            this.newCoupon.discount_type  = type;
-            this.newCoupon.min_order_value = minOrder;
-            this.newCoupon.campaign_type   = campaign;
-        },
-
-        openEditReview(rev) {
-            this.selectedReview = Object.assign({}, rev);
-            this.selectedReview.is_approved = Boolean(Number(rev.is_approved));
-            this.selectedReview.rating = Number(rev.rating || 5);
-            this.editReviewModal = true;
-        },
-
-        openEditAnnouncement(ann) {
-            this.selectedAnnouncement = Object.assign({}, ann);
-            this.editAnnouncementModal = true;
-        }
-    }));
+            openPayoutModal(assoc)         { this.selectedAssociate = Object.assign({}, assoc); adminShowModal('modal-payout'); },
+            openEditCoupon(coup)           { this.selectedCoupon = Object.assign({}, coup); if (coup.valid_until) this.selectedCoupon.valid_until = coup.valid_until.split('T')[0]; adminShowModal('modal-edit-coupon'); },
+            openEditReview(rev)            { this.selectedReview = Object.assign({}, rev); this.selectedReview.is_approved = Boolean(Number(rev.is_approved)); this.selectedReview.rating = Number(rev.rating||5); adminShowModal('modal-edit-review'); },
+            openEditAnnouncement(ann)      { this.selectedAnnouncement = Object.assign({}, ann); adminShowModal('modal-edit-announcement'); }
+        };
+    });
 });
 </script>
 
@@ -189,7 +134,7 @@ document.addEventListener('alpine:init', () => {
                         <span class="text-xs font-bold text-[var(--color-ebony)] block">{{ $admin->name ?? 'Administrator' }}</span>
                         <span class="text-[9px] font-sans text-emerald-700 font-bold uppercase tracking-wider">Active Admin</span>
                     </div>
-                    <button @click="showProfileModal = true" class="text-[11px] bg-white border border-[var(--color-bisque)] hover:bg-gray-50 text-[var(--color-ebony)] font-bold px-3 py-1 rounded-full transition-colors ml-1 shadow-sm" title="View Profile">
+                    <button onclick="adminShowModal('modal-profile')" class="text-[11px] bg-white border border-[var(--color-bisque)] hover:bg-gray-50 text-[var(--color-ebony)] font-bold px-3 py-1 rounded-full transition-colors ml-1 shadow-sm" title="View Profile">
                         Profile
                     </button>
                     <form action="{{ route('admin.logout') }}" method="POST" class="inline m-0">
@@ -201,14 +146,14 @@ document.addEventListener('alpine:init', () => {
                 </div>
 
                 {{-- Action shortcuts --}}
-                <button @click="showAddProductModal = true" class="inline-flex items-center gap-1.5 bg-[var(--color-ebony)] hover:bg-[var(--color-rose-deep)] text-white text-xs font-sans font-bold uppercase tracking-wider px-4 py-2.5 rounded-full shadow-md transition-all hover:scale-105 active:scale-95">
+                <button onclick="adminShowModal('modal-add-product')" class="inline-flex items-center gap-1.5 bg-[var(--color-ebony)] hover:bg-[var(--color-rose-deep)] text-white text-xs font-sans font-bold uppercase tracking-wider px-4 py-2.5 rounded-full shadow-md transition-all hover:scale-105 active:scale-95">
                     <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
                     Product
                 </button>
-                <button @click="showAddCouponModal = true" class="inline-flex items-center gap-1.5 bg-amber-50 hover:bg-amber-100 border border-amber-300 text-amber-900 text-xs font-sans font-bold uppercase tracking-wider px-3.5 py-2.5 rounded-full transition-colors">
+                <button onclick="adminShowModal('modal-add-coupon')" class="inline-flex items-center gap-1.5 bg-amber-50 hover:bg-amber-100 border border-amber-300 text-amber-900 text-xs font-sans font-bold uppercase tracking-wider px-3.5 py-2.5 rounded-full transition-colors">
                     + Coupon
                 </button>
-                <button @click="showAddAnnouncementModal = true" class="inline-flex items-center gap-1.5 bg-rose-50 hover:bg-rose-100 border border-rose-200 text-rose-900 text-xs font-sans font-bold uppercase tracking-wider px-3.5 py-2.5 rounded-full transition-colors shadow-xs">
+                <button onclick="adminShowModal('modal-add-announcement')" class="inline-flex items-center gap-1.5 bg-rose-50 hover:bg-rose-100 border border-rose-200 text-rose-900 text-xs font-sans font-bold uppercase tracking-wider px-3.5 py-2.5 rounded-full transition-colors shadow-xs">
                     + Announcement
                 </button>
                 <a href="/shop" target="_blank" class="inline-flex items-center gap-1.5 bg-gray-50 hover:bg-gray-100 border border-[var(--color-bisque)] text-[var(--color-ebony)] text-xs font-sans font-bold uppercase tracking-wider px-3.5 py-2.5 rounded-full transition-colors">
@@ -309,10 +254,10 @@ document.addEventListener('alpine:init', () => {
                     </div>
                     <div class="flex items-center gap-3 w-full sm:w-auto flex-wrap sm:flex-nowrap">
                         <input type="text" x-model="search" placeholder="Search catalog..." class="w-full sm:w-64 pl-4 pr-4 py-2 bg-[var(--color-offwhite)] border border-[var(--color-bisque)] rounded-full text-xs font-sans focus:outline-none" />
-                        <button @click="showAddCategoryModal = true" class="bg-white border border-[var(--color-bisque)] hover:bg-gray-50 text-xs font-sans font-bold px-4 py-2 rounded-full shrink-0">
+                        <button onclick="adminShowModal('modal-add-category')" class="bg-white border border-[var(--color-bisque)] hover:bg-gray-50 text-xs font-sans font-bold px-4 py-2 rounded-full shrink-0">
                             + Category
                         </button>
-                        <button @click="showAddProductModal = true" class="bg-[var(--color-ebony)] hover:bg-[var(--color-rose-deep)] text-white text-xs font-sans font-bold px-4 py-2 rounded-full shrink-0 shadow-sm">
+                        <button onclick="adminShowModal('modal-add-product')" class="bg-[var(--color-ebony)] hover:bg-[var(--color-rose-deep)] text-white text-xs font-sans font-bold px-4 py-2 rounded-full shrink-0 shadow-sm">
                             + Add Product
                         </button>
                     </div>
@@ -748,7 +693,7 @@ document.addEventListener('alpine:init', () => {
                         <h2 class="font-serif text-xl sm:text-2xl font-bold text-[var(--color-ebony)]">Offers, Festival Discounts & Coupons</h2>
                         <p class="text-xs font-sans text-[var(--color-ebony)]/60">Generate promotional discount coupons and 📢 announce them to customers via the storefront ticker.</p>
                     </div>
-                    <button @click="showAddCouponModal = true" class="bg-[var(--color-ebony)] hover:bg-[var(--color-rose-deep)] text-white text-xs font-sans font-bold uppercase tracking-wider px-5 py-2.5 rounded-full transition-all shadow-md">
+                    <button onclick="adminShowModal('modal-add-coupon')" class="bg-[var(--color-ebony)] hover:bg-[var(--color-rose-deep)] text-white text-xs font-sans font-bold uppercase tracking-wider px-5 py-2.5 rounded-full transition-all shadow-md">
                         + New Coupon
                     </button>
                 </div>
@@ -876,7 +821,7 @@ document.addEventListener('alpine:init', () => {
                         </p>
                     </div>
                     <div class="flex items-center gap-2">
-                        <button type="button" @click="showAddAnnouncementModal = true" class="bg-[var(--color-ebony)] hover:bg-[var(--color-rose-deep)] text-white text-xs font-sans font-bold uppercase tracking-wider px-5 py-2.5 rounded-full transition-all shadow-md flex items-center gap-2">
+                        <button type="button" onclick="adminShowModal('modal-add-announcement')" class="bg-[var(--color-ebony)] hover:bg-[var(--color-rose-deep)] text-white text-xs font-sans font-bold uppercase tracking-wider px-5 py-2.5 rounded-full transition-all shadow-md flex items-center gap-2">
                             <span>📢</span> + Create Announcement
                         </button>
                     </div>
@@ -1022,7 +967,7 @@ document.addEventListener('alpine:init', () => {
                         <p class="text-xs text-[var(--color-ebony)]/60 max-w-md mx-auto">
                             Broadcast promotional sales, festive coupons, or shipping notices to customers by creating your first announcement.
                         </p>
-                        <button type="button" @click="showAddAnnouncementModal = true" class="inline-flex items-center gap-1.5 bg-[var(--color-ebony)] hover:bg-[var(--color-rose-deep)] text-white text-xs font-sans font-bold uppercase tracking-wider px-5 py-2.5 rounded-full transition-all shadow-md">
+                        <button type="button" onclick="adminShowModal('modal-add-announcement')" class="inline-flex items-center gap-1.5 bg-[var(--color-ebony)] hover:bg-[var(--color-rose-deep)] text-white text-xs font-sans font-bold uppercase tracking-wider px-5 py-2.5 rounded-full transition-all shadow-md">
                             <span>📢</span> Create First Announcement
                         </button>
                     </div>
@@ -1336,15 +1281,15 @@ document.addEventListener('alpine:init', () => {
     </div>
 
     {{-- MODAL 1: ADD NEW PRODUCT --}}
-    <div x-show="showAddProductModal" style="display: none;" class="fixed inset-0 z-50 flex items-center justify-center p-4 overflow-y-auto">
-        <div x-show="showAddProductModal" x-transition.opacity @click="showAddProductModal = false" class="fixed inset-0 bg-black/60 backdrop-blur-sm"></div>
+    <div id="modal-add-product" style="display: none;" class="fixed inset-0 z-50 flex items-center justify-center p-4 overflow-y-auto">
+        <div onclick="adminHideModal('modal-add-product')" class="fixed inset-0 bg-black/60 backdrop-blur-sm"></div>
         <div class="relative w-full max-w-2xl bg-white rounded-3xl p-8 shadow-2xl z-10 border border-[var(--color-bisque)] my-8 max-h-[90vh] overflow-y-auto space-y-5">
             <div class="flex items-center justify-between border-b border-[var(--color-bisque)]/60 pb-3">
                 <div>
                     <h3 class="font-serif text-2xl font-bold text-[var(--color-ebony)]">Add New Couture Outfit</h3>
                     <p class="text-xs font-sans text-gray-500">Configure product details, customer price, and size-specific stock inventory.</p>
                 </div>
-                <button @click="showAddProductModal = false" class="text-gray-400 hover:text-gray-600 text-lg">✕</button>
+                <button onclick="adminHideModal('modal-add-product')" class="text-gray-400 hover:text-gray-600 text-lg">✕</button>
             </div>
 
             <form action="/estilo-hq-console/products" method="POST" enctype="multipart/form-data" class="space-y-4">
@@ -1420,7 +1365,7 @@ document.addEventListener('alpine:init', () => {
                 </div>
 
                 <div class="flex gap-3 pt-4 border-t border-[var(--color-bisque)]/60">
-                    <button type="button" @click="showAddProductModal = false" class="flex-1 bg-gray-100 hover:bg-gray-200 text-[var(--color-ebony)] font-sans text-xs font-bold py-3 rounded-xl">Cancel</button>
+                    <button type="button" onclick="adminHideModal('modal-add-product')" class="flex-1 bg-gray-100 hover:bg-gray-200 text-[var(--color-ebony)] font-sans text-xs font-bold py-3 rounded-xl">Cancel</button>
                     <button type="submit" class="flex-1 bg-[var(--color-ebony)] hover:bg-[var(--color-rose-deep)] text-white font-sans text-xs font-bold py-3 rounded-xl shadow-md">Publish to Atelier</button>
                 </div>
             </form>
@@ -1630,8 +1575,8 @@ document.addEventListener('alpine:init', () => {
     </div>
 
     {{-- MODAL 5: GENERATE COUPON (INTERACTIVE WITH LIVE PREVIEW & PRESETS) --}}
-    <div x-show="showAddCouponModal" style="display: none;" class="fixed inset-0 z-50 flex items-center justify-center p-4 overflow-y-auto">
-        <div x-show="showAddCouponModal" x-transition.opacity @click="showAddCouponModal = false" class="fixed inset-0 bg-black/60 backdrop-blur-sm"></div>
+    <div id="modal-add-coupon" style="display: none;" class="fixed inset-0 z-50 flex items-center justify-center p-4 overflow-y-auto">
+        <div onclick="adminHideModal('modal-add-coupon')" class="fixed inset-0 bg-black/60 backdrop-blur-sm"></div>
         <div class="relative w-full max-w-lg bg-white rounded-3xl p-6 sm:p-8 shadow-2xl z-10 border border-[var(--color-bisque)] space-y-5 my-8">
             
             {{-- Modal Header --}}
@@ -1642,7 +1587,7 @@ document.addEventListener('alpine:init', () => {
                     </div>
                     <h3 class="font-serif text-xl font-bold text-[var(--color-ebony)]">Generate Discount Coupon</h3>
                 </div>
-                <button type="button" @click="showAddCouponModal = false" class="w-8 h-8 rounded-full bg-gray-100 hover:bg-gray-200 text-gray-500 hover:text-gray-800 flex items-center justify-center text-sm font-bold transition-colors">
+                <button type="button" onclick="adminHideModal('modal-add-coupon')" class="w-8 h-8 rounded-full bg-gray-100 hover:bg-gray-200 text-gray-500 hover:text-gray-800 flex items-center justify-center text-sm font-bold transition-colors">
                     ✕
                 </button>
             </div>
@@ -1751,7 +1696,7 @@ document.addEventListener('alpine:init', () => {
 
                 {{-- Modal Action Buttons --}}
                 <div class="flex gap-3 pt-3 border-t border-[var(--color-bisque)]">
-                    <button type="button" @click="showAddCouponModal = false"
+                    <button type="button" onclick="adminHideModal('modal-add-coupon')"
                             class="flex-1 bg-gray-100 hover:bg-gray-200 text-gray-700 text-xs font-bold py-3 rounded-xl transition-colors">
                         Cancel
                     </button>
@@ -1855,8 +1800,8 @@ document.addEventListener('alpine:init', () => {
     </div>
 
     {{-- MODAL 6: ADD CATEGORY --}}
-    <div x-show="showAddCategoryModal" style="display: none;" class="fixed inset-0 z-50 flex items-center justify-center p-4">
-        <div x-show="showAddCategoryModal" x-transition.opacity @click="showAddCategoryModal = false" class="fixed inset-0 bg-black/60 backdrop-blur-sm"></div>
+    <div id="modal-add-category" style="display: none;" class="fixed inset-0 z-50 flex items-center justify-center p-4">
+        <div onclick="adminHideModal('modal-add-category')" class="fixed inset-0 bg-black/60 backdrop-blur-sm"></div>
         <div class="relative w-full max-w-md bg-white rounded-3xl p-8 shadow-2xl z-10 border border-[var(--color-bisque)] space-y-4">
             <h3 class="font-serif text-xl font-bold text-[var(--color-ebony)]">Add New Category</h3>
             <form action="/estilo-hq-console/categories" method="POST" class="space-y-3">
@@ -1866,7 +1811,7 @@ document.addEventListener('alpine:init', () => {
                     <input type="text" name="name" placeholder="e.g. Velvet Lehengas" required class="w-full bg-[var(--color-offwhite)] border border-[var(--color-bisque)] rounded-xl px-4 py-2.5 text-xs font-sans" />
                 </div>
                 <div class="flex gap-3 pt-3">
-                    <button type="button" @click="showAddCategoryModal = false" class="flex-1 bg-gray-100 text-xs font-bold py-2.5 rounded-xl">Cancel</button>
+                    <button type="button" onclick="adminHideModal('modal-add-category')" class="flex-1 bg-gray-100 text-xs font-bold py-2.5 rounded-xl">Cancel</button>
                     <button type="submit" class="flex-1 bg-[var(--color-ebony)] text-white text-xs font-bold py-2.5 rounded-xl shadow-md">Create Category</button>
                 </div>
             </form>
@@ -1874,8 +1819,8 @@ document.addEventListener('alpine:init', () => {
     </div>
 
     {{-- MODAL 7: ADMIN PROFILE & LOGOUT --}}
-    <div x-show="showProfileModal" style="display: none;" class="fixed inset-0 z-50 flex items-center justify-center p-4 overflow-y-auto">
-        <div x-show="showProfileModal" x-transition.opacity @click="showProfileModal = false" class="fixed inset-0 bg-black/60 backdrop-blur-sm"></div>
+    <div id="modal-profile" style="display: none;" class="fixed inset-0 z-50 flex items-center justify-center p-4 overflow-y-auto">
+        <div onclick="adminHideModal('modal-profile')" class="fixed inset-0 bg-black/60 backdrop-blur-sm"></div>
         <div class="relative w-full max-w-lg bg-white rounded-3xl p-8 shadow-2xl z-10 border border-[var(--color-bisque)] my-8 space-y-6">
             <div class="flex items-center justify-between border-b border-[var(--color-bisque)]/60 pb-3">
                 <div class="flex items-center gap-3">
@@ -1887,7 +1832,7 @@ document.addEventListener('alpine:init', () => {
                         <span class="text-[10px] font-sans text-emerald-700 font-bold uppercase">Active Session</span>
                     </div>
                 </div>
-                <button @click="showProfileModal = false" class="text-gray-400 hover:text-gray-600 text-lg">✕</button>
+                <button onclick="adminHideModal('modal-profile')" class="text-gray-400 hover:text-gray-600 text-lg">✕</button>
             </div>
 
             <form action="/estilo-hq-console/profile" method="POST" class="space-y-4">
@@ -1914,7 +1859,7 @@ document.addEventListener('alpine:init', () => {
                 </div>
 
                 <div class="flex gap-3 pt-2">
-                    <button type="button" @click="showProfileModal = false" class="flex-1 bg-gray-100 text-xs font-bold py-2.5 rounded-xl">Close</button>
+                    <button type="button" onclick="adminHideModal('modal-profile')" class="flex-1 bg-gray-100 text-xs font-bold py-2.5 rounded-xl">Close</button>
                     <button type="submit" class="flex-1 bg-[var(--color-ebony)] hover:bg-[var(--color-rose-deep)] text-white text-xs font-bold py-2.5 rounded-xl shadow-md transition-colors">Update Profile</button>
                 </div>
             </form>
@@ -2014,8 +1959,8 @@ document.addEventListener('alpine:init', () => {
     </div>
 
     {{-- MODAL 9: ADD STOREFRONT ANNOUNCEMENT --}}
-    <div x-show="showAddAnnouncementModal" style="display: none;" class="fixed inset-0 z-50 flex items-center justify-center p-4 overflow-y-auto">
-        <div x-show="showAddAnnouncementModal" x-transition.opacity @click="showAddAnnouncementModal = false" class="fixed inset-0 bg-black/60 backdrop-blur-sm"></div>
+    <div id="modal-add-announcement" style="display: none;" class="fixed inset-0 z-50 flex items-center justify-center p-4 overflow-y-auto">
+        <div onclick="adminHideModal('modal-add-announcement')" class="fixed inset-0 bg-black/60 backdrop-blur-sm"></div>
         <div class="relative w-full max-w-lg bg-white rounded-3xl p-6 sm:p-8 shadow-2xl z-10 border border-[var(--color-bisque)] my-8 space-y-5">
             <div class="flex items-center justify-between border-b border-[var(--color-bisque)]/60 pb-3">
                 <div class="flex items-center gap-2.5">
@@ -2025,7 +1970,7 @@ document.addEventListener('alpine:init', () => {
                         <span class="text-[10px] font-sans text-gray-500">Broadcast promotional notices, discount codes, or shipping alerts</span>
                     </div>
                 </div>
-                <button type="button" @click="showAddAnnouncementModal = false" class="text-gray-400 hover:text-gray-600 text-lg">✕</button>
+                <button type="button" onclick="adminHideModal('modal-add-announcement')" class="text-gray-400 hover:text-gray-600 text-lg">✕</button>
             </div>
 
             <form action="/estilo-hq-console/announcements" method="POST" class="space-y-4">
@@ -2099,7 +2044,7 @@ document.addEventListener('alpine:init', () => {
                 </div>
 
                 <div class="flex gap-3 pt-2">
-                    <button type="button" @click="showAddAnnouncementModal = false" class="flex-1 bg-gray-100 text-xs font-bold py-3 rounded-xl">Cancel</button>
+                    <button type="button" onclick="adminHideModal('modal-add-announcement')" class="flex-1 bg-gray-100 text-xs font-bold py-3 rounded-xl">Cancel</button>
                     <button type="submit" class="flex-1 bg-[var(--color-ebony)] hover:bg-[var(--color-rose-deep)] text-white text-xs font-bold py-3 rounded-xl shadow-md transition-colors">
                         📢 Broadcast Announcement
                     </button>
