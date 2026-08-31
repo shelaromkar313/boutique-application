@@ -126,7 +126,6 @@ class AdminController extends Controller
         $request->validate([
             'name'        => 'required|string|max:255',
             'category'    => 'required|string',
-            'fabric'      => 'required|string',
             'price'       => 'required|numeric|min:1',
             'description' => 'required|string',
         ]);
@@ -143,11 +142,40 @@ class AdminController extends Controller
             $images = [$request->image_url];
         }
 
-        // Colors & Sizes
+        // Colors
         $colors = array_filter(array_map('trim', explode(',', $request->input('colors', 'Royal Navy, Rose Blush, Golden Zari'))));
-        $sizes = array_filter(array_map('trim', explode(',', $request->input('sizes', 'XS, S, M, L, XL, XXL'))));
 
-        $salesPrice = $request->filled('sales_price') ? (float) $request->sales_price : round($request->price * 1.05 + 50, -1);
+        // Process Size-Wise Stock Inventory e.g. XS: 1, S: 2, M: 4, L: 2, XL: 3, XXL: 2
+        $sizeStock = [];
+        if ($request->has('size_stock') && is_array($request->input('size_stock'))) {
+            foreach ($request->input('size_stock') as $sz => $qty) {
+                if (is_numeric($qty) && (int) $qty >= 0) {
+                    $sizeStock[strtoupper(trim($sz))] = (int) $qty;
+                }
+            }
+        } elseif ($request->filled('size_stock_text')) {
+            $entries = explode(',', $request->input('size_stock_text'));
+            foreach ($entries as $entry) {
+                if (str_contains($entry, '-') || str_contains($entry, ':')) {
+                    $delim = str_contains($entry, '-') ? '-' : ':';
+                    [$sz, $qty] = explode($delim, $entry, 2);
+                    $sizeStock[strtoupper(trim($sz))] = max(0, (int) trim($qty));
+                }
+            }
+        }
+
+        if (empty($sizeStock)) {
+            $sizes = array_filter(array_map('trim', explode(',', $request->input('sizes', 'XS, S, M, L, XL, XXL'))));
+            foreach ($sizes as $s) {
+                $sizeStock[strtoupper($s)] = 2;
+            }
+        }
+
+        $sizes = array_keys($sizeStock);
+        $totalUnits = array_sum($sizeStock);
+        $inStock = $totalUnits > 0;
+        $salesPrice = round($request->price * 1.05 + 50, -1);
+        $fabric = $request->input('fabric', 'Handloom Artisanal');
 
         Product::create([
             'est_id'         => $estId,
@@ -156,7 +184,7 @@ class AdminController extends Controller
             'category'       => $request->category,
             'main_category'  => $request->input('main_category', 'Women Couture'),
             'sub_category'   => $request->input('sub_category', $request->category),
-            'fabric'         => $request->fabric,
+            'fabric'         => $fabric,
             'occasion'       => $request->input('occasion', 'Festive / Wedding'),
             'price'          => $request->price,
             'sales_price'    => $salesPrice,
@@ -164,18 +192,19 @@ class AdminController extends Controller
             'discount'       => 20,
             'rating'         => 5.0,
             'review_count'   => 1,
-            'in_stock'       => $request->has('in_stock'),
+            'in_stock'       => $inStock,
             'is_new_arrival' => true,
             'is_featured'    => $request->has('is_featured'),
             'colors'         => $colors,
             'sizes'          => $sizes,
+            'size_stock'     => $sizeStock,
             'description'    => $request->description,
             'details'        => ['Craft' => 'Handloom Artisanal', 'Origin' => 'Lucknow / Varanasi'],
             'care'           => 'Dry Clean Only. Steam iron on reverse.',
             'images'         => $images,
         ]);
 
-        return redirect('/admin?tab=inventory')->with('success', '✨ New Couture Outfit added successfully to catalog!');
+        return redirect('/admin?tab=inventory')->with('success', "✨ New Couture Outfit added successfully with {$totalUnits} units in stock!");
     }
 
     /**
@@ -185,15 +214,41 @@ class AdminController extends Controller
     {
         $product = Product::findOrFail($id);
 
+        // Process Size-Wise Stock Inventory
+        $sizeStock = is_array($product->size_stock) ? $product->size_stock : [];
+        if ($request->has('size_stock') && is_array($request->input('size_stock'))) {
+            $sizeStock = [];
+            foreach ($request->input('size_stock') as $sz => $qty) {
+                if (is_numeric($qty) && (int) $qty >= 0) {
+                    $sizeStock[strtoupper(trim($sz))] = (int) $qty;
+                }
+            }
+        } elseif ($request->filled('size_stock_text')) {
+            $sizeStock = [];
+            $entries = explode(',', $request->input('size_stock_text'));
+            foreach ($entries as $entry) {
+                if (str_contains($entry, '-') || str_contains($entry, ':')) {
+                    $delim = str_contains($entry, '-') ? '-' : ':';
+                    [$sz, $qty] = explode($delim, $entry, 2);
+                    $sizeStock[strtoupper(trim($sz))] = max(0, (int) trim($qty));
+                }
+            }
+        }
+
+        $totalUnits = count($sizeStock) > 0 ? array_sum($sizeStock) : 0;
+        $inStock = $totalUnits > 0;
+        $sizes = count($sizeStock) > 0 ? array_keys($sizeStock) : $product->sizes;
+
         $data = [
             'name'        => $request->input('name', $product->name),
             'category'    => $request->input('category', $product->category),
             'price'       => $request->input('price', $product->price),
-            'sales_price' => $request->filled('sales_price') ? $request->input('sales_price') : $product->sales_price,
-            'fabric'      => $request->input('fabric', $product->fabric),
-            'in_stock'    => $request->has('in_stock'),
+            'sales_price' => round($request->input('price', $product->price) * 1.05 + 50, -1),
+            'in_stock'    => $inStock,
             'is_featured' => $request->has('is_featured'),
             'description' => $request->input('description', $product->description),
+            'sizes'       => $sizes,
+            'size_stock'  => $sizeStock,
         ];
 
         if ($request->hasFile('image')) {
@@ -205,13 +260,9 @@ class AdminController extends Controller
             $data['colors'] = array_filter(array_map('trim', explode(',', $request->input('colors'))));
         }
 
-        if ($request->filled('sizes')) {
-            $data['sizes'] = array_filter(array_map('trim', explode(',', $request->input('sizes'))));
-        }
-
         $product->update($data);
 
-        return redirect('/admin?tab=inventory')->with('success', "✨ Product '{$product->name}' updated successfully!");
+        return redirect('/admin?tab=inventory')->with('success', "✨ Product '{$product->name}' updated successfully ({$totalUnits} units in stock)!");
     }
 
     /**

@@ -37,6 +37,8 @@
         this.$watch('activeTab', (val) => updateDocTitle(val));
     },
 
+    newSizeStock: { 'XS': 1, 'S': 2, 'M': 4, 'L': 2, 'XL': 3, 'XXL': 2 },
+
     openEditProduct(p) {
         this.selectedProduct = Object.assign({}, p);
         if (Array.isArray(this.selectedProduct.colors)) {
@@ -44,11 +46,20 @@
         } else {
             this.selectedProduct.colors_str = this.selectedProduct.colors || '';
         }
-        if (Array.isArray(this.selectedProduct.sizes)) {
-            this.selectedProduct.sizes_str = this.selectedProduct.sizes.join(', ');
-        } else {
-            this.selectedProduct.sizes_str = this.selectedProduct.sizes || '';
+        
+        let stock = p.size_stock || {};
+        if (typeof stock === 'string') {
+            try { stock = JSON.parse(stock); } catch(e) { stock = {}; }
         }
+        if (!stock || Object.keys(stock).length === 0) {
+            stock = {};
+            let defaultSizes = ['XS', 'S', 'M', 'L', 'XL', 'XXL'];
+            let currentSizes = Array.isArray(p.sizes) ? p.sizes : defaultSizes;
+            defaultSizes.forEach(sz => {
+                stock[sz] = currentSizes.includes(sz) ? 2 : 1;
+            });
+        }
+        this.selectedProduct.size_stock = Object.assign({ 'XS': 1, 'S': 2, 'M': 4, 'L': 2, 'XL': 3, 'XXL': 2 }, stock);
         this.editProductModal = true;
     },
 
@@ -287,10 +298,9 @@
                             <tr class="bg-[var(--color-champagne-light)] text-[var(--color-ebony)] font-serif uppercase tracking-wider border-b border-[var(--color-bisque)]">
                                 <th class="p-3">Outfit</th>
                                 <th class="p-3">Category</th>
-                                <th class="p-3">Fabric</th>
-                                <th class="p-3">Customer Price</th>
-                                <th class="p-3">Sales Partner Price</th>
-                                <th class="p-3">Stock Status</th>
+                                <th class="p-3">Price</th>
+                                <th class="p-3">Stock Quantity Per Size</th>
+                                <th class="p-3">Total Quantity & Status</th>
                                 <th class="p-3 text-right">Actions</th>
                             </tr>
                         </thead>
@@ -300,12 +310,17 @@
                                 $imgArr = $prod->getRawOriginal('images');
                                 $imgArr = is_string($imgArr) ? json_decode($imgArr, true) : $imgArr;
                                 $img = (is_array($imgArr) && count($imgArr)) ? $imgArr[0] : '/storage/hero/hero-main.jpg';
-                                $inStock = (bool) $prod->getRawOriginal('in_stock');
-                                $salesPr = $prod->sales_price ?: ($prod->price + 50);
-                                $margin = max(0, $salesPr - $prod->price);
+                                
+                                $stk = is_array($prod->size_stock) ? $prod->size_stock : [];
+                                if (empty($stk)) {
+                                    $szList = is_array($prod->sizes) ? $prod->sizes : ['XS', 'S', 'M', 'L', 'XL', 'XXL'];
+                                    foreach($szList as $s) { $stk[strtoupper($s)] = 2; }
+                                }
+                                $totUnits = array_sum($stk);
+                                $inStock = $totUnits > 0;
                             @endphp
                             <tr class="hover:bg-[var(--color-offwhite)] transition-colors"
-                                x-show="!search || '{{ strtolower($prod->name) }}'.includes(search.toLowerCase()) || '{{ strtolower($prod->category) }}'.includes(search.toLowerCase()) || '{{ strtolower($prod->fabric) }}'.includes(search.toLowerCase())">
+                                x-show="!search || '{{ strtolower($prod->name) }}'.includes(search.toLowerCase()) || '{{ strtolower($prod->category) }}'.includes(search.toLowerCase())">
                                 <td class="p-3 flex items-center gap-3">
                                     <img src="{{ $img }}" alt="{{ $prod->name }}" class="w-11 h-14 object-cover rounded-lg shrink-0 border border-[var(--color-bisque)]" />
                                     <div>
@@ -314,17 +329,27 @@
                                     </div>
                                 </td>
                                 <td class="p-3 font-semibold text-[var(--color-rose-antique)]">{{ $prod->category }}</td>
-                                <td class="p-3 text-[var(--color-ebony)]/70">{{ $prod->fabric }}</td>
                                 <td class="p-3 font-serif font-bold text-sm">₹{{ number_format($prod->price, 0) }}</td>
+                                
+                                {{-- Size-Wise Stock Badges --}}
                                 <td class="p-3">
-                                    <div class="font-serif font-bold text-sm text-[var(--color-ebony)]">₹{{ number_format($salesPr, 0) }}</div>
-                                    <span class="text-[9px] font-sans font-bold text-emerald-700 bg-emerald-50 px-1.5 py-0.5 rounded border border-emerald-200">+₹{{ number_format($margin, 0) }} Partner Profit</span>
+                                    <div class="flex flex-wrap gap-1.5 max-w-xs">
+                                        @foreach($stk as $sName => $sQty)
+                                            <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg text-[10px] font-mono font-bold border {{ (int)$sQty > 0 ? 'bg-slate-100 border-slate-300 text-slate-900' : 'bg-rose-50 border-rose-200 text-rose-600' }}" title="{{ $sName }}: {{ $sQty }} in stock">
+                                                <span class="text-slate-600">{{ strtoupper($sName) }}</span>
+                                                <span class="text-amber-900 font-extrabold">{{ $sQty }}</span>
+                                            </span>
+                                        @endforeach
+                                    </div>
                                 </td>
+
+                                {{-- Total Units in Stock --}}
                                 <td class="p-3">
-                                    <span class="px-2.5 py-1 rounded-full text-[10px] font-bold {{ $inStock ? 'bg-emerald-100 text-emerald-800' : 'bg-rose-100 text-rose-800' }}">
-                                        {{ $inStock ? '● In Stock' : '○ Out of Stock' }}
+                                    <span class="px-2.5 py-1 rounded-full text-[10.5px] font-bold inline-block {{ $inStock ? 'bg-emerald-100 text-emerald-900 border border-emerald-300' : 'bg-rose-100 text-rose-900 border border-rose-300' }}">
+                                        {{ $inStock ? ('● ' . $totUnits . ' Units In Stock') : '○ Out of Stock' }}
                                     </span>
                                 </td>
+
                                 <td class="p-3 text-right space-x-2">
                                     <button @click="openEditProduct({{ json_encode($prod) }})" class="px-2.5 py-1 bg-blue-50 text-blue-700 hover:bg-blue-100 rounded-lg text-xs font-bold transition-colors">
                                         ✏️ Edit
@@ -1268,7 +1293,10 @@
         <div x-show="showAddProductModal" x-transition.opacity @click="showAddProductModal = false" class="fixed inset-0 bg-black/60 backdrop-blur-sm"></div>
         <div class="relative w-full max-w-2xl bg-white rounded-3xl p-8 shadow-2xl z-10 border border-[var(--color-bisque)] my-8 max-h-[90vh] overflow-y-auto space-y-5">
             <div class="flex items-center justify-between border-b border-[var(--color-bisque)]/60 pb-3">
-                <h3 class="font-serif text-2xl font-bold text-[var(--color-ebony)]">Add New Couture Outfit</h3>
+                <div>
+                    <h3 class="font-serif text-2xl font-bold text-[var(--color-ebony)]">Add New Couture Outfit</h3>
+                    <p class="text-xs font-sans text-gray-500">Configure product details, customer price, and size-specific stock inventory.</p>
+                </div>
                 <button @click="showAddProductModal = false" class="text-gray-400 hover:text-gray-600 text-lg">✕</button>
             </div>
 
@@ -1283,45 +1311,49 @@
                     <div>
                         <label class="block text-xs font-sans font-bold text-[var(--color-ebony)] uppercase tracking-wider mb-1">Category</label>
                         <select name="category" class="w-full bg-[var(--color-offwhite)] border border-[var(--color-bisque)] rounded-xl px-4 py-2.5 text-xs font-sans">
-                            <option value="Kurtis">Kurtis & Suits</option>
+                            <option value="Kurtis & Suits">Kurtis & Suits</option>
                             <option value="Chikankari Kurtis">Chikankari Kurtis</option>
                             <option value="Anarkali Suits">Anarkali Suits & Sets</option>
-                            <option value="Sarees">Luxury Sarees</option>
+                            <option value="Luxury Sarees">Luxury Sarees</option>
                             <option value="Banarasi Sarees">Banarasi Silk Sarees</option>
                             <option value="Silk Sarees">Pure Kanjivaram Silk</option>
+                            <option value="Co-Ord Sets">Co-Ord Sets</option>
+                            <option value="Festive Wear">Festive Wear</option>
                             @foreach($categories as $cat)
                             <option value="{{ $cat->name }}">{{ $cat->name }}</option>
                             @endforeach
                         </select>
                     </div>
                     <div>
-                        <label class="block text-xs font-sans font-bold text-[var(--color-ebony)] uppercase tracking-wider mb-1">Fabric</label>
-                        <input type="text" name="fabric" placeholder="e.g. Mulberry Silk / Chanderi" required class="w-full bg-[var(--color-offwhite)] border border-[var(--color-bisque)] rounded-xl px-4 py-2.5 text-xs font-sans" />
+                        <label class="block text-xs font-sans font-bold text-[var(--color-ebony)] uppercase tracking-wider mb-1">Customer Price (₹)</label>
+                        <input type="number" name="price" placeholder="1499" required class="w-full bg-[var(--color-offwhite)] border border-[var(--color-bisque)] rounded-xl px-4 py-2.5 text-xs font-sans font-bold" />
                     </div>
                 </div>
 
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <div>
-                        <label class="block text-xs font-sans font-bold text-[var(--color-ebony)] uppercase tracking-wider mb-1">Customer / Normal Price (₹)</label>
-                        <input type="number" name="price" placeholder="1000" required class="w-full bg-[var(--color-offwhite)] border border-[var(--color-bisque)] rounded-xl px-4 py-2.5 text-xs font-sans font-bold" />
-                        <span class="text-[10px] text-gray-500">Regular website price</span>
+                {{-- Size-Wise Stock Inventory Configuration --}}
+                <div class="space-y-2 p-4 bg-[var(--color-champagne-light)]/40 rounded-2xl border border-[var(--color-bisque)]">
+                    <div class="flex items-center justify-between">
+                        <label class="block text-xs font-sans font-bold text-[var(--color-ebony)] uppercase tracking-wider">
+                            Stock Quantity Per Size (XS, S, M, L, XL, XXL)
+                        </label>
+                        <span class="text-[10.5px] font-bold text-emerald-900 bg-emerald-100 border border-emerald-300 px-2.5 py-0.5 rounded-full"
+                              x-text="'Total: ' + (Number(newSizeStock['XS']||0) + Number(newSizeStock['S']||0) + Number(newSizeStock['M']||0) + Number(newSizeStock['L']||0) + Number(newSizeStock['XL']||0) + Number(newSizeStock['XXL']||0)) + ' Units In Stock'">
+                        </span>
                     </div>
-                    <div>
-                        <label class="block text-xs font-sans font-bold text-emerald-800 uppercase tracking-wider mb-1">Sales Partner Price (₹)</label>
-                        <input type="number" name="sales_price" placeholder="1050" class="w-full bg-emerald-50/50 border border-emerald-300 rounded-xl px-4 py-2.5 text-xs font-sans font-bold text-emerald-900" />
-                        <span class="text-[10px] text-emerald-700">Price when shared by associate (diff = profit)</span>
+                    <p class="text-[10px] text-gray-500 font-sans">Set initial available stock count for each size:</p>
+                    <div class="grid grid-cols-3 sm:grid-cols-6 gap-2.5 pt-1">
+                        <template x-for="sz in ['XS', 'S', 'M', 'L', 'XL', 'XXL']" :key="sz">
+                            <div class="bg-white p-2 rounded-xl border border-[var(--color-bisque)] text-center space-y-1 shadow-xs">
+                                <span class="block text-[11px] font-bold font-mono text-[var(--color-ebony)]" x-text="sz"></span>
+                                <input type="number" min="0" :name="'size_stock[' + sz + ']'" x-model="newSizeStock[sz]" required class="w-full bg-[var(--color-offwhite)] border border-gray-200 rounded-lg py-1.5 text-center text-xs font-bold font-mono focus:outline-none focus:border-[var(--color-rose-antique)]" />
+                            </div>
+                        </template>
                     </div>
                 </div>
 
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <div>
-                        <label class="block text-xs font-sans font-bold text-[var(--color-ebony)] uppercase tracking-wider mb-1">Available Sizes (Comma Separated)</label>
-                        <input type="text" name="sizes" value="XS, S, M, L, XL, XXL" class="w-full bg-[var(--color-offwhite)] border border-[var(--color-bisque)] rounded-xl px-4 py-2.5 text-xs font-sans" />
-                    </div>
-                    <div>
-                        <label class="block text-xs font-sans font-bold text-[var(--color-ebony)] uppercase tracking-wider mb-1">Color Palette (Comma Separated)</label>
-                        <input type="text" name="colors" value="Rose Blush, Royal Navy, Golden Ochre" class="w-full bg-[var(--color-offwhite)] border border-[var(--color-bisque)] rounded-xl px-4 py-2.5 text-xs font-sans" />
-                    </div>
+                <div>
+                    <label class="block text-xs font-sans font-bold text-[var(--color-ebony)] uppercase tracking-wider mb-1">Color Palette (Comma Separated)</label>
+                    <input type="text" name="colors" value="Rose Blush, Royal Navy, Golden Ochre" class="w-full bg-[var(--color-offwhite)] border border-[var(--color-bisque)] rounded-xl px-4 py-2.5 text-xs font-sans" />
                 </div>
 
                 <div>
@@ -1334,11 +1366,8 @@
                     <textarea name="description" rows="3" placeholder="Handcrafted with delicate Lucknowi shadow work and genuine golden zari borders..." required class="w-full bg-[var(--color-offwhite)] border border-[var(--color-bisque)] rounded-xl px-4 py-2.5 text-xs font-sans"></textarea>
                 </div>
 
-                <div class="flex items-center gap-6 pt-2">
-                    <label class="flex items-center gap-2 cursor-pointer text-xs font-bold">
-                        <input type="checkbox" name="in_stock" checked class="accent-emerald-600" /> In Stock for Ordering
-                    </label>
-                    <label class="flex items-center gap-2 cursor-pointer text-xs font-bold">
+                <div class="flex items-center gap-6 pt-1">
+                    <label class="flex items-center gap-2 cursor-pointer text-xs font-bold text-gray-700">
                         <input type="checkbox" name="is_featured" class="accent-[var(--color-rose-antique)]" /> Feature on Homepage
                     </label>
                 </div>
@@ -1356,7 +1385,10 @@
         <div x-show="editProductModal" x-transition.opacity @click="editProductModal = false" class="fixed inset-0 bg-black/60 backdrop-blur-sm"></div>
         <div class="relative w-full max-w-2xl bg-white rounded-3xl p-8 shadow-2xl z-10 border border-[var(--color-bisque)] my-8 max-h-[90vh] overflow-y-auto space-y-5">
             <div class="flex items-center justify-between border-b border-[var(--color-bisque)]/60 pb-3">
-                <h3 class="font-serif text-2xl font-bold text-[var(--color-ebony)]">Edit Couture Outfit</h3>
+                <div>
+                    <h3 class="font-serif text-2xl font-bold text-[var(--color-ebony)]">Edit Couture Outfit & Inventory</h3>
+                    <p class="text-xs font-sans text-gray-500">Update product name, category, price, and adjust stock counts per size.</p>
+                </div>
                 <button @click="editProductModal = false" class="text-gray-400 hover:text-gray-600 text-lg">✕</button>
             </div>
 
@@ -1373,49 +1405,50 @@
                         <input type="text" name="category" x-model="selectedProduct.category" required class="w-full bg-[var(--color-offwhite)] border border-[var(--color-bisque)] rounded-xl px-4 py-2.5 text-xs font-sans" />
                     </div>
                     <div>
-                        <label class="block text-xs font-sans font-bold text-[var(--color-ebony)] uppercase tracking-wider mb-1">Fabric</label>
-                        <input type="text" name="fabric" x-model="selectedProduct.fabric" required class="w-full bg-[var(--color-offwhite)] border border-[var(--color-bisque)] rounded-xl px-4 py-2.5 text-xs font-sans" />
-                    </div>
-                </div>
-
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <div>
                         <label class="block text-xs font-sans font-bold text-[var(--color-ebony)] uppercase tracking-wider mb-1">Customer Price (₹)</label>
                         <input type="number" name="price" x-model="selectedProduct.price" required class="w-full bg-[var(--color-offwhite)] border border-[var(--color-bisque)] rounded-xl px-4 py-2.5 text-xs font-sans font-bold" />
                     </div>
-                    <div>
-                        <label class="block text-xs font-sans font-bold text-emerald-800 uppercase tracking-wider mb-1">Sales Partner Price (₹)</label>
-                        <input type="number" name="sales_price" x-model="selectedProduct.sales_price || selectedProduct.salesPrice" class="w-full bg-emerald-50/50 border border-emerald-300 rounded-xl px-4 py-2.5 text-xs font-sans font-bold text-emerald-900" />
-                    </div>
                 </div>
 
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <div>
-                        <label class="block text-xs font-sans font-bold text-[var(--color-ebony)] uppercase tracking-wider mb-1">Available Sizes (Comma Separated)</label>
-                        <input type="text" name="sizes" x-model="selectedProduct.sizes_str" class="w-full bg-[var(--color-offwhite)] border border-[var(--color-bisque)] rounded-xl px-4 py-2.5 text-xs font-sans" />
+                {{-- Size-Wise Stock Inventory Configuration --}}
+                <div class="space-y-2 p-4 bg-[var(--color-champagne-light)]/40 rounded-2xl border border-[var(--color-bisque)]">
+                    <div class="flex items-center justify-between">
+                        <label class="block text-xs font-sans font-bold text-[var(--color-ebony)] uppercase tracking-wider">
+                            Stock Quantity Per Size (XS, S, M, L, XL, XXL)
+                        </label>
+                        <span class="text-[10.5px] font-bold text-emerald-900 bg-emerald-100 border border-emerald-300 px-2.5 py-0.5 rounded-full"
+                              x-text="'Total: ' + (Object.values(selectedProduct.size_stock || {}).reduce((acc, val) => Number(acc) + Number(val || 0), 0)) + ' Units In Stock'">
+                        </span>
                     </div>
-                    <div>
-                        <label class="block text-xs font-sans font-bold text-[var(--color-ebony)] uppercase tracking-wider mb-1">Color Palette (Comma Separated)</label>
-                        <input type="text" name="colors" x-model="selectedProduct.colors_str" class="w-full bg-[var(--color-offwhite)] border border-[var(--color-bisque)] rounded-xl px-4 py-2.5 text-xs font-sans" />
+                    <p class="text-[10px] text-gray-500 font-sans">Adjust quantity for each garment size:</p>
+                    <div class="grid grid-cols-3 sm:grid-cols-6 gap-2.5 pt-1">
+                        <template x-for="sz in ['XS', 'S', 'M', 'L', 'XL', 'XXL']" :key="sz">
+                            <div class="bg-white p-2 rounded-xl border border-[var(--color-bisque)] text-center space-y-1 shadow-xs">
+                                <span class="block text-[11px] font-bold font-mono text-[var(--color-ebony)]" x-text="sz"></span>
+                                <input type="number" min="0" :name="'size_stock[' + sz + ']'" x-model="selectedProduct.size_stock[sz]" class="w-full bg-[var(--color-offwhite)] border border-gray-200 rounded-lg py-1.5 text-center text-xs font-bold font-mono focus:outline-none focus:border-[var(--color-rose-antique)]" />
+                            </div>
+                        </template>
                     </div>
                 </div>
 
                 <div>
-                    <label class="block text-xs font-sans font-bold text-[var(--color-ebony)] uppercase tracking-wider mb-1">Change Photograph (Optional)</label>
-                    <input type="file" name="image" accept="image/*" class="w-full text-xs font-sans file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-xs file:font-bold file:bg-[var(--color-ebony)] file:text-white" />
+                    <label class="block text-xs font-sans font-bold text-[var(--color-ebony)] uppercase tracking-wider mb-1">Color Palette (Comma Separated)</label>
+                    <input type="text" name="colors" x-model="selectedProduct.colors_str" class="w-full bg-[var(--color-offwhite)] border border-[var(--color-bisque)] rounded-xl px-4 py-2.5 text-xs font-sans" />
+                </div>
+
+                <div>
+                    <label class="block text-xs font-sans font-bold text-[var(--color-ebony)] uppercase tracking-wider mb-1">Replace Photograph (Optional)</label>
+                    <input type="file" name="image" accept="image/*" class="w-full text-xs font-sans file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-xs file:font-bold file:bg-[var(--color-ebony)] file:text-white hover:file:bg-[var(--color-rose-deep)]" />
                 </div>
 
                 <div>
                     <label class="block text-xs font-sans font-bold text-[var(--color-ebony)] uppercase tracking-wider mb-1">Description</label>
-                    <textarea name="description" rows="3" x-model="selectedProduct.description" required class="w-full bg-[var(--color-offwhite)] border border-[var(--color-bisque)] rounded-xl px-4 py-2.5 text-xs font-sans"></textarea>
+                    <textarea name="description" x-model="selectedProduct.description" rows="3" required class="w-full bg-[var(--color-offwhite)] border border-[var(--color-bisque)] rounded-xl px-4 py-2.5 text-xs font-sans"></textarea>
                 </div>
 
-                <div class="flex items-center gap-6 pt-2">
-                    <label class="flex items-center gap-2 cursor-pointer text-xs font-bold">
-                        <input type="checkbox" name="in_stock" x-bind:checked="selectedProduct.in_stock" class="accent-emerald-600" /> In Stock for Ordering
-                    </label>
-                    <label class="flex items-center gap-2 cursor-pointer text-xs font-bold">
-                        <input type="checkbox" name="is_featured" x-bind:checked="selectedProduct.is_featured" class="accent-[var(--color-rose-antique)]" /> Feature on Homepage
+                <div class="flex items-center gap-6 pt-1">
+                    <label class="flex items-center gap-2 cursor-pointer text-xs font-bold text-gray-700">
+                        <input type="checkbox" name="is_featured" :checked="selectedProduct.is_featured" class="accent-[var(--color-rose-antique)]" /> Feature on Homepage
                     </label>
                 </div>
 
@@ -1424,7 +1457,6 @@
                     <button type="submit" class="flex-1 bg-[var(--color-ebony)] hover:bg-[var(--color-rose-deep)] text-white font-sans text-xs font-bold py-3 rounded-xl shadow-md">Update Product</button>
                 </div>
             </form>
-        </div>
     </div>
 
     {{-- MODAL 3: VIEW ORDER DETAILS --}}
