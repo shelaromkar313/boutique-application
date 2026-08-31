@@ -4,8 +4,8 @@
 
 @section('content')
 <script>
-function adminDashboard() {
-    return {
+document.addEventListener('alpine:init', () => {
+    Alpine.data('adminDashboard', () => ({
         activeTab: '{{ request('tab', 'overview') }}',
         search: '',
         showAddProductModal: false,
@@ -21,22 +21,25 @@ function adminDashboard() {
         payoutModal: false,
 
         selectedProduct: {
-            id: null,
-            name: '',
-            price: 0,
-            category: '',
-            colors: [],
-            colors_str: '',
-            description: '',
-            size_stock: { 'XS': 1, 'S': 2, 'M': 4, 'L': 2, 'XL': 3, 'XXL': 2 }
+            id: null, name: '', price: 0, category: '',
+            colors: [], colors_str: '', description: '',
+            size_stock: { XS: 1, S: 2, M: 4, L: 2, XL: 3, XXL: 2 }
         },
         selectedOrder: { id: null, items: [], parsedItems: [] },
         selectedAssociate: { id: null, name: '', balance: 0 },
         selectedReview: { id: null, rating: 5, comment: '', user_name: '', is_approved: true },
-        selectedAnnouncement: { id: null, title: '', message: '', type: 'sale', color: 'amber', icon: '📢', show_in_ticker: true, show_as_banner: false, is_active: true, starts_at: '', ends_at: '' },
-        selectedCoupon: { id: null, code: '', title: '', discount_type: 'percentage', discount_value: 20, min_order_value: 1999, campaign_type: 'festival', valid_until: '', is_active: true },
+        selectedAnnouncement: {
+            id: null, title: '', message: '', type: 'sale',
+            color: 'amber', icon: '\u{1F4E2}', show_in_ticker: true,
+            show_as_banner: false, is_active: true, starts_at: '', ends_at: ''
+        },
+        selectedCoupon: {
+            id: null, code: '', title: '', discount_type: 'percentage',
+            discount_value: 20, min_order_value: 1999,
+            campaign_type: 'festival', valid_until: '', is_active: true
+        },
 
-        newSizeStock: { 'XS': 1, 'S': 2, 'M': 4, 'L': 2, 'XL': 3, 'XXL': 2 },
+        newSizeStock: { XS: 1, S: 2, M: 4, L: 2, XL: 3, XXL: 2 },
         newCoupon: {
             code: 'DIWALI30',
             title: 'Diwali Royal Festive 30% Off',
@@ -52,51 +55,48 @@ function adminDashboard() {
 
         init() {
             const tabTitles = {
-                'overview': 'Dashboard Overview',
-                'inventory': 'Inventory & Products',
-                'orders': 'Orders & Fulfillment',
-                'customers': 'Customers',
-                'associates': 'Sales Associates & Sellers',
-                'reports': 'Monthly Reports & Billing',
-                'offers': 'Offers & Coupons',
-                'announcements': 'Storefront Announcements & Alerts',
-                'reviews': 'Ratings & Reviews',
-                'profile': 'Admin Profile & Security'
+                overview:      'Dashboard Overview',
+                inventory:     'Inventory & Products',
+                orders:        'Orders & Fulfillment',
+                customers:     'Customers',
+                associates:    'Sales Associates & Sellers',
+                reports:       'Monthly Reports & Billing',
+                offers:        'Offers & Coupons',
+                announcements: 'Storefront Announcements & Alerts',
+                reviews:       'Ratings & Reviews',
+                profile:       'Admin Profile & Security'
             };
-            const updateDocTitle = (tab) => {
-                document.title = 'Estilo Management Console - ' + (tabTitles[tab] || 'Dashboard Overview');
+            const setTitle = (tab) => {
+                document.title = 'Estilo HQ — ' + (tabTitles[tab] || 'Dashboard');
             };
-            updateDocTitle(this.activeTab);
-            this.$watch('activeTab', (val) => updateDocTitle(val));
+            setTitle(this.activeTab);
+            this.$watch('activeTab', setTitle);
         },
 
         openEditProduct(p) {
             this.selectedProduct = Object.assign({}, p);
-            if (Array.isArray(this.selectedProduct.colors)) {
-                this.selectedProduct.colors_str = this.selectedProduct.colors.join(', ');
-            } else {
-                this.selectedProduct.colors_str = this.selectedProduct.colors || '';
-            }
+            this.selectedProduct.colors_str = Array.isArray(p.colors)
+                ? p.colors.join(', ')
+                : (p.colors || '');
             let stock = p.size_stock || {};
             if (typeof stock === 'string') {
                 try { stock = JSON.parse(stock); } catch(e) { stock = {}; }
             }
-            if (!stock || Object.keys(stock).length === 0) {
-                stock = {};
-                let defaultSizes = ['XS', 'S', 'M', 'L', 'XL', 'XXL'];
-                let currentSizes = Array.isArray(p.sizes) ? p.sizes : defaultSizes;
-                defaultSizes.forEach(sz => {
-                    stock[sz] = currentSizes.includes(sz) ? 2 : 1;
-                });
+            if (!stock || !Object.keys(stock).length) {
+                ['XS','S','M','L','XL','XXL'].forEach(sz => { stock[sz] = 2; });
             }
-            this.selectedProduct.size_stock = Object.assign({ 'XS': 1, 'S': 2, 'M': 4, 'L': 2, 'XL': 3, 'XXL': 2 }, stock);
+            this.selectedProduct.size_stock = Object.assign(
+                { XS: 1, S: 2, M: 4, L: 2, XL: 3, XXL: 2 }, stock
+            );
             this.editProductModal = true;
         },
 
         openViewOrder(ord) {
-            this.selectedOrder = ord;
+            this.selectedOrder = Object.assign({}, ord);
             try {
-                this.selectedOrder.parsedItems = typeof ord.items === 'string' ? JSON.parse(ord.items || '[]') : (ord.items || []);
+                this.selectedOrder.parsedItems = typeof ord.items === 'string'
+                    ? JSON.parse(ord.items || '[]')
+                    : (ord.items || []);
             } catch(e) {
                 this.selectedOrder.parsedItems = [];
             }
@@ -104,7 +104,7 @@ function adminDashboard() {
         },
 
         openPayoutModal(assoc) {
-            this.selectedAssociate = assoc;
+            this.selectedAssociate = Object.assign({}, assoc);
             this.payoutModal = true;
         },
 
@@ -117,12 +117,12 @@ function adminDashboard() {
         },
 
         applyPresetCoupon(code, title, discount, type, minOrder, campaign) {
-            this.newCoupon.code = code;
-            this.newCoupon.title = title;
+            this.newCoupon.code        = code;
+            this.newCoupon.title       = title;
             this.newCoupon.discount_value = discount;
-            this.newCoupon.discount_type = type;
+            this.newCoupon.discount_type  = type;
             this.newCoupon.min_order_value = minOrder;
-            this.newCoupon.campaign_type = campaign;
+            this.newCoupon.campaign_type   = campaign;
         },
 
         openEditReview(rev) {
@@ -136,11 +136,11 @@ function adminDashboard() {
             this.selectedAnnouncement = Object.assign({}, ann);
             this.editAnnouncementModal = true;
         }
-    };
-}
+    }));
+});
 </script>
 
-<div class="min-h-screen bg-[var(--color-offwhite)] pb-24 pt-6" x-data="adminDashboard()">
+<div class="min-h-screen bg-[var(--color-offwhite)] pb-24 pt-6" x-data="adminDashboard">
 
     <div class="max-w-[1520px] mx-auto px-4 sm:px-6 lg:px-8 space-y-6">
 
