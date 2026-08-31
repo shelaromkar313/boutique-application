@@ -5,25 +5,98 @@
 @section('content')
 
 @php
-$categories = ['Designer Kurtis','Cotton Kurtis','Chikankari Kurtis','Straight Kurtis','Anarkali Suits','Banarasi Sarees','Silk Sarees','Organza Sarees','Linen Sarees','Cotton Sarees','Co-Ord Sets','Boutique Dresses','Ethnic Dresses'];
-$fabrics    = ['Pure Silk','Chikankari Cotton','Mulmul Cotton','Organza','Banarasi Brocade','Organic Linen'];
-$occasions  = ['Wedding Collection','Festive Wear','Office Wear','Casual Wear','Party Wear'];
-$sizes      = ['XS','S','M','L','XL','XXL','Free Size'];
-
-$allProducts = [
-  ['id'=>'est-001','name'=>'Gulzar Handcrafted Chikankari Anarkali Set',      'category'=>'Chikankari Kurtis','fabric'=>'Chikankari Cotton','occasion'=>'Festive Wear',       'price'=>1899,'oldPrice'=>2599,'discount'=>27,'rating'=>4.9,'reviewCount'=>42,'isNewArrival'=>true, 'isBestSeller'=>true, 'colors'=>[['name'=>'Antique Rose','hex'=>'#C87D87'],['name'=>'Bisque','hex'=>'#E5BCA9']],'sizes'=>['XS','S','M','L','XL','XXL'],'images'=>['/storage/products/est-001-chikankari-anarkali.jpg']],
-  ['id'=>'est-002','name'=>'Varanasi Royal Zari Banarasi Silk Saree',         'category'=>'Banarasi Sarees',  'fabric'=>'Banarasi Brocade','occasion'=>'Wedding Collection',  'price'=>2499,'oldPrice'=>3499,'discount'=>29,'rating'=>5.0,'reviewCount'=>38,'isNewArrival'=>true, 'isBestSeller'=>true, 'colors'=>[['name'=>'Blush Pink','hex'=>'#F0C4CB'],['name'=>'Royal Emerald','hex'=>'#6B7556']],'sizes'=>['Free Size'],'images'=>['/storage/products/est-002-banarasi-saree.jpg']],
-  ['id'=>'est-003','name'=>'Noor Hand-Painted Floral Organza Saree',          'category'=>'Organza Sarees',   'fabric'=>'Organza',         'occasion'=>'Party Wear',          'price'=>1699,'oldPrice'=>2299,'discount'=>26,'rating'=>4.8,'reviewCount'=>29,'isNewArrival'=>true, 'isBestSeller'=>false,'colors'=>[['name'=>'Champagne Gold','hex'=>'#FBEAD6']],'sizes'=>['Free Size'],'images'=>['/storage/products/est-003-organza-saree.jpg']],
-  ['id'=>'est-004','name'=>'Raysha Silk Blend Printed Peplum Co-Ord Set',     'category'=>'Co-Ord Sets',      'fabric'=>'Pure Silk',        'occasion'=>'Casual Wear',         'price'=>1499,'oldPrice'=>1999,'discount'=>25,'rating'=>4.7,'reviewCount'=>31,'isNewArrival'=>false,'isBestSeller'=>true, 'colors'=>[['name'=>'Dried Thyme Green','hex'=>'#6B7556']],'sizes'=>['S','M','L','XL'],'images'=>['/storage/products/est-004-coord-set.jpg']],
-  ['id'=>'est-005','name'=>'Aarya Hand Block Printed Cotton Straight Kurti',  'category'=>'Cotton Kurtis',    'fabric'=>'Mulmul Cotton',    'occasion'=>'Office Wear',         'price'=>1099,'oldPrice'=>1499,'discount'=>27,'rating'=>4.9,'reviewCount'=>54,'isNewArrival'=>true, 'isBestSeller'=>true, 'colors'=>[['name'=>'Sage Thyme','hex'=>'#6B7556'],['name'=>'Dusty Rose','hex'=>'#C87D87']],'sizes'=>['S','M','L','XL','XXL'],'images'=>['/storage/products/est-005-cotton-kurti.jpg']],
-  ['id'=>'est-006','name'=>'Sultana Royal Zardozi Embroidered Silk Anarkali',  'category'=>'Anarkali Suits',   'fabric'=>'Pure Silk',        'occasion'=>'Wedding Collection',  'price'=>2399,'oldPrice'=>3299,'discount'=>27,'rating'=>5.0,'reviewCount'=>19,'isNewArrival'=>true, 'isBestSeller'=>false,'colors'=>[['name'=>'Antique Crimson','hex'=>'#A25964']],'sizes'=>['S','M','L','XL'],'images'=>['/storage/products/est-006-silk-anarkali.jpg']],
-  ['id'=>'est-007','name'=>'Kashvi Chanderi Silk Foil Printed Boutique Dress', 'category'=>'Boutique Dresses', 'fabric'=>'Pure Silk',        'occasion'=>'Party Wear',          'price'=>1599,'oldPrice'=>2199,'discount'=>27,'rating'=>4.8,'reviewCount'=>33,'isNewArrival'=>false,'isBestSeller'=>true, 'colors'=>[['name'=>'Champagne Beige','hex'=>'#FBEAD6']],'sizes'=>['XS','S','M','L','XL'],'images'=>['/storage/products/est-007-boutique-dress.jpg']],
-  ['id'=>'est-008','name'=>'Manjari Organic Handloom Linen Saree',             'category'=>'Linen Sarees',     'fabric'=>'Organic Linen',    'occasion'=>'Casual Wear',         'price'=>1299,'oldPrice'=>1799,'discount'=>28,'rating'=>4.7,'reviewCount'=>22,'isNewArrival'=>false,'isBestSeller'=>false,'colors'=>[['name'=>'Dried Thyme','hex'=>'#6B7556']],'sizes'=>['Free Size'],'images'=>['/storage/products/est-008-linen-saree.jpg']],
-  ['id'=>'est-009','name'=>'Reeva Sequin Embroidered Georgette Designer Kurti','category'=>'Designer Kurtis',  'fabric'=>'Pure Silk',        'occasion'=>'Party Wear',          'price'=>1199,'oldPrice'=>1599,'discount'=>25,'rating'=>4.8,'reviewCount'=>36,'isNewArrival'=>true, 'isBestSeller'=>false,'colors'=>[['name'=>'Antique Rose','hex'=>'#C87D87']],'sizes'=>['S','M','L','XL'],'images'=>['/storage/products/est-009-designer-kurti.jpg']],
-  ['id'=>'est-010','name'=>'Meera Handloom Mulmul Cotton Jamdani Saree',       'category'=>'Cotton Sarees',    'fabric'=>'Mulmul Cotton',    'occasion'=>'Office Wear',         'price'=>1799,'oldPrice'=>2399,'discount'=>25,'rating'=>4.9,'reviewCount'=>27,'isNewArrival'=>false,'isBestSeller'=>true, 'colors'=>[['name'=>'Champagne Ivory','hex'=>'#FBEAD6']],'sizes'=>['Free Size'],'images'=>['/storage/products/est-010-jamdani-saree.jpg']],
-  ['id'=>'est-011','name'=>'Tarang Printed Angrakha Style Ethnic Dress',       'category'=>'Ethnic Dresses',   'fabric'=>'Chikankari Cotton','occasion'=>'Festive Wear',        'price'=>1399,'oldPrice'=>1899,'discount'=>26,'rating'=>4.9,'reviewCount'=>45,'isNewArrival'=>true, 'isBestSeller'=>false,'colors'=>[['name'=>'Thyme Green','hex'=>'#6B7556']],'sizes'=>['XS','S','M','L','XL'],'images'=>['/storage/products/est-011-ethnic-dress.jpg']],
-  ['id'=>'est-012','name'=>'Bhavya Pure Kanjivaram Golden Zari Silk Saree',    'category'=>'Silk Sarees',      'fabric'=>'Pure Silk',        'occasion'=>'Wedding Collection',  'price'=>2299,'oldPrice'=>3199,'discount'=>28,'rating'=>5.0,'reviewCount'=>51,'isNewArrival'=>true, 'isBestSeller'=>true, 'colors'=>[['name'=>'Antique Crimson','hex'=>'#A25964']],'sizes'=>['Free Size'],'images'=>['/storage/products/est-012-kanjivaram-saree.jpg']],
+$colorHexMap = [
+    'rose blush' => '#C87D87',
+    'antique rose' => '#C87D87',
+    'dusty rose' => '#C87D87',
+    'royal navy' => '#1E293B',
+    'golden ochre' => '#D4AF37',
+    'imperial gold' => '#D4AF37',
+    'champagne gold' => '#FBEAD6',
+    'champagne ivory' => '#FBEAD6',
+    'champagne beige' => '#FBEAD6',
+    'blush pink' => '#F0C4CB',
+    'royal emerald' => '#6B7556',
+    'sage thyme' => '#6B7556',
+    'thyme green' => '#6B7556',
+    'dried thyme' => '#6B7556',
+    'dried thyme green' => '#6B7556',
+    'antique crimson' => '#A25964',
+    'crimson red' => '#A25964',
+    'bisque' => '#E5BCA9',
+    'pure ivory' => '#FFF9F5',
 ];
+
+$dbProducts = \App\Models\Product::where('in_stock', true)->latest()->get();
+if ($dbProducts->isEmpty()) {
+    $dbProducts = \App\Models\Product::latest()->get();
+}
+
+$allProducts = $dbProducts->map(function ($p) use ($colorHexMap) {
+    $imgArr = $p->images;
+    if (is_string($imgArr)) {
+        $imgArr = json_decode($imgArr, true);
+    }
+    $images = (is_array($imgArr) && count($imgArr)) ? $imgArr : ['/storage/hero/hero-main.jpg'];
+
+    $colorArr = $p->colors;
+    if (is_string($colorArr)) {
+        $colorArr = json_decode($colorArr, true);
+    }
+    if (!is_array($colorArr)) {
+        $colorArr = ['Royal Navy'];
+    }
+    $colors = [];
+    foreach ($colorArr as $c) {
+        if (is_array($c)) {
+            $colors[] = [
+                'name' => $c['name'] ?? 'Couture Shade',
+                'hex'  => $c['hex'] ?? ($colorHexMap[strtolower($c['name'] ?? '')] ?? '#C87D87')
+            ];
+        } elseif (is_string($c)) {
+            $colors[] = [
+                'name' => $c,
+                'hex'  => $colorHexMap[strtolower(trim($c))] ?? '#1E293B'
+            ];
+        }
+    }
+    if (empty($colors)) {
+        $colors = [['name' => 'Royal Heritage', 'hex' => '#C87D87']];
+    }
+
+    $sizesArr = $p->sizes;
+    if (is_string($sizesArr)) {
+        $sizesArr = json_decode($sizesArr, true);
+    }
+    $sizes = (is_array($sizesArr) && count($sizesArr)) ? $sizesArr : ['XS', 'S', 'M', 'L', 'XL', 'XXL'];
+
+    return [
+        'id'           => $p->est_id ?: 'est-' . str_pad($p->id, 3, '0', STR_PAD_LEFT),
+        'name'         => $p->name,
+        'category'     => $p->category,
+        'fabric'       => $p->fabric ?: 'Handloom Artisanal',
+        'occasion'     => $p->occasion ?: 'Festive Wear',
+        'price'        => (float) $p->price,
+        'oldPrice'     => (float) ($p->old_price ?: ($p->price * 1.25)),
+        'discount'     => (int) ($p->discount ?: 20),
+        'rating'       => (float) ($p->rating ?: 5.0),
+        'reviewCount'  => (int) ($p->review_count ?: 1),
+        'isNewArrival' => (bool) $p->is_new_arrival,
+        'isBestSeller' => (bool) $p->is_best_seller,
+        'isFeatured'   => (bool) $p->is_featured,
+        'colors'       => $colors,
+        'sizes'        => $sizes,
+        'images'       => $images,
+    ];
+})->values()->toArray();
+
+$categories = \App\Models\Category::pluck('name')->toArray();
+if (empty($categories)) {
+    $categories = ['Kurtis & Suits', 'Chikankari Kurtis', 'Anarkali Suits', 'Luxury Sarees', 'Banarasi Sarees', 'Silk Sarees', 'Co-Ord Sets', 'Ethnic Dresses'];
+}
+$fabrics    = ['Pure Silk', 'Chikankari Cotton', 'Mulmul Cotton', 'Organza', 'Banarasi Brocade', 'Organic Linen', 'Handloom Artisanal'];
+$occasions  = ['Wedding Collection', 'Festive Wear', 'Office Wear', 'Casual Wear', 'Party Wear'];
+$sizes      = ['XS', 'S', 'M', 'L', 'XL', 'XXL', 'Free Size'];
 @endphp
 
 {{-- Pass products JSON to Alpine --}}
