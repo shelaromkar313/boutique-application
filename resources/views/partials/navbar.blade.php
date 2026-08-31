@@ -6,7 +6,7 @@
     @scroll.window="isScrolled = (window.pageYOffset > 40) ? true : false"
     class="sticky top-0 z-50">
     
-    @if(!request()->is('admin*'))
+    @if(!request()->is('estilo-hq-console*'))
     {{-- Pull live announced coupons and announcements from DB --}}
     @php
         $activeAnnouncements = \App\Models\Announcement::active()->get();
@@ -80,7 +80,7 @@
         <div class="max-w-[1520px] mx-auto pl-3 pr-4 sm:px-6 lg:px-8">
             <div class="flex items-center justify-between gap-2 lg:gap-4">
                 
-                @if(request()->is('admin*'))
+                @if(request()->is('estilo-hq-console*'))
                 {{-- ══════════════════════════════════════════════════════════════════ --}}
                 {{-- ADMIN PORTAL NAVIGATION HEADER                                    --}}
                 {{-- ══════════════════════════════════════════════════════════════════ --}}
@@ -105,54 +105,63 @@
                 <!-- Center: Admin Features Navigation Tabs -->
                 <nav class="hidden lg:flex flex-1 justify-center items-center gap-0.5 px-1 min-w-0 overflow-x-auto scrollbar-none">
                     <a href="/estilo-hq-console?tab=overview"
+                       @click="if (typeof activeTab !== 'undefined') { activeTab = 'overview'; window.history.pushState({}, '', '/estilo-hq-console?tab=overview'); }"
                        :class="(typeof activeTab !== 'undefined' && activeTab === 'overview') ? 'bg-[#FBEAD6] text-[#1A1818] font-bold shadow-md' : 'text-white/75 hover:text-white hover:bg-white/10'"
                        class="px-2.5 py-1.5 rounded-full text-[9.5px] font-sans font-semibold uppercase tracking-wide transition-all whitespace-nowrap">
                         Overview
                     </a>
 
                     <a href="/estilo-hq-console?tab=inventory"
+                       @click="if (typeof activeTab !== 'undefined') { activeTab = 'inventory'; window.history.pushState({}, '', '/estilo-hq-console?tab=inventory'); }"
                        :class="(typeof activeTab !== 'undefined' && activeTab === 'inventory') ? 'bg-[#FBEAD6] text-[#1A1818] font-bold shadow-md' : 'text-white/75 hover:text-white hover:bg-white/10'"
                        class="px-2.5 py-1.5 rounded-full text-[9.5px] font-sans font-semibold uppercase tracking-wide transition-all whitespace-nowrap">
                         Inventory
                     </a>
 
                     <a href="/estilo-hq-console?tab=orders"
+                       @click="if (typeof activeTab !== 'undefined') { activeTab = 'orders'; window.history.pushState({}, '', '/estilo-hq-console?tab=orders'); }"
                        :class="(typeof activeTab !== 'undefined' && activeTab === 'orders') ? 'bg-[#FBEAD6] text-[#1A1818] font-bold shadow-md' : 'text-white/75 hover:text-white hover:bg-white/10'"
                        class="px-2.5 py-1.5 rounded-full text-[9.5px] font-sans font-semibold uppercase tracking-wide transition-all whitespace-nowrap">
                         Orders
                     </a>
 
                     <a href="/estilo-hq-console?tab=customers"
+                       @click="if (typeof activeTab !== 'undefined') { activeTab = 'customers'; window.history.pushState({}, '', '/estilo-hq-console?tab=customers'); }"
                        :class="(typeof activeTab !== 'undefined' && activeTab === 'customers') ? 'bg-[#FBEAD6] text-[#1A1818] font-bold shadow-md' : 'text-white/75 hover:text-white hover:bg-white/10'"
                        class="px-2.5 py-1.5 rounded-full text-[9.5px] font-sans font-semibold uppercase tracking-wide transition-all whitespace-nowrap">
                         Customers
                     </a>
 
                     <a href="/estilo-hq-console?tab=associates"
+                       @click="if (typeof activeTab !== 'undefined') { activeTab = 'associates'; window.history.pushState({}, '', '/estilo-hq-console?tab=associates'); }"
                        :class="(typeof activeTab !== 'undefined' && activeTab === 'associates') ? 'bg-[#FBEAD6] text-[#1A1818] font-bold shadow-md' : 'text-white/75 hover:text-white hover:bg-white/10'"
                        class="px-2.5 py-1.5 rounded-full text-[9.5px] font-sans font-semibold uppercase tracking-wide transition-all whitespace-nowrap">
                         Associates
                     </a>
 
                     <a href="/estilo-hq-console?tab=reports"
+                       @click="if (typeof activeTab !== 'undefined') { activeTab = 'reports'; window.history.pushState({}, '', '/estilo-hq-console?tab=reports'); }"
                        :class="(typeof activeTab !== 'undefined' && activeTab === 'reports') ? 'bg-[#FBEAD6] text-[#1A1818] font-bold shadow-md' : 'text-white/75 hover:text-white hover:bg-white/10'"
                        class="px-2.5 py-1.5 rounded-full text-[9.5px] font-sans font-semibold uppercase tracking-wide transition-all whitespace-nowrap">
                         Reports
                     </a>
 
                     <a href="/estilo-hq-console?tab=offers"
+                       @click="if (typeof activeTab !== 'undefined') { activeTab = 'offers'; window.history.pushState({}, '', '/estilo-hq-console?tab=offers'); }"
                        :class="(typeof activeTab !== 'undefined' && activeTab === 'offers') ? 'bg-[#FBEAD6] text-[#1A1818] font-bold shadow-md' : 'text-white/75 hover:text-white hover:bg-white/10'"
                        class="px-2.5 py-1.5 rounded-full text-[9.5px] font-sans font-semibold uppercase tracking-wide transition-all whitespace-nowrap">
                         Coupons
                     </a>
 
                     <a href="/estilo-hq-console?tab=announcements"
+                       @click="if (typeof activeTab !== 'undefined') { activeTab = 'announcements'; window.history.pushState({}, '', '/estilo-hq-console?tab=announcements'); }"
                        :class="(typeof activeTab !== 'undefined' && activeTab === 'announcements') ? 'bg-[#FBEAD6] text-[#1A1818] font-bold shadow-md' : 'text-white/75 hover:text-white hover:bg-white/10'"
                        class="px-2.5 py-1.5 rounded-full text-[9.5px] font-sans font-semibold uppercase tracking-wide transition-all whitespace-nowrap flex items-center gap-1">
                         <span>📢 Announcements</span>
                     </a>
 
                     <a href="/estilo-hq-console?tab=reviews"
+                       @click="if (typeof activeTab !== 'undefined') { activeTab = 'reviews'; window.history.pushState({}, '', '/estilo-hq-console?tab=reviews'); }"
                        :class="(typeof activeTab !== 'undefined' && activeTab === 'reviews') ? 'bg-[#FBEAD6] text-[#1A1818] font-bold shadow-md' : 'text-white/75 hover:text-white hover:bg-white/10'"
                        class="px-2.5 py-1.5 rounded-full text-[9.5px] font-sans font-semibold uppercase tracking-wide transition-all whitespace-nowrap">
                         Reviews
@@ -175,7 +184,7 @@
                         <span class="font-bold text-[11px] text-[#FBEAD6] hidden xl:inline">Admin</span>
                     </a>
 
-                    <form action="{{ route('logout') }}" method="POST" class="inline m-0">
+                    <form action="{{ route('admin.logout') }}" method="POST" class="inline m-0">
                         @csrf
                         <button type="submit" class="text-[11px] bg-rose-500/20 hover:bg-rose-500/30 border border-rose-400/40 text-rose-200 font-bold px-3 py-1.5 rounded-full transition-colors" title="Log Out">
                             Sign Out
@@ -488,7 +497,7 @@
                     </button>
                 </div>
                 <div class="p-6 space-y-3">
-                    @if(request()->is('admin*'))
+                    @if(request()->is('estilo-hq-console*'))
                     <div class="pb-2 border-b border-[var(--color-bisque)]/40 mb-2">
                         <span class="text-[10px] font-sans font-bold uppercase tracking-wider text-emerald-800 bg-emerald-100 px-2.5 py-1 rounded-full inline-block">
                             Admin Navigation Suite
