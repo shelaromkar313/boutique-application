@@ -140,13 +140,13 @@ class PaymentController extends Controller
         $order = Order::create([
             'order_no'    => $orderNo,
             'user_id'     => auth()->id(),
-            'full_name'   => $request->name,
-            'email'       => $request->email,
-            'phone'       => $request->phone,
-            'address'     => $request->address,
-            'city'        => $request->input('city', 'Metropolitan'),
-            'state'       => $request->input('state', 'India'),
-            'pincode'     => $request->pincode,
+            'full_name'   => trim($request->name),
+            'email'       => trim($request->email),
+            'phone'       => trim($request->phone),
+            'address'     => trim($request->address),
+            'city'        => trim($request->input('city')) ?: 'Metropolitan',
+            'state'       => trim($request->input('state')) ?: 'India',
+            'pincode'     => trim($request->pincode),
             'subtotal'    => $subtotal,
             'shipping'    => $shipping,
             'discount'    => $discount,
@@ -154,14 +154,19 @@ class PaymentController extends Controller
             'currency'    => 'INR',
             'payment_id'  => $request->payment_method === 'cod' ? 'COD-PENDING' : 'UPI-CONFIRMED',
             'status'      => 'confirmed',
-            'items'       => json_encode($items),
+            'items'       => is_string($items) ? $items : json_encode($items),
             'note'        => 'Payment Mode: ' . strtoupper($request->payment_method) . ($referralCode ? ' • Referred by: ' . $referralCode : ''),
         ]);
 
-        // Credit referral earnings to the sales associate
+        // Credit referral earnings to the sales associate (wrapped in try-catch so order is never blocked)
         if (!empty($referralCode)) {
-            $this->creditReferralAssociate($orderNo, $items, $referralCode, $request->name);
-            session()->forget('referral_code');
+            try {
+                $this->creditReferralAssociate($orderNo, is_array($items) ? $items : json_decode($items, true), $referralCode, $request->name);
+                session()->forget('referral_code');
+            } catch (\Throwable $e) {
+                // Log exception silently without failing the customer order
+                \Illuminate\Support\Facades\Log::error('Referral credit error: ' . $e->getMessage());
+            }
         }
 
         return response()->json([
