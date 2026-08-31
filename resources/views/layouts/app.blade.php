@@ -258,14 +258,14 @@
         @include('partials.footer')
     @endif
 
-    {{-- Interactive Global Overlays & Modals --}}
+    {{-- Interactive Global Overlays & Modals (Storefront only) --}}
     @if(!request()->is('estilo-hq-console*'))
         @include('partials.mobile-bottom-nav')
+        @include('partials.cart-drawer')
+        @include('partials.search-modal')
+        @include('partials.size-guide-modal')
+        @include('partials.virtual-tryon-modal')
     @endif
-    @include('partials.cart-drawer')
-    @include('partials.search-modal')
-    @include('partials.size-guide-modal')
-    @include('partials.virtual-tryon-modal')
     @include('partials.toast')
     
 </body>

@@ -20,10 +20,19 @@ function adminDashboard() {
         viewOrderModal: false,
         payoutModal: false,
 
-        selectedProduct: {},
-        selectedOrder: {},
-        selectedAssociate: {},
-        selectedReview: { rating: 5, comment: '', user_name: '', is_approved: true },
+        selectedProduct: {
+            id: null,
+            name: '',
+            price: 0,
+            category: '',
+            colors: [],
+            colors_str: '',
+            description: '',
+            size_stock: { 'XS': 1, 'S': 2, 'M': 4, 'L': 2, 'XL': 3, 'XXL': 2 }
+        },
+        selectedOrder: { id: null, items: [], parsedItems: [] },
+        selectedAssociate: { id: null, name: '', balance: 0 },
+        selectedReview: { id: null, rating: 5, comment: '', user_name: '', is_approved: true },
         selectedAnnouncement: { id: null, title: '', message: '', type: 'sale', color: 'amber', icon: '📢', show_in_ticker: true, show_as_banner: false, is_active: true, starts_at: '', ends_at: '' },
         selectedCoupon: { id: null, code: '', title: '', discount_type: 'percentage', discount_value: 20, min_order_value: 1999, campaign_type: 'festival', valid_until: '', is_active: true },
 
@@ -384,7 +393,7 @@ function adminDashboard() {
                                 </td>
 
                                 <td class="p-3 text-right space-x-2">
-                                    <button @click="openEditProduct({{ json_encode($prod) }})" class="px-2.5 py-1 bg-blue-50 text-blue-700 hover:bg-blue-100 rounded-lg text-xs font-bold transition-colors">
+                                    <button @click="openEditProduct(@js($prod))" class="px-2.5 py-1 bg-blue-50 text-blue-700 hover:bg-blue-100 rounded-lg text-xs font-bold transition-colors">
                                         ✏️ Edit
                                     </button>
                                     <form action="/estilo-hq-console/products/{{ $prod->id }}" method="POST" class="inline" onsubmit="return confirm('Are you sure you want to delete this product?');">
@@ -471,7 +480,7 @@ function adminDashboard() {
                             @endphp
                             <tr class="hover:bg-[var(--color-offwhite)] transition-colors">
                                 <td class="p-3">
-                                    <button @click="openViewOrder({{ json_encode($ord) }})" class="font-mono font-bold text-blue-700 hover:underline block text-left">
+                                    <button @click="openViewOrder(@js($ord))" class="font-mono font-bold text-blue-700 hover:underline block text-left">
                                         {{ $ord->order_no }}
                                     </button>
                                     <span class="text-[10px] text-gray-500">{{ $ord->created_at ? $ord->created_at->format('d M Y, h:i A') : 'Recent' }}</span>
@@ -509,7 +518,7 @@ function adminDashboard() {
                                 </td>
                                 <td class="p-3 text-right">
                                     <div class="inline-flex items-center gap-2">
-                                        <button @click="openViewOrder({{ json_encode($ord) }})" class="text-[10px] bg-gray-100 hover:bg-gray-200 px-2.5 py-1 rounded-lg font-bold">
+                                        <button @click="openViewOrder(@js($ord))" class="text-[10px] bg-gray-100 hover:bg-gray-200 px-2.5 py-1 rounded-lg font-bold">
                                             🔍 Items
                                         </button>
                                         <form action="/estilo-hq-console/orders/{{ $ord->id }}/status" method="POST" class="inline-flex items-center gap-1">
@@ -634,7 +643,7 @@ function adminDashboard() {
                                         </button>
                                 </form>
                                         @if($assoc->balance > 0)
-                                        <button type="button" @click="openPayoutModal({{ json_encode($assoc) }})" class="bg-emerald-600 hover:bg-emerald-700 text-white text-[10px] font-bold px-3 py-1.5 rounded-lg transition-colors shadow-sm">
+                                        <button type="button" @click="openPayoutModal(@js($assoc))" class="bg-emerald-600 hover:bg-emerald-700 text-white text-[10px] font-bold px-3 py-1.5 rounded-lg transition-colors shadow-sm">
                                             💸 Pay Out
                                         </button>
                                         @endif
@@ -820,7 +829,7 @@ function adminDashboard() {
                                 @endif
 
                                 <span class="text-gray-300">|</span>
-                                <button type="button" @click="openEditCoupon({{ json_encode($coup) }})" class="text-[10px] font-bold text-amber-800 hover:underline">
+                                <button type="button" @click="openEditCoupon(@js($coup))" class="text-[10px] font-bold text-amber-800 hover:underline">
                                     ✏️ Edit
                                 </button>
 
@@ -983,7 +992,7 @@ function adminDashboard() {
 
                             <div class="flex items-center gap-2">
                                 {{-- Quick Edit Button --}}
-                                <button type="button" @click="openEditAnnouncement({{ json_encode($ann) }})" class="text-[11px] font-bold text-slate-800 bg-white hover:bg-slate-50 border border-slate-200 px-2.5 py-1 rounded-lg transition-colors">
+                                <button type="button" @click="openEditAnnouncement(@js($ann))" class="text-[11px] font-bold text-slate-800 bg-white hover:bg-slate-50 border border-slate-200 px-2.5 py-1 rounded-lg transition-colors">
                                     ✏️ Edit
                                 </button>
 
@@ -1200,7 +1209,7 @@ function adminDashboard() {
                                 @endif
 
                                 {{-- Edit Modal Trigger (Edit Stars 1-5 and Rewrite Comment) --}}
-                                <button type="button" @click="openEditReview({{ json_encode($rev) }})" class="px-3 py-1.5 bg-blue-50 hover:bg-blue-100 text-blue-700 border border-blue-200 rounded-lg text-xs font-bold transition-colors flex items-center gap-1">
+                                <button type="button" @click="openEditReview(@js($rev))" class="px-3 py-1.5 bg-blue-50 hover:bg-blue-100 text-blue-700 border border-blue-200 rounded-lg text-xs font-bold transition-colors flex items-center gap-1">
                                     <span>✏️ Edit Rating & Review</span>
                                 </button>
 
