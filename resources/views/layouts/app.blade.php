@@ -215,10 +215,14 @@
         @yield('content')
     </main>
 
-    @include('partials.footer')
+    @if(!request()->is('admin*'))
+        @include('partials.footer')
+    @endif
 
     {{-- Interactive Global Overlays & Modals --}}
-    @include('partials.mobile-bottom-nav')
+    @if(!request()->is('admin*'))
+        @include('partials.mobile-bottom-nav')
+    @endif
     @include('partials.cart-drawer')
     @include('partials.search-modal')
     @include('partials.size-guide-modal')
