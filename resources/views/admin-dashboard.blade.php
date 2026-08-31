@@ -3,141 +3,135 @@
 @section('title', 'Estilo Management Console - Dashboard Overview')
 
 @section('content')
-<div class="min-h-screen bg-[var(--color-offwhite)] pb-24 pt-6" x-data="{
-    activeTab: '{{ request('tab', 'overview') }}',
-    search: '',
-    showAddProductModal: false,
-    showAddCategoryModal: false,
-    showAddCouponModal: false,
-    showProfileModal: false,
-    editProductModal: false,
-    viewOrderModal: false,
-    payoutModal: false,
-    selectedProduct: {},
-    selectedOrder: {},
-    selectedAssociate: {},
+<script>
+function adminDashboard() {
+    return {
+        activeTab: '{{ request('tab', 'overview') }}',
+        search: '',
+        showAddProductModal: false,
+        showAddCategoryModal: false,
+        showAddCouponModal: false,
+        showAddAnnouncementModal: false,
+        showProfileModal: false,
+        editProductModal: false,
+        editCouponModal: false,
+        editAnnouncementModal: false,
+        editReviewModal: false,
+        viewOrderModal: false,
+        payoutModal: false,
 
-    init() {
-        const tabTitles = {
-            'overview': 'Dashboard Overview',
-            'inventory': 'Inventory & Products',
-            'orders': 'Orders & Fulfillment',
-            'customers': 'Customers',
-            'associates': 'Sales Associates & Sellers',
-            'reports': 'Monthly Reports & Billing',
-            'offers': 'Offers & Coupons',
-            'announcements': 'Storefront Announcements & Alerts',
-            'reviews': 'Ratings & Reviews',
-            'profile': 'Admin Profile & Security'
-        };
-        const updateDocTitle = (tab) => {
-            document.title = 'Estilo Management Console - ' + (tabTitles[tab] || 'Dashboard Overview');
-        };
-        updateDocTitle(this.activeTab);
-        this.$watch('activeTab', (val) => updateDocTitle(val));
-    },
+        selectedProduct: {},
+        selectedOrder: {},
+        selectedAssociate: {},
+        selectedReview: { rating: 5, comment: '', user_name: '', is_approved: true },
+        selectedAnnouncement: { id: null, title: '', message: '', type: 'sale', color: 'amber', icon: '📢', show_in_ticker: true, show_as_banner: false, is_active: true, starts_at: '', ends_at: '' },
+        selectedCoupon: { id: null, code: '', title: '', discount_type: 'percentage', discount_value: 20, min_order_value: 1999, campaign_type: 'festival', valid_until: '', is_active: true },
 
-    newSizeStock: { 'XS': 1, 'S': 2, 'M': 4, 'L': 2, 'XL': 3, 'XXL': 2 },
+        newSizeStock: { 'XS': 1, 'S': 2, 'M': 4, 'L': 2, 'XL': 3, 'XXL': 2 },
+        newCoupon: {
+            code: 'DIWALI30',
+            title: 'Diwali Royal Festive 30% Off',
+            discount_type: 'percentage',
+            discount_value: 30,
+            min_order_value: 1999,
+            campaign_type: 'festival',
+            valid_until: '2027-12-31'
+        },
 
-    openEditProduct(p) {
-        this.selectedProduct = Object.assign({}, p);
-        if (Array.isArray(this.selectedProduct.colors)) {
-            this.selectedProduct.colors_str = this.selectedProduct.colors.join(', ');
-        } else {
-            this.selectedProduct.colors_str = this.selectedProduct.colors || '';
+        reviewFilter: 'all',
+        announcementFilter: 'all',
+
+        init() {
+            const tabTitles = {
+                'overview': 'Dashboard Overview',
+                'inventory': 'Inventory & Products',
+                'orders': 'Orders & Fulfillment',
+                'customers': 'Customers',
+                'associates': 'Sales Associates & Sellers',
+                'reports': 'Monthly Reports & Billing',
+                'offers': 'Offers & Coupons',
+                'announcements': 'Storefront Announcements & Alerts',
+                'reviews': 'Ratings & Reviews',
+                'profile': 'Admin Profile & Security'
+            };
+            const updateDocTitle = (tab) => {
+                document.title = 'Estilo Management Console - ' + (tabTitles[tab] || 'Dashboard Overview');
+            };
+            updateDocTitle(this.activeTab);
+            this.$watch('activeTab', (val) => updateDocTitle(val));
+        },
+
+        openEditProduct(p) {
+            this.selectedProduct = Object.assign({}, p);
+            if (Array.isArray(this.selectedProduct.colors)) {
+                this.selectedProduct.colors_str = this.selectedProduct.colors.join(', ');
+            } else {
+                this.selectedProduct.colors_str = this.selectedProduct.colors || '';
+            }
+            let stock = p.size_stock || {};
+            if (typeof stock === 'string') {
+                try { stock = JSON.parse(stock); } catch(e) { stock = {}; }
+            }
+            if (!stock || Object.keys(stock).length === 0) {
+                stock = {};
+                let defaultSizes = ['XS', 'S', 'M', 'L', 'XL', 'XXL'];
+                let currentSizes = Array.isArray(p.sizes) ? p.sizes : defaultSizes;
+                defaultSizes.forEach(sz => {
+                    stock[sz] = currentSizes.includes(sz) ? 2 : 1;
+                });
+            }
+            this.selectedProduct.size_stock = Object.assign({ 'XS': 1, 'S': 2, 'M': 4, 'L': 2, 'XL': 3, 'XXL': 2 }, stock);
+            this.editProductModal = true;
+        },
+
+        openViewOrder(ord) {
+            this.selectedOrder = ord;
+            try {
+                this.selectedOrder.parsedItems = typeof ord.items === 'string' ? JSON.parse(ord.items || '[]') : (ord.items || []);
+            } catch(e) {
+                this.selectedOrder.parsedItems = [];
+            }
+            this.viewOrderModal = true;
+        },
+
+        openPayoutModal(assoc) {
+            this.selectedAssociate = assoc;
+            this.payoutModal = true;
+        },
+
+        openEditCoupon(coup) {
+            this.selectedCoupon = Object.assign({}, coup);
+            if (coup.valid_until && typeof coup.valid_until === 'string') {
+                this.selectedCoupon.valid_until = coup.valid_until.split('T')[0];
+            }
+            this.editCouponModal = true;
+        },
+
+        applyPresetCoupon(code, title, discount, type, minOrder, campaign) {
+            this.newCoupon.code = code;
+            this.newCoupon.title = title;
+            this.newCoupon.discount_value = discount;
+            this.newCoupon.discount_type = type;
+            this.newCoupon.min_order_value = minOrder;
+            this.newCoupon.campaign_type = campaign;
+        },
+
+        openEditReview(rev) {
+            this.selectedReview = Object.assign({}, rev);
+            this.selectedReview.is_approved = Boolean(Number(rev.is_approved));
+            this.selectedReview.rating = Number(rev.rating || 5);
+            this.editReviewModal = true;
+        },
+
+        openEditAnnouncement(ann) {
+            this.selectedAnnouncement = Object.assign({}, ann);
+            this.editAnnouncementModal = true;
         }
-        
-        let stock = p.size_stock || {};
-        if (typeof stock === 'string') {
-            try { stock = JSON.parse(stock); } catch(e) { stock = {}; }
-        }
-        if (!stock || Object.keys(stock).length === 0) {
-            stock = {};
-            let defaultSizes = ['XS', 'S', 'M', 'L', 'XL', 'XXL'];
-            let currentSizes = Array.isArray(p.sizes) ? p.sizes : defaultSizes;
-            defaultSizes.forEach(sz => {
-                stock[sz] = currentSizes.includes(sz) ? 2 : 1;
-            });
-        }
-        this.selectedProduct.size_stock = Object.assign({ 'XS': 1, 'S': 2, 'M': 4, 'L': 2, 'XL': 3, 'XXL': 2 }, stock);
-        this.editProductModal = true;
-    },
+    };
+}
+</script>
 
-    openViewOrder(ord) {
-        this.selectedOrder = ord;
-        try {
-            this.selectedOrder.parsedItems = typeof ord.items === 'string' ? JSON.parse(ord.items || '[]') : (ord.items || []);
-        } catch(e) {
-            this.selectedOrder.parsedItems = [];
-        }
-        this.viewOrderModal = true;
-    },
-
-    openPayoutModal(assoc) {
-        this.selectedAssociate = assoc;
-        this.payoutModal = true;
-    },
-
-    editReviewModal: false,
-    selectedReview: { rating: 5, comment: '', user_name: '', is_approved: true },
-    reviewFilter: 'all',
-
-    showAddAnnouncementModal: false,
-    editAnnouncementModal: false,
-    selectedAnnouncement: { id: null, title: '', message: '', type: 'sale', color: 'amber', icon: '📢', show_in_ticker: true, show_as_banner: false, is_active: true, starts_at: '', ends_at: '' },
-    announcementFilter: 'all',
-
-    editCouponModal: false,
-    newCoupon: {
-        code: 'DIWALI30',
-        title: 'Diwali Royal Festive 30% Off',
-        discount_type: 'percentage',
-        discount_value: 30,
-        min_order_value: 1999,
-        campaign_type: 'festival',
-        valid_until: '2027-12-31'
-    },
-    selectedCoupon: {
-        id: null,
-        code: '',
-        title: '',
-        discount_type: 'percentage',
-        discount_value: 20,
-        min_order_value: 1999,
-        campaign_type: 'festival',
-        valid_until: '',
-        is_active: true
-    },
-
-    openEditCoupon(coup) {
-        this.selectedCoupon = Object.assign({}, coup);
-        if (coup.valid_until && typeof coup.valid_until === 'string') {
-            this.selectedCoupon.valid_until = coup.valid_until.split('T')[0];
-        }
-        this.editCouponModal = true;
-    },
-
-    applyPresetCoupon(code, title, discount, type, minOrder, campaign) {
-        this.newCoupon.code = code;
-        this.newCoupon.title = title;
-        this.newCoupon.discount_value = discount;
-        this.newCoupon.discount_type = type;
-        this.newCoupon.min_order_value = minOrder;
-        this.newCoupon.campaign_type = campaign;
-    },
-
-    openEditReview(rev) {
-        this.selectedReview = Object.assign({}, rev);
-        this.selectedReview.is_approved = Boolean(Number(rev.is_approved));
-        this.selectedReview.rating = Number(rev.rating || 5);
-        this.editReviewModal = true;
-    },
-
-    openEditAnnouncement(ann) {
-        this.selectedAnnouncement = Object.assign({}, ann);
-        this.editAnnouncementModal = true;
-    }
-}">
+<div class="min-h-screen bg-[var(--color-offwhite)] pb-24 pt-6" x-data="adminDashboard()">
 
     <div class="max-w-[1520px] mx-auto px-4 sm:px-6 lg:px-8 space-y-6">
 
