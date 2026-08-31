@@ -1627,7 +1627,7 @@
     </div>
 
     {{-- MODAL 5: GENERATE COUPON (INTERACTIVE WITH LIVE PREVIEW & PRESETS) --}}
-    <div x-show="showAddCouponModal" x-cloak class="fixed inset-0 z-50 flex items-center justify-center p-4 overflow-y-auto">
+    <div x-show="showAddCouponModal" style="display: none;" class="fixed inset-0 z-50 flex items-center justify-center p-4 overflow-y-auto">
         <div x-show="showAddCouponModal" x-transition.opacity @click="showAddCouponModal = false" class="fixed inset-0 bg-black/60 backdrop-blur-sm"></div>
         <div class="relative w-full max-w-lg bg-white rounded-3xl p-6 sm:p-8 shadow-2xl z-10 border border-[var(--color-bisque)] space-y-5 my-8">
             
@@ -1762,7 +1762,7 @@
     </div>
 
     {{-- MODAL 5B: EDIT COUPON --}}
-    <div x-show="editCouponModal" x-cloak class="fixed inset-0 z-50 flex items-center justify-center p-4 overflow-y-auto">
+    <div x-show="editCouponModal" style="display: none;" class="fixed inset-0 z-50 flex items-center justify-center p-4 overflow-y-auto">
         <div x-show="editCouponModal" x-transition.opacity @click="editCouponModal = false" class="fixed inset-0 bg-black/60 backdrop-blur-sm"></div>
         <div class="relative w-full max-w-lg bg-white rounded-3xl p-6 sm:p-8 shadow-2xl z-10 border border-[var(--color-bisque)] space-y-4 my-8">
             
