@@ -186,7 +186,7 @@
                 <div class="bg-white p-5 rounded-2xl border border-[var(--color-bisque)] shadow-sm space-y-1">
                     <span class="text-[10px] font-sans font-bold uppercase tracking-wider text-[var(--color-thyme)]">In Stock Catalog</span>
                     <h3 class="font-serif text-2xl font-bold text-[var(--color-thyme)]">{{ $inStockCount }} / {{ $totalProductsCount }}</h3>
-                    <span class="text-[10px] font-sans text-[var(--color-thyme)]">Ready for Virtual Try-On</span>
+                    <span class="text-[10px] font-sans text-[var(--color-thyme)]">Active In Stock Items</span>
                 </div>
                 <div class="bg-white p-5 rounded-2xl border border-[var(--color-bisque)] shadow-sm space-y-1">
                     <span class="text-[10px] font-sans font-bold uppercase tracking-wider text-amber-800">Sales Associates</span>
@@ -256,7 +256,7 @@
                 <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 pb-4 border-b border-[var(--color-bisque)]/60">
                     <div>
                         <h2 class="font-serif text-xl sm:text-2xl font-bold text-[var(--color-ebony)]">Boutique Inventory & Products</h2>
-                        <p class="text-xs font-sans text-[var(--color-ebony)]/60">Add new couture, edit pricing & fabric, update stock status, manage categories, and configure virtual try-on items.</p>
+                        <p class="text-xs font-sans text-[var(--color-ebony)]/60">Add new couture, edit pricing & fabric, update stock status, and manage categories.</p>
                     </div>
                     <div class="flex items-center gap-3 w-full sm:w-auto flex-wrap sm:flex-nowrap">
                         <input type="text" x-model="search" placeholder="Search catalog..." class="w-full sm:w-64 pl-4 pr-4 py-2 bg-[var(--color-offwhite)] border border-[var(--color-bisque)] rounded-full text-xs font-sans focus:outline-none" />

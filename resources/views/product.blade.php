@@ -236,18 +236,6 @@ $relatedProducts = collect($productsData)->filter(function ($p) use ($product) {
                         <p x-show="pincodeMsg" x-text="pincodeMsg" class="text-[11px] font-sans text-green-700 font-bold pt-1"></p>
                     </div>
 
-                    <!-- AI Virtual Try-On Banner & Trigger Button -->
-                    <div class="pt-2">
-                        <button type="button" 
-                                @click="$dispatch('open-tryon', { id: product.id, name: product.name, price: product.price, image: product.images[activeImageIndex], category: product.category })" 
-                                class="w-full bg-gradient-to-r from-[var(--color-champagne-light)] via-[var(--color-bisque)]/40 to-[var(--color-champagne-light)] hover:from-[var(--color-bisque)]/60 hover:to-[var(--color-bisque)]/60 text-[var(--color-ebony)] border border-[var(--color-rose-antique)]/40 font-sans text-xs font-bold uppercase tracking-widest py-3.5 px-4 rounded-2xl shadow-sm transition-all hover:scale-[1.01] flex items-center justify-center gap-2 group">
-                            <span class="w-6 h-6 rounded-full bg-[var(--color-rose-antique)] text-white flex items-center justify-center shadow-sm group-hover:rotate-12 transition-transform">
-                                <svg class="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
-                            </span>
-                            <span>✨ AI Virtual Try-On — Powered by CatVTON (Free)</span>
-                        </button>
-                    </div>
-
                     <div class="flex flex-col sm:flex-row flex-wrap items-stretch sm:items-center gap-3 sm:gap-4 pt-2">
                         <div class="flex items-center border border-[var(--color-bisque)] rounded-full px-3 py-3 bg-white w-fit">
                             <button @click="quantity = Math.max(1, quantity - 1)" class="text-xs font-bold px-2 hover:text-[var(--color-rose-antique)]">-</button>

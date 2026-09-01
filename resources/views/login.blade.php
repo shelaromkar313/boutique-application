@@ -122,7 +122,7 @@ class="min-h-[85vh] flex items-center justify-center py-8 px-3 sm:px-6 bg-gradie
                          'bg-amber-50 border-amber-200 text-amber-900': activeRole === 'sales_associate',
                          'bg-slate-900 text-slate-200 border-slate-700': activeRole === 'admin'
                      }">
-                    <span class="font-bold" x-text="activeRole === 'customer' ? 'Customer — Orders & Virtual Try-On' : (activeRole === 'sales_associate' ? 'Sales Partner — Commission & Links' : 'Administrator — Full Store Management')"></span>
+                    <span class="font-bold" x-text="activeRole === 'customer' ? 'Customer — Orders & Account Hub' : (activeRole === 'sales_associate' ? 'Sales Partner — Commission & Links' : 'Administrator — Full Store Management')"></span>
                 </div>
 
                 {{-- ── 2. Auth Method Toggle ── --}}

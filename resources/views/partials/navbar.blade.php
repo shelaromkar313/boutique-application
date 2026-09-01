@@ -85,15 +85,6 @@
                 {{-- Right action icons — NO overflow:hidden (that was clipping the cart) --}}
                 <div class="flex items-center gap-1 sm:gap-2 lg:gap-3 shrink-0 mr-1">
 
-                    <!-- AI Try-On (desktop only) -->
-                    <button type="button"
-                            @click="$dispatch('open-tryon', { id: 'est-001', name: 'Gulzar Chikankari Anarkali Set', price: 1899, image: '/storage/products/est-001-chikankari-anarkali.jpg', category: 'dresses' })"
-                            class="hidden md:flex items-center gap-1.5 bg-gradient-to-r from-[var(--color-rose-antique)]/25 to-[var(--color-rose-deep)]/25 hover:from-[var(--color-rose-antique)]/40 hover:to-[var(--color-rose-deep)]/40 border border-[var(--color-rose-antique)]/50 text-[#FBEAD6] text-[10px] font-sans font-bold uppercase tracking-wider px-2.5 sm:px-3 py-1.5 rounded-full transition-all hover:scale-105 shadow-sm whitespace-nowrap">
-                        <span class="text-amber-300 animate-pulse">✨</span>
-                        <span class="hidden xl:inline">AI Fitting Room</span>
-                        <span class="xl:hidden">Try-On</span>
-                    </button>
-
                     <!-- Search -->
                     <button @click="$store.shop.isSearchOpen = true"
                             class="w-8 h-8 sm:w-9 sm:h-9 rounded-full flex items-center justify-center text-white/90 hover:text-[#FBEAD6] hover:bg-white/10 transition-colors"

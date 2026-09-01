@@ -169,14 +169,8 @@ $allProducts = [
                                 <button @click.prevent="wishlisted = !wishlisted" class="absolute top-2 sm:top-3 right-2 sm:right-3 z-10 w-7 h-7 sm:w-9 sm:h-9 rounded-full bg-white/90 backdrop-blur-md shadow-md flex items-center justify-center text-[#1A1818] hover:text-[#C87D87] hover:scale-110 transition-all duration-300">
                                     <svg :class="wishlisted ? 'fill-[#C87D87] text-[#C87D87]' : 'fill-none'" class="w-3 h-3 sm:w-4 sm:h-4" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/></svg>
                                 </button>
-                                {{-- Quick View & Try-On hover --}}
-                                <div class="absolute bottom-3 left-3 right-3 z-10 opacity-0 group-hover:opacity-100 transition-all duration-300 translate-y-3 group-hover:translate-y-0 flex items-center gap-1.5 sm:gap-2">
-                                    <button type="button" 
-                                            @click.prevent="$dispatch('open-tryon', { id: product.id, name: product.name, price: product.price, image: product.images[0], category: product.category })" 
-                                            class="flex-1 bg-gradient-to-r from-[var(--color-ebony)] to-[var(--color-rose-deep)] text-white font-sans text-[10px] sm:text-xs font-bold py-2.5 px-2.5 rounded-full backdrop-blur-md shadow-lg flex items-center justify-center gap-1 hover:opacity-95 transition-all">
-                                        <span class="text-amber-300">✨</span>
-                                        <span>Try On</span>
-                                    </button>
+                                {{-- Quick View hover --}}
+                                <div class="absolute bottom-3 right-3 z-10 opacity-0 group-hover:opacity-100 transition-all duration-300 translate-y-3 group-hover:translate-y-0">
                                     <a :href="'/product/' + product.id" class="p-2.5 rounded-full bg-white/95 hover:bg-white text-[#1A1818] hover:text-[#C87D87] shadow-lg flex items-center justify-center transition-all" title="Quick View">
                                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
                                     </a>
