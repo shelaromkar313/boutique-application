@@ -309,7 +309,7 @@ class AuthController extends Controller
             $request->session()->regenerate();
         }
 
-        return redirect('/')->with('success', '✨ Welcome to Estilo Wear Couture, ' . $user->name . '!');
+        return redirect('/profile')->with('success', '✨ Welcome to Estilo Wear, ' . $user->name . '! Your customer account is active.');
     }
 
     /**
@@ -349,7 +349,7 @@ class AuthController extends Controller
     }
 
     /**
-     * Logout.
+     * Logout - Securely destroy session and clear browser cache.
      */
     public function logout(Request $request)
     {
@@ -357,9 +357,14 @@ class AuthController extends Controller
         if ($request->hasSession()) {
             $request->session()->invalidate();
             $request->session()->regenerateToken();
+            $request->session()->flush();
         }
 
-        return redirect('/login')->with('success', 'You have been logged out safely.');
+        return redirect('/login')
+            ->with('success', 'You have been logged out safely.')
+            ->header('Cache-Control', 'no-store, no-cache, must-revalidate, max-age=0, private')
+            ->header('Pragma', 'no-cache')
+            ->header('Expires', 'Thu, 01 Jan 1970 00:00:00 GMT');
     }
 
     /**
