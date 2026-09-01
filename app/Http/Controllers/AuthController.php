@@ -333,6 +333,8 @@ class AuthController extends Controller
                 $request->session()->regenerate();
             }
 
+            $this->logLogin($user, 'registration', $request);
+
             return redirect('/profile')->with('success', '✨ Welcome to Estilo Wear, ' . $user->name . '! Your customer account is active.');
 
         } catch (\Throwable $e) {
@@ -342,6 +344,7 @@ class AuthController extends Controller
             $existingUser = User::where('email', $email)->orWhere('phone', $phone)->first();
             if ($existingUser) {
                 Auth::login($existingUser);
+                $this->logLogin($existingUser, 'registration', $request);
                 return redirect('/profile')->with('info', '✨ Welcome back, ' . $existingUser->name . '! Signed in to your existing account.');
             }
 
@@ -381,6 +384,8 @@ class AuthController extends Controller
         if ($request->hasSession()) {
             $request->session()->regenerate();
         }
+
+        $this->logLogin($user, 'registration', $request);
 
         return redirect('/sales/dashboard')->with('success', '🎉 Welcome to the Estilo Partner Program! Your referral code is ' . $refCode);
     }
