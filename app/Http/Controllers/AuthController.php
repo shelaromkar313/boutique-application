@@ -296,30 +296,57 @@ class AuthController extends Controller
             'password' => 'required|min:6',
         ]);
 
-        // If user with this email already exists, update & log them in directly
-        $user = User::where('email', $request->email)->first();
-        if ($user) {
-            $user->update([
-                'name'     => $request->name ?: $user->name,
-                'phone'    => $request->phone ?: $user->phone,
-                'password' => Hash::make($request->password),
-            ]);
-        } else {
-            $user = User::create([
-                'name'     => $request->name,
-                'email'    => $request->email,
-                'phone'    => $request->phone,
-                'password' => Hash::make($request->password),
-                'role'     => 'customer',
-            ]);
-        }
+        $email = trim($request->email);
+        $phone = trim($request->phone);
 
-        Auth::login($user);
-        if ($request->hasSession()) {
-            $request->session()->regenerate();
-        }
+        try {
+            // Find existing user account by email OR phone number
+            $user = User::where('email', $email)
+                ->orWhere(function ($q) use ($phone) {
+                    if (!empty($phone)) {
+                        $q->where('phone', $phone);
+                    }
+                })
+                ->first();
 
-        return redirect('/profile')->with('success', '✨ Welcome to Estilo Wear, ' . $user->name . '! Your account is active.');
+            if ($user) {
+                // Update existing account credentials & log them in seamlessly
+                $user->update([
+                    'name'     => $request->name ?: $user->name,
+                    'email'    => $email,
+                    'phone'    => !empty($phone) ? $phone : $user->phone,
+                    'password' => Hash::make($request->password),
+                ]);
+            } else {
+                // Create brand new customer account
+                $user = User::create([
+                    'name'     => $request->name,
+                    'email'    => $email,
+                    'phone'    => !empty($phone) ? $phone : null,
+                    'password' => Hash::make($request->password),
+                    'role'     => 'customer',
+                ]);
+            }
+
+            Auth::login($user);
+            if ($request->hasSession()) {
+                $request->session()->regenerate();
+            }
+
+            return redirect('/profile')->with('success', '✨ Welcome to Estilo Wear, ' . $user->name . '! Your customer account is active.');
+
+        } catch (\Throwable $e) {
+            \Illuminate\Support\Facades\Log::error('Registration exception: ' . $e->getMessage());
+
+            // Handle database constraint exceptions gracefully without raw 500 error pages
+            $existingUser = User::where('email', $email)->orWhere('phone', $phone)->first();
+            if ($existingUser) {
+                Auth::login($existingUser);
+                return redirect('/profile')->with('info', '✨ Welcome back, ' . $existingUser->name . '! Signed in to your existing account.');
+            }
+
+            return back()->withErrors(['phone' => 'An account with this mobile number or email already exists. Please log in instead.'])->withInput();
+        }
     }
 
     /**
