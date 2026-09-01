@@ -13,26 +13,38 @@
             <p class="text-xs font-sans text-[var(--color-ebony)]/60">Unlock curated boutique previews, couture sizing assistance & VIP rewards.</p>
         </div>
 
+        {{-- Error Alerts --}}
+        @if ($errors->any())
+        <div class="bg-rose-50 border border-rose-200 text-rose-800 p-4 rounded-2xl text-xs font-sans space-y-1">
+            <p class="font-bold flex items-center gap-1">⚠️ Registration Failed:</p>
+            <ul class="list-disc pl-4 space-y-0.5">
+                @foreach ($errors->all() as $error)
+                    <li>{{ $error }}</li>
+                @endforeach
+            </ul>
+        </div>
+        @endif
+
         <form action="/register" method="POST" class="space-y-4 text-xs font-sans">
             @csrf
             <div>
                 <label class="block font-bold text-[var(--color-ebony)] mb-1">Full Name</label>
-                <input type="text" name="name" placeholder="Priyanka Sharma" required class="w-full px-4 py-3 bg-[var(--color-offwhite)] border border-[var(--color-bisque)] rounded-xl focus:outline-none focus:border-[var(--color-rose-antique)] transition-colors" />
+                <input type="text" name="name" value="{{ old('name') }}" placeholder="Priyanka Sharma" required class="w-full px-4 py-3 bg-[var(--color-offwhite)] border border-[var(--color-bisque)] rounded-xl focus:outline-none focus:border-[var(--color-rose-antique)] transition-colors" />
             </div>
 
             <div>
                 <label class="block font-bold text-[var(--color-ebony)] mb-1">Mobile Phone Number</label>
-                <input type="tel" name="phone" placeholder="9876543212" maxlength="10" class="w-full px-4 py-3 bg-[var(--color-offwhite)] border border-[var(--color-bisque)] rounded-xl focus:outline-none focus:border-[var(--color-rose-antique)] transition-colors font-bold tracking-wider" />
+                <input type="tel" name="phone" value="{{ old('phone') }}" placeholder="9876543212" maxlength="10" class="w-full px-4 py-3 bg-[var(--color-offwhite)] border border-[var(--color-bisque)] rounded-xl focus:outline-none focus:border-[var(--color-rose-antique)] transition-colors font-bold tracking-wider" />
             </div>
 
             <div>
                 <label class="block font-bold text-[var(--color-ebony)] mb-1">Email Address</label>
-                <input type="email" name="email" placeholder="priyanka@example.com" required class="w-full px-4 py-3 bg-[var(--color-offwhite)] border border-[var(--color-bisque)] rounded-xl focus:outline-none focus:border-[var(--color-rose-antique)] transition-colors" />
+                <input type="email" name="email" value="{{ old('email') }}" placeholder="priyanka@example.com" required class="w-full px-4 py-3 bg-[var(--color-offwhite)] border border-[var(--color-bisque)] rounded-xl focus:outline-none focus:border-[var(--color-rose-antique)] transition-colors" />
             </div>
 
             <div>
-                <label class="block font-bold text-[var(--color-ebony)] mb-1">Password</label>
-                <input type="password" name="password" placeholder="••••••••" required class="w-full px-4 py-3 bg-[var(--color-offwhite)] border border-[var(--color-bisque)] rounded-xl focus:outline-none focus:border-[var(--color-rose-antique)] transition-colors" />
+                <label class="block font-bold text-[var(--color-ebony)] mb-1">Password (Min 6 characters)</label>
+                <input type="password" name="password" placeholder="••••••••" required minlength="6" class="w-full px-4 py-3 bg-[var(--color-offwhite)] border border-[var(--color-bisque)] rounded-xl focus:outline-none focus:border-[var(--color-rose-antique)] transition-colors" />
             </div>
 
             <div>

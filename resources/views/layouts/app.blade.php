@@ -10,6 +10,9 @@
 
     <title>@yield('title', 'ESTILO WEAR | Slay Every Look')</title>
     
+    <!-- Preload Hero Image for Instant Render -->
+    <link rel="preload" as="image" href="/storage/hero/hero-main.jpg" fetchpriority="high">
+
     <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -267,6 +270,18 @@
         @include('partials.search-modal')
         @include('partials.size-guide-modal')
         @include('partials.virtual-tryon-modal')
+
+        {{-- WhatsApp Quick Chat Floating Button --}}
+        <a href="https://wa.me/919876543210?text={{ urlencode('Hello Estilo Wear, I want to connect for a boutique order.') }}"
+           target="_blank"
+           rel="noreferrer"
+           aria-label="Chat on WhatsApp"
+           title="Chat with Us on WhatsApp"
+           class="fixed right-4 sm:right-6 bottom-20 sm:bottom-8 z-50 flex h-14 w-14 items-center justify-center rounded-full bg-[#25D366] shadow-[0_10px_25px_rgba(37,211,102,0.45)] transition-transform duration-200 hover:scale-110 active:scale-95 border-2 border-white/90 cursor-pointer">
+            <svg class="h-7 w-7 text-white" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M20.52 3.48A11.86 11.86 0 0 0 12.1 0C5.54 0 .1 5.42.1 12.05c0 2.13.56 4.2 1.63 6.02L0 24l6.12-1.6a11.96 11.96 0 0 0 5.98 1.53h.01c6.56 0 11.9-5.42 11.9-12.05 0-3.21-1.25-6.24-3.49-8.4ZM12.1 21.9h-.01c-1.93 0-3.82-.52-5.46-1.5l-.39-.23-3.63.95.97-3.54-.25-.38A9.87 9.87 0 0 1 2.12 12.1c0-5.46 4.45-9.9 9.92-9.9a9.88 9.88 0 0 1 7.02 3.02 9.85 9.85 0 0 1 2.9 7.04c0 5.46-4.45 9.9-9.92 9.9Zm5.45-7.38c-.3-.15-1.77-.87-2.04-.97-.27-.1-.47-.15-.67.15-.2.3-.77.97-.94 1.17-.17.2-.35.22-.65.07-.3-.15-1.27-.47-2.42-1.52-.9-.8-1.5-1.78-1.68-2.08-.17-.3-.03-.46.13-.61.13-.14.3-.35.45-.52.15-.17.2-.3.3-.5.1-.2.06-.37-.02-.52-.08-.15-.67-1.62-.92-2.21-.24-.58-.48-.5-.67-.51-.17-.01-.37-.01-.57-.01-.2 0-.52.07-.8.35-.27.28-1.03 1-1.03 2.46 0 1.46 1.05 2.85 1.2 3.04.15.2 2.06 3.15 4.99 4.42.7.3 1.25.49 1.68.63.71.23 1.35.2 1.86.12.57-.08 1.77-.72 2.02-1.42.24-.7.24-1.3.17-1.42-.08-.12-.28-.2-.58-.35Z"/>
+            </svg>
+        </a>
     @endif
     @include('partials.toast')
     
