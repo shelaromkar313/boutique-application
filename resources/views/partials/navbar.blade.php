@@ -518,14 +518,14 @@
                     <a href="/estilo-hq-console?tab=reviews" class="block text-sm font-sans font-semibold text-[var(--color-ebony)] uppercase tracking-wider hover:text-[var(--color-rose-antique)]">
                         ⭐ Ratings & Reviews
                     </a>
-                    <a href="/estilo-hq-console?tab=profile" class="block text-sm font-sans font-semibold text-[var(--color-ebony)] uppercase tracking-wider hover:text-[var(--color-rose-antique)]">
+                    <a href="/estilo-hq-console/profile" class="block text-sm font-sans font-semibold text-[var(--color-ebony)] uppercase tracking-wider hover:text-[var(--color-rose-antique)]">
                         🛡️ Admin Profile & Security
                     </a>
                     <div class="pt-3 border-t border-[var(--color-bisque)]/40 mt-3 space-y-2">
                         <a href="/shop" target="_blank" class="block text-xs font-sans font-bold text-gray-600 hover:text-black">
                             Storefront ↗
                         </a>
-                        <form action="{{ route('logout') }}" method="POST">
+                        <form action="{{ route('admin.logout') }}" method="POST">
                             @csrf
                             <button type="submit" class="w-full text-left text-xs font-bold text-rose-600 hover:underline">
                                 Sign Out
