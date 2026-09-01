@@ -354,17 +354,17 @@
 
 
 
-        {{-- ── 5. Shop By Occasion Horizontal Slider ── --}}
+        {{-- ── 5. Shop By Occasion Continuous Auto-Sliding Marquee ── --}}
         <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative group"
                  x-data="{
                      timer: null,
-                     itemWidth: 0,
+                     singleSetWidth: 0,
                      init() {
                          this.$nextTick(() => {
-                             const items = this.$refs.occasionSlider.querySelectorAll('[data-carousel-item]');
-                             if (items.length > 0) {
-                                 this.itemWidth = items[0].offsetWidth + parseInt(window.getComputedStyle(items[0]).marginRight);
-                             }
+                             const el = this.$refs.occasionSlider;
+                             if (!el) return;
+                             // Calculate single set width for seamless infinite loop
+                             this.singleSetWidth = el.scrollWidth / 3;
                          });
                          this.startAutoScroll();
                      },
@@ -372,25 +372,30 @@
                          this.timer = setInterval(() => {
                              const el = this.$refs.occasionSlider;
                              if (!el) return;
-                             el.scrollBy({ left: this.itemWidth || 280, behavior: 'smooth' });
                              
-                             setTimeout(() => {
-                                 if (el.scrollLeft >= el.scrollWidth - el.clientWidth - 50) {
-                                     el.scrollLeft = 0;
-                                 }
-                             }, 600);
-                         }, 4000);
+                             // If we reached or passed the end of single set, reset to 0 silently
+                             if (el.scrollLeft >= this.singleSetWidth) {
+                                 el.scrollLeft = 0;
+                             } else {
+                                 el.scrollLeft += 1.5;
+                             }
+                         }, 20);
                      },
                      stopAutoScroll() {
                          if (this.timer) clearInterval(this.timer);
                      },
                      scroll(dir) {
                          const el = this.$refs.occasionSlider;
+                         if (!el) return;
+                         if (dir === 'right' && el.scrollLeft >= this.singleSetWidth) {
+                             el.scrollLeft = 0;
+                         } else if (dir === 'left' && el.scrollLeft <= 5) {
+                             el.scrollLeft = this.singleSetWidth;
+                         }
                          const amt = el.clientWidth * 0.7;
                          el.scrollBy({ left: dir === 'left' ? -amt : amt, behavior: 'smooth' });
                      }
                  }"
-                 x-init="init()"
                  @mouseenter="stopAutoScroll()"
                  @mouseleave="startAutoScroll()">
             <div class="flex flex-col sm:flex-row items-start sm:items-end justify-between mb-5 sm:mb-7 gap-3">
@@ -412,9 +417,13 @@
                 </div>
             </div>
 
-            <div x-ref="occasionSlider" class="flex gap-4 sm:gap-5 overflow-x-auto pb-3 pt-1 scroll-smooth" style="scrollbar-width:none;-ms-overflow-style:none;">
-                @foreach($occasionsData as $occ)
-                <div class="flex-none w-[180px] sm:w-[220px] lg:w-[250px]" data-carousel-item>
+            <div x-ref="occasionSlider" class="flex gap-4 sm:gap-5 overflow-x-auto pb-3 pt-1" style="scrollbar-width:none;-ms-overflow-style:none;">
+                @php
+                    $occList = is_object($occasionsData) && method_exists($occasionsData, 'all') ? $occasionsData->all() : (array) $occasionsData;
+                    $infiniteOccasions = array_merge($occList, $occList, $occList);
+                @endphp
+                @foreach($infiniteOccasions as $occ)
+                <div class="flex-none w-[180px] sm:w-[220px] lg:w-[250px]">
                     <a href="/shop?occasion={{ urlencode($occ['name']) }}" class="group relative block rounded-2xl overflow-hidden aspect-[4/5] shadow-sm hover:shadow-[var(--shadow-floating)] transition-all duration-500 border border-[var(--color-bisque)]/40">
                         <img src="{{ $occ['image'] }}" alt="{{ $occ['name'] }}" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" loading="lazy" />
                         <div class="absolute inset-0 bg-gradient-to-t from-[var(--color-ebony)]/90 via-[var(--color-ebony)]/20 to-transparent flex flex-col justify-end p-3 sm:p-4 text-center">
