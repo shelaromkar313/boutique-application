@@ -1,0 +1,4 @@
+git checkout feature/adminpage
+php artisan migrate:fresh --seed
+php artisan serve
+php artisan db:show
