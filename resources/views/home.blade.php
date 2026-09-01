@@ -568,88 +568,67 @@
             </div>
         </section>
 
-        {{-- ── 8. Instagram Lookbook / Reels Continuous Auto-Sliding Marquee ── --}}
-        <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative group"
-                 x-data="{
-                     timer: null,
-                     singleSetWidth: 0,
-                     init() {
-                         this.$nextTick(() => {
-                             const el = this.$refs.instaSlider;
-                             if (!el) return;
-                             // Calculate single set width for seamless infinite loop
-                             this.singleSetWidth = el.scrollWidth / 3;
-                         });
-                         this.startAutoScroll();
-                     },
-                     startAutoScroll() {
-                         this.timer = setInterval(() => {
-                             const el = this.$refs.instaSlider;
-                             if (!el) return;
-                             
-                             // If we reached or passed the end of single set, reset to 0 silently
-                             if (el.scrollLeft >= this.singleSetWidth) {
-                                 el.scrollLeft = 0;
-                             } else {
-                                 el.scrollLeft += 1.5;
-                             }
-                         }, 20);
-                     },
-                     stopAutoScroll() {
-                         if (this.timer) clearInterval(this.timer);
-                     },
-                     scroll(dir) {
-                         const el = this.$refs.instaSlider;
-                         if (!el) return;
-                         if (dir === 'right' && el.scrollLeft >= this.singleSetWidth) {
-                             el.scrollLeft = 0;
-                         } else if (dir === 'left' && el.scrollLeft <= 5) {
-                             el.scrollLeft = this.singleSetWidth;
-                         }
-                         const amt = el.clientWidth * 0.7;
-                         el.scrollBy({ left: dir === 'left' ? -amt : amt, behavior: 'smooth' });
-                     }
-                 }"
-                 @mouseenter="stopAutoScroll()"
-                 @mouseleave="startAutoScroll()">
+        {{-- ── 8. Instagram Lookbook & Continuous Playing Reels ── --}}
+        <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="flex flex-col sm:flex-row items-start sm:items-end justify-between mb-5 sm:mb-7 gap-3">
                 <div class="space-y-1">
                     <div class="inline-flex items-center gap-1.5 text-xs font-sans font-bold text-[var(--color-rose-antique)] uppercase tracking-widest">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><rect x="2" y="2" width="20" height="20" rx="5" ry="5" stroke-width="2"/><path d="M16 11.37A4 4 0 1112.63 8 4 4 0 0116 11.37z" stroke-width="2"/><line x1="17.5" y1="6.5" x2="17.51" y2="6.5" stroke-width="2"/></svg>
                         #SlayEveryLook
                     </div>
-                    <h2 class="font-serif text-2xl sm:text-3xl font-bold text-[var(--color-ebony)]">Follow Us On Instagram @EstiloWear</h2>
+                    <h2 class="font-serif text-2xl sm:text-3xl font-bold text-[var(--color-ebony)]">Boutique Lookbook &amp; Live Reels</h2>
+                    <p class="text-xs text-[var(--color-ebony)]/60 font-sans">Watch live artisan craftsmanship &amp; styling reels from @EstiloWear</p>
                 </div>
-                <div class="flex items-center gap-2 self-end sm:self-auto">
-                    <button @click="scroll('left')"
-                            class="w-8 h-8 sm:w-9 sm:h-9 rounded-full border border-[var(--color-bisque)]/80 bg-white text-[var(--color-ebony)] shadow-sm flex items-center justify-center hover:bg-[var(--color-rose-antique)] hover:text-white transition-all cursor-pointer"
-                            aria-label="Previous Instagram Posts">
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
-                    </button>
-                    <button @click="scroll('right')"
-                            class="w-8 h-8 sm:w-9 sm:h-9 rounded-full border border-[var(--color-bisque)]/80 bg-white text-[var(--color-ebony)] shadow-sm flex items-center justify-center hover:bg-[var(--color-rose-antique)] hover:text-white transition-all cursor-pointer"
-                            aria-label="Next Instagram Posts">
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
-                    </button>
-                </div>
+                <a href="https://instagram.com" target="_blank" class="inline-flex items-center gap-2 bg-white hover:bg-[var(--color-rose-antique)] hover:text-white text-[var(--color-ebony)] font-sans text-xs font-bold uppercase tracking-wider px-5 py-2.5 rounded-full border border-[var(--color-bisque)]/80 shadow-xs transition-all">
+                    <span>Follow @EstiloWear</span>
+                    <svg class="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/></svg>
+                </a>
             </div>
 
-            <!-- Horizontal Instagram Slider -->
-            <div x-ref="instaSlider" class="flex gap-3 sm:gap-4 overflow-x-auto pb-3 pt-1" style="scrollbar-width:none;-ms-overflow-style:none;">
-                @php
-                    $instaList = is_object($instagramPosts) && method_exists($instagramPosts, 'all') ? $instagramPosts->all() : (array) $instagramPosts;
-                    $infiniteInsta = array_merge($instaList, $instaList, $instaList);
-                @endphp
-                @foreach($infiniteInsta as $post)
-                <div class="flex-none w-[180px] sm:w-[240px] lg:w-[270px]">
-                    <div class="group relative rounded-xl sm:rounded-2xl overflow-hidden aspect-square border border-[var(--color-bisque)]/40">
-                        <img src="{{ $post['image'] }}" alt="Instagram Look" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" loading="lazy" />
-                        <div class="absolute inset-0 bg-[var(--color-ebony)]/50 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col items-center justify-center text-white space-y-1 sm:space-y-2">
-                            <svg class="w-6 h-6 text-[var(--color-blush)]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><rect x="2" y="2" width="20" height="20" rx="5" ry="5" stroke-width="2"/><path d="M16 11.37A4 4 0 1112.63 8 4 4 0 0116 11.37z" stroke-width="2"/><line x1="17.5" y1="6.5" x2="17.51" y2="6.5" stroke-width="2"/></svg>
-                            <span class="text-[10px] sm:text-xs font-sans font-bold">{{ $post['tag'] }}</span>
-                            <span class="text-[9px] sm:text-[10px] font-sans text-white/80">{{ $post['likes'] }} Likes</span>
-                        </div>
+            <!-- Continuous Playing Video Reels Grid -->
+            @php
+                $videoUrls = [
+                    'https://assets.mixkit.co/videos/preview/mixkit-fashion-model-in-a-red-dress-41584-large.mp4',
+                    'https://assets.mixkit.co/videos/preview/mixkit-woman-in-a-traditional-dress-walking-slowly-41586-large.mp4',
+                    'https://assets.mixkit.co/videos/preview/mixkit-young-woman-wearing-a-beautiful-traditional-dress-41587-large.mp4',
+                    'https://assets.mixkit.co/videos/preview/mixkit-model-posing-in-a-studio-setting-41585-large.mp4',
+                ];
+            @endphp
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-5">
+                @foreach($instagramPosts->take(4) as $index => $post)
+                <div class="group relative rounded-2xl overflow-hidden aspect-[4/5] bg-black shadow-md border border-[var(--color-bisque)]/40"
+                     x-data="{ isMuted: true }">
+
+                    {{-- HTML5 Video Element playing continuously --}}
+                    <video autoplay loop muted playsinline
+                           poster="{{ $post['image'] }}"
+                           class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105">
+                        <source src="{{ $videoUrls[$index % count($videoUrls)] }}" type="video/mp4">
+                        <img src="{{ $post['image'] }}" alt="Fashion Reel" class="w-full h-full object-cover" />
+                    </video>
+
+                    {{-- Live REEL Badge Overlay --}}
+                    <div class="absolute top-3 left-3 z-10 flex items-center gap-1.5 bg-black/60 backdrop-blur-md px-2.5 py-1 rounded-full text-white text-[10px] font-sans font-bold tracking-wider uppercase border border-white/20">
+                        <span class="w-2 h-2 rounded-full bg-red-500 animate-ping"></span>
+                        <span>REEL</span>
                     </div>
+
+                    {{-- Sound Toggle Button --}}
+                    <button @click="$el.closest('div').querySelector('video').muted = !$el.closest('div').querySelector('video').muted; isMuted = !isMuted"
+                            class="absolute top-3 right-3 z-10 w-7 h-7 rounded-full bg-black/50 backdrop-blur-md text-white flex items-center justify-center text-xs hover:bg-[var(--color-rose-antique)] transition-colors border border-white/20"
+                            aria-label="Toggle Sound">
+                        <span x-text="isMuted ? '🔇' : '🔊'"></span>
+                    </button>
+
+                    {{-- Bottom Caption Overlay --}}
+                    <div class="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/90 via-black/40 to-transparent p-3.5 sm:p-4 text-white flex flex-col justify-end space-y-1">
+                        <div class="flex items-center justify-between text-xs font-sans font-bold">
+                            <span class="text-[var(--color-blush)] truncate">{{ $post['tag'] }}</span>
+                            <span class="text-[10px] text-white/80 font-normal">❤️ {{ $post['likes'] }}</span>
+                        </div>
+                        <p class="text-[10px] font-sans text-white/70 truncate">Estilo Atelier Handloom Collection ✦</p>
+                    </div>
+
                 </div>
                 @endforeach
             </div>
