@@ -84,7 +84,7 @@
 
     {{-- ══ 3. HERO SLIDESHOW BANNER ══ --}}
     <section class="relative w-full overflow-hidden bg-[var(--color-ebony)] group"
-             style="height: clamp(480px, 80vh, 900px);"
+             style="height: clamp(460px, 75vh, 900px);"
              aria-label="Hero Banner — New Collection"
              x-data="{
                  currentSlide: 0,
@@ -96,6 +96,7 @@
                          titleline3: 'Elegance',
                          desc: 'Handcrafted Indian fashion for the modern woman — curated from artisan weavers across India.',
                          image: '/storage/hero/hero-main.jpg',
+                         objectPos: 'object-[85%_top] sm:object-[82%_top] md:object-[right_top]',
                          btnText: 'Shop Now',
                          btnLink: '/shop',
                          subLinkText: 'View New Arrivals',
@@ -108,10 +109,24 @@
                          titleline3: 'Sarees',
                          desc: 'Pure silk mark certified sarees featuring gold zari brocade & Kadwa weaving from Varanasi.',
                          image: '/storage/hero/hero-slide-2.jpg',
+                         objectPos: 'object-[center_top] sm:object-[center_top] md:object-[center_top]',
                          btnText: 'Explore Sarees',
                          btnLink: '/shop?category=Sarees',
                          subLinkText: 'View Banarasi Silk',
                          subLink: '/shop?category=Sarees'
+                     },
+                     {
+                         tag: 'ROYAL HERITAGE CRAFT',
+                         titleline1: 'Lucknowi',
+                         titleline2: 'Chikankari',
+                         titleline3: 'Couture',
+                         desc: 'Airy mulmul cotton & silk Anarkalis with hand-embroidered shadow work & silver Mukaish.',
+                         image: '/storage/hero/hero-slide-3.jpg',
+                         objectPos: 'object-[center_top] sm:object-[center_top] md:object-[center_top]',
+                         btnText: 'Explore Chikankari',
+                         btnLink: '/shop?category=Chikankari+Kurtis',
+                         subLinkText: 'View Anarkalis',
+                         subLink: '/shop?category=Anarkali'
                      }
                  ],
                  timer: null,
@@ -146,11 +161,11 @@
                  :class="currentSlide === idx ? 'opacity-100 z-10' : 'opacity-0 z-0'">
                 <img :src="slide.image"
                      :alt="slide.titleline1 + ' ' + slide.titleline2"
-                     class="w-full h-full object-cover object-[center_top] sm:object-[78%_top] md:object-[right_top] transition-transform duration-10000 ease-out transform scale-105"
-                     :class="currentSlide === idx ? 'scale-100' : 'scale-105'"
+                     class="w-full h-full object-cover transition-transform duration-10000 ease-out transform scale-105"
+                     :class="[currentSlide === idx ? 'scale-100' : 'scale-105', slide.objectPos]"
                      fetchpriority="high"
                      decoding="async" />
-                <div class="absolute inset-0 bg-gradient-to-r from-black/95 via-black/75 to-black/30 sm:via-black/55 sm:to-transparent"></div>
+                <div class="absolute inset-0 bg-gradient-to-r from-black/90 via-black/60 to-black/20 sm:via-black/50 sm:to-transparent"></div>
                 <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-black/30"></div>
             </div>
         </template>
