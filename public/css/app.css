@@ -39,6 +39,10 @@
 }
 
 /* ── Base Styles ── */
+[x-cloak] {
+    display: none !important;
+}
+
 html, body {
     overflow-x: hidden;
     -webkit-overflow-scrolling: touch;

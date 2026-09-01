@@ -183,19 +183,26 @@ $relatedProducts = collect($productsData)->filter(function ($p) use ($product) {
                         </button>
                     </div>
 
-                    <div class="flex flex-col sm:flex-row flex-wrap items-stretch sm:items-center gap-3 sm:gap-4 pt-2">
-                        <div class="flex items-center border border-[var(--color-bisque)] rounded-full px-3 py-3 bg-white w-fit">
-                            <button @click="quantity = Math.max(1, quantity - 1)" class="text-xs font-bold px-2 hover:text-[var(--color-rose-antique)]">-</button>
-                            <span class="text-xs font-sans font-bold px-3" x-text="quantity"></span>
-                            <button @click="quantity++" class="text-xs font-bold px-2 hover:text-[var(--color-rose-antique)]">+</button>
+                    <div class="flex flex-col gap-4 pt-2">
+                        <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 sm:gap-4">
+                            <div class="flex items-center border border-[var(--color-bisque)] rounded-full px-3 py-3 bg-white w-fit">
+                                <button @click="quantity = Math.max(1, quantity - 1)" class="text-xs font-bold px-2 hover:text-[var(--color-rose-antique)]">-</button>
+                                <span class="text-xs font-sans font-bold px-3" x-text="quantity"></span>
+                                <button @click="quantity++" class="text-xs font-bold px-2 hover:text-[var(--color-rose-antique)]">+</button>
+                            </div>
+
+                            <button @click="$store.shop.addToCart({ id: product.id, name: product.name, price: product.price, image: product.images[0], color: selectedColor, size: selectedSize, qty: quantity, category: product.category })" class="flex-1 bg-[var(--color-ebony)] hover:bg-[var(--color-rose-deep)] text-white font-sans text-xs font-bold uppercase tracking-widest py-4 rounded-full shadow-[var(--shadow-floating)] transition-all hover:scale-[1.02] flex items-center justify-center gap-2">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"></path></svg>
+                                <span>Add to Bag</span>
+                            </button>
+
+                            <button @click="$store.shop.toggleWishlist({ id: product.id, name: product.name, price: product.price, image: product.images[0], category: product.category })" class="w-14 h-14 rounded-full border border-[var(--color-bisque)] bg-white flex items-center justify-center text-[var(--color-ebony)] hover:text-[var(--color-rose-antique)] transition-colors shadow-sm flex-shrink-0">
+                                <svg :class="$store.shop.isInWishlist(product.id) ? 'fill-[var(--color-rose-antique)] text-[var(--color-rose-antique)]' : 'fill-none'" class="w-5 h-5" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"></path></svg>
+                            </button>
                         </div>
 
-                        <button @click="$store.shop.addToCart({ id: product.id, name: product.name, price: product.price, image: product.images[0], color: selectedColor, size: selectedSize, qty: quantity, category: product.category })" class="flex-1 bg-[var(--color-ebony)] hover:bg-[var(--color-rose-deep)] text-white font-sans text-xs font-bold uppercase tracking-widest py-4 rounded-full shadow-[var(--shadow-floating)] transition-all hover:scale-[1.02] flex items-center justify-center gap-2">
-                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"></path></svg> Add to Shopping Bag
-                        </button>
-
-                        <button @click="$store.shop.toggleWishlist({ id: product.id, name: product.name, price: product.price, image: product.images[0], category: product.category })" class="w-14 h-14 rounded-full border border-[var(--color-bisque)] bg-white flex items-center justify-center text-[var(--color-ebony)] hover:text-[var(--color-rose-antique)] transition-colors shadow-sm flex-shrink-0">
-                            <svg :class="$store.shop.isInWishlist(product.id) ? 'fill-[var(--color-rose-antique)] text-[var(--color-rose-antique)]' : 'fill-none'" class="w-5 h-5" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"></path></svg>
+                        <button @click="$store.shop.addToCart({ id: product.id, name: product.name, price: product.price, image: product.images[0], color: selectedColor, size: selectedSize, qty: quantity, category: product.category }); setTimeout(() => window.location.href = '/checkout', 300);" class="w-full bg-[var(--color-rose-antique)] hover:bg-[var(--color-ebony)] text-white font-sans text-xs font-bold uppercase tracking-widest py-4 rounded-full shadow-[var(--shadow-floating)] transition-all hover:scale-[1.02] flex items-center justify-center gap-2">
+                            Buy Now
                         </button>
                     </div>
 
