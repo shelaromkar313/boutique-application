@@ -398,7 +398,7 @@ class AuthController extends Controller
         if (Auth::check() && optional(Auth::user())->isAdmin()) {
             return redirect('/estilo-hq-console/dashboard');
         }
-        return view('login', ['role' => 'admin', 'isAdminConsole' => true]);
+        return view('admin-login');
     }
 
     /**

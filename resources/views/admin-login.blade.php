@@ -3,143 +3,122 @@
 @section('title', 'Estilo HQ Console — Administrator Authentication')
 
 @section('content')
-<div x-data="{
-    emailInput: 'admin@estilo.com',
-    passwordInput: 'Admin@123',
-    remember: true,
-    fillDemo() {
-        this.emailInput = 'admin@estilo.com';
-        this.passwordInput = 'Admin@123';
-    }
-}"
-class="min-h-[85vh] flex items-center justify-center py-8 px-3 sm:px-6 bg-gradient-to-b from-[var(--color-champagne-light)]/40 to-[var(--color-offwhite)]">
+<div class="min-h-[85vh] flex items-center justify-center py-10 px-4 sm:px-6 bg-gradient-to-b from-[var(--color-ebony)]/5 via-[var(--color-offwhite)] to-[var(--color-champagne-light)]/40">
 
-    <div class="w-full max-w-md space-y-5">
+    <div class="w-full max-w-md space-y-6">
 
-        {{-- Brand / top badge --}}
-        <div class="text-center space-y-3">
-            <div class="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-white/80 border border-[var(--color-bisque)] text-[var(--color-ebony)] text-[10px] font-sans font-bold uppercase tracking-[0.18em] shadow-sm backdrop-blur-sm">
-                <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-                <span>Restricted Terminal • HQ Console</span>
-            </div>
-
-            <div class="flex items-center justify-center gap-2">
-                <div class="w-10 h-10 overflow-hidden rounded-full border border-[var(--color-bisque)] bg-white p-1 flex items-center justify-center shadow-sm">
-                    <img src="/storage/logo.jpg" alt="Estilo Wear" class="w-full h-full object-cover rounded-full" />
+        {{-- Branding above card --}}
+        <div class="text-center space-y-2">
+            <a href="/" class="inline-flex items-center gap-2 text-[var(--color-ebony)] group">
+                <div class="w-10 h-10 overflow-hidden rounded-full border-2 border-amber-300 shadow-md">
+                    <img src="/storage/logo.jpg" alt="Estilo Wear" class="w-[160%] -mt-[20%] mix-blend-multiply" />
                 </div>
-                <span class="font-serif text-2xl font-bold tracking-[0.2em] text-[var(--color-ebony)]">ESTILO WEAR</span>
-            </div>
-            <p class="text-xs font-sans text-[var(--color-ebony)]/65">Authorized Personnel Only — Unauthorized access is prohibited and logged.</p>
+                <span class="font-serif text-2xl font-bold tracking-widest text-[var(--color-ebony)]">ESTILO HQ</span>
+            </a>
+            <p class="text-[11px] font-sans font-bold uppercase tracking-widest text-[var(--color-ebony)]/60">Executive Management Console</p>
         </div>
 
-        {{-- Security Card --}}
-        <div class="bg-white/90 backdrop-blur-xl rounded-3xl border border-[var(--color-bisque)] shadow-[0_20px_50px_rgba(26,24,24,0.12)] overflow-hidden">
-            <div class="h-1.5 w-full bg-gradient-to-r from-[var(--color-rose-antique)] via-[#f5c79b] to-[var(--color-rose-deep)]"></div>
+        {{-- Card --}}
+        <div class="bg-white rounded-3xl border border-[var(--color-bisque)] shadow-2xl overflow-hidden">
 
-            <div class="p-6 sm:p-8 space-y-5">
+            {{-- Top Accent Bar --}}
+            <div class="h-1.5 w-full bg-[var(--color-ebony)]"></div>
+
+            <div class="p-6 sm:p-8 space-y-6">
 
                 {{-- Header --}}
-                <div class="space-y-1 text-center">
-                    <h2 class="font-serif text-2xl font-bold text-[var(--color-ebony)] flex items-center justify-center gap-2">
-                        <span>Admin Verification</span>
-                        <svg class="w-5 h-5 text-[var(--color-rose-antique)]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/>
-                        </svg>
-                    </h2>
-                    <p class="text-xs font-sans text-[var(--color-ebony)]/60">Enter master administrator credentials to access store controls.</p>
+                <div class="text-center space-y-1.5">
+                    <div class="inline-flex items-center gap-1.5 bg-slate-900 text-amber-200 text-[10px] font-sans font-bold uppercase tracking-widest px-3 py-1 rounded-full shadow-inner">
+                        <span>🛡️</span> Super Administrator Portal
+                    </div>
+                    <h1 class="font-serif text-2xl font-bold text-[var(--color-ebony)] pt-1">Administrator Sign In</h1>
+                    <p class="text-xs font-sans text-gray-500">Provide verified administrative credentials to access boutique controls, inventory, and order dispatching.</p>
                 </div>
 
-                {{-- Alert Messages --}}
-                @if(session('info'))
-                <div class="p-3.5 rounded-xl bg-sky-50 border border-sky-200 text-sky-900 text-xs font-sans flex items-start gap-2.5">
-                    <span class="text-base">ℹ️</span>
-                    <span>{{ session('info') }}</span>
-                </div>
-                @endif
-
+                {{-- Flash and Error Alerts --}}
                 @if(session('success'))
-                <div class="p-3.5 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-900 text-xs font-sans flex items-start gap-2.5">
-                    <span class="text-base">✅</span>
-                    <span>{{ session('success') }}</span>
+                <div class="bg-emerald-50 border border-emerald-300 text-emerald-900 px-4 py-2.5 rounded-xl text-xs font-sans font-bold flex items-center gap-2">
+                    <span>✨</span> {{ session('success') }}
                 </div>
                 @endif
 
                 @if($errors->any())
-                <div class="p-3.5 rounded-xl bg-rose-50 border border-rose-200 text-rose-900 text-xs font-sans space-y-1">
-                    <div class="font-bold flex items-center gap-1.5">
-                        <span>⚠️</span> Authentication Error:
+                <div class="bg-rose-50 border border-rose-300 text-rose-900 px-4 py-2.5 rounded-xl text-xs font-sans space-y-1">
+                    @foreach($errors->all() as $error)
+                    <div class="flex items-center gap-1.5">
+                        <span>⚠️</span> {{ $error }}
                     </div>
-                    <ul class="list-disc pl-5 space-y-0.5 text-[11px] text-rose-700">
-                        @foreach($errors->all() as $err)
-                        <li>{{ $err }}</li>
-                        @endforeach
-                    </ul>
+                    @endforeach
                 </div>
                 @endif
 
-                {{-- Admin Login Form --}}
-                <form action="/estilo-hq-console/login" method="POST" class="space-y-4">
+                {{-- Login Form --}}
+                <form action="/estilo-hq-console/login" method="POST" class="space-y-4" id="adminLoginForm">
                     @csrf
 
                     <div>
-                        <label class="block text-[11px] font-sans font-bold text-[var(--color-ebony)] uppercase tracking-wider mb-1.5">
-                            Administrator Email
+                        <label class="block text-[10px] sm:text-xs font-sans font-bold text-[var(--color-ebony)] uppercase tracking-wider mb-1.5">
+                            Administrator Email (Login ID)
                         </label>
                         <div class="relative">
-                            <input type="email" name="email" x-model="emailInput" required placeholder="admin@estilo.com"
-                                   class="w-full bg-[var(--color-offwhite)] border border-[var(--color-bisque)] rounded-xl px-4 py-3 text-xs font-mono text-[var(--color-ebony)] placeholder-[var(--color-ebony)]/45 focus:outline-none focus:border-[var(--color-rose-antique)] focus:ring-1 focus:ring-[var(--color-rose-antique)] transition-colors" />
-                            <span class="absolute right-3.5 top-3 text-[var(--color-ebony)]/45 text-sm">✉️</span>
+                            <input type="email" name="email" id="adminEmailInput"
+                                   value="{{ old('email', 'admin@estilo.com') }}"
+                                   placeholder="admin@estilo.com" required
+                                   class="w-full bg-[var(--color-offwhite)] border border-[var(--color-bisque)] rounded-xl px-4 py-3 text-sm font-sans font-semibold focus:outline-none focus:border-amber-400 focus:bg-white transition-all shadow-inner" />
                         </div>
                     </div>
 
                     <div>
-                        <div class="flex items-center justify-between mb-1.5">
-                            <label class="text-[11px] font-sans font-bold text-[var(--color-ebony)] uppercase tracking-wider">
-                                Master Password
-                            </label>
-                            <span class="text-[10px] font-mono text-[var(--color-rose-antique)]">Estilo Encrypted</span>
-                        </div>
+                        <label class="block text-[10px] sm:text-xs font-sans font-bold text-[var(--color-ebony)] uppercase tracking-wider mb-1.5">
+                            Password
+                        </label>
                         <div class="relative">
-                            <input type="password" name="password" x-model="passwordInput" required placeholder="••••••••"
-                                   class="w-full bg-[var(--color-offwhite)] border border-[var(--color-bisque)] rounded-xl px-4 py-3 text-xs font-mono text-[var(--color-ebony)] placeholder-[var(--color-ebony)]/45 focus:outline-none focus:border-[var(--color-rose-antique)] focus:ring-1 focus:ring-[var(--color-rose-antique)] transition-colors" />
-                            <span class="absolute right-3.5 top-3 text-[var(--color-ebony)]/45 text-sm">🔑</span>
+                            <input type="password" name="password" id="adminPasswordInput"
+                                   value="Admin@123"
+                                   placeholder="••••••••" required
+                                   class="w-full bg-[var(--color-offwhite)] border border-[var(--color-bisque)] rounded-xl px-4 py-3 text-sm font-mono focus:outline-none focus:border-amber-400 focus:bg-white transition-all shadow-inner" />
                         </div>
                     </div>
 
-                    <div class="flex items-center justify-between pt-1 text-xs">
-                        <label class="flex items-center gap-2 cursor-pointer text-[var(--color-ebony)]/70 hover:text-[var(--color-ebony)]">
-                            <input type="checkbox" name="remember" x-model="remember" class="accent-[var(--color-rose-antique)] rounded" />
-                            <span>Maintain active session</span>
+                    <div class="flex items-center justify-between text-xs font-sans text-gray-600">
+                        <label class="flex items-center gap-2 cursor-pointer">
+                            <input type="checkbox" name="remember" checked class="rounded text-[var(--color-ebony)] focus:ring-0 accent-[var(--color-ebony)]" />
+                            <span>Stay authenticated on this terminal</span>
                         </label>
                     </div>
 
                     <button type="submit"
-                            class="w-full py-3.5 rounded-xl bg-[var(--color-ebony)] hover:bg-[var(--color-rose-deep)] text-white font-sans text-xs font-bold uppercase tracking-widest shadow-lg shadow-black/10 transition-all hover:scale-[1.01] active:scale-[0.99] flex items-center justify-center gap-2">
-                        <span>Authenticate & Enter HQ Console</span>
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
+                            class="w-full py-3.5 bg-[var(--color-ebony)] hover:bg-[var(--color-rose-deep)] text-white font-sans text-xs font-bold uppercase tracking-widest rounded-xl shadow-lg transition-all hover:scale-[1.01] active:scale-[0.98] flex items-center justify-center gap-2">
+                        <span>🔐 Access Management Console</span>
+                        <span>→</span>
                     </button>
                 </form>
 
-                {{-- Demo Auto-Fill Trigger --}}
-                <div class="pt-3 border-t border-[var(--color-bisque)] flex items-center justify-between">
-                    <span class="text-[10.5px] font-sans text-[var(--color-ebony)]/55">Presentation Quick Access:</span>
-                    <button type="button" @click="fillDemo()"
-                            class="text-[11px] font-sans font-bold text-[var(--color-ebony)] hover:text-[var(--color-ebony)] bg-[var(--color-champagne-light)] hover:bg-[#f6dfd1] border border-[var(--color-bisque)] px-3 py-1.5 rounded-lg transition-colors flex items-center gap-1.5">
-                        <span>⚡ Fill Admin Keys</span>
-                    </button>
+                {{-- 1-Click Fast Fill for Testing --}}
+                <div class="border-t border-[var(--color-bisque)]/60 pt-4">
+                    <div class="bg-amber-50/80 border border-amber-200 rounded-2xl p-3.5 space-y-2">
+                        <div class="flex items-start justify-between">
+                            <div>
+                                <span class="text-[11px] font-sans font-bold text-amber-950 block">⚡ Quick Master Admin Access</span>
+                                <span class="text-[10px] font-sans text-amber-800">Email: <b class="font-mono">admin@estilo.com</b> • Pass: <b class="font-mono">Admin@123</b></span>
+                            </div>
+                        </div>
+                        <button type="button"
+                                onclick="document.getElementById('adminEmailInput').value='admin@estilo.com'; document.getElementById('adminPasswordInput').value='Admin@123'; document.getElementById('adminLoginForm').submit();"
+                                class="w-full bg-amber-600 hover:bg-amber-700 text-white text-[10px] font-sans font-bold uppercase tracking-wider py-2 rounded-xl transition-all shadow-xs flex items-center justify-center gap-1.5 cursor-pointer">
+                            <span>👑 1-Click Master Admin Login</span>
+                        </button>
+                    </div>
+                </div>
+
+                {{-- Return to Storefront --}}
+                <div class="text-center pt-2">
+                    <a href="/shop" class="text-xs font-sans font-semibold text-gray-500 hover:text-[var(--color-ebony)] transition-colors">
+                        ← Return to Customer Storefront
+                    </a>
                 </div>
 
             </div>
-        </div>
-
-        {{-- Footer notes --}}
-        <div class="text-center space-y-1">
-            <p class="text-[11px] font-mono text-[var(--color-ebony)]/55">
-                🔒 Security Protocol: <span class="text-[var(--color-ebony)]/70">Strict Role Validation (role=admin)</span>
-            </p>
-            <a href="/" class="inline-block text-[11px] font-sans text-[var(--color-ebony)]/70 hover:text-[var(--color-ebony)] transition-colors">
-                ← Return to Public Storefront
-            </a>
         </div>
 
     </div>
