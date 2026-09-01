@@ -291,25 +291,35 @@ class AuthController extends Controller
     {
         $request->validate([
             'name'     => 'required|string|max:255',
-            'email'    => 'required|email|unique:users,email',
+            'email'    => 'required|email',
             'phone'    => 'nullable|string|max:20',
             'password' => 'required|min:6',
         ]);
 
-        $user = User::create([
-            'name'     => $request->name,
-            'email'    => $request->email,
-            'phone'    => $request->phone,
-            'password' => Hash::make($request->password),
-            'role'     => 'customer',
-        ]);
+        // If user with this email already exists, update & log them in directly
+        $user = User::where('email', $request->email)->first();
+        if ($user) {
+            $user->update([
+                'name'     => $request->name ?: $user->name,
+                'phone'    => $request->phone ?: $user->phone,
+                'password' => Hash::make($request->password),
+            ]);
+        } else {
+            $user = User::create([
+                'name'     => $request->name,
+                'email'    => $request->email,
+                'phone'    => $request->phone,
+                'password' => Hash::make($request->password),
+                'role'     => 'customer',
+            ]);
+        }
 
         Auth::login($user);
         if ($request->hasSession()) {
             $request->session()->regenerate();
         }
 
-        return redirect('/profile')->with('success', '✨ Welcome to Estilo Wear, ' . $user->name . '! Your customer account is active.');
+        return redirect('/profile')->with('success', '✨ Welcome to Estilo Wear, ' . $user->name . '! Your account is active.');
     }
 
     /**
