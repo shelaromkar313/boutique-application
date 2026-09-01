@@ -77,52 +77,18 @@ class="min-h-[85vh] flex items-center justify-center py-8 px-3 sm:px-6 bg-gradie
 
                 {{-- Heading --}}
                 <div class="text-center space-y-1">
-                    <h1 class="font-serif text-xl sm:text-2xl font-bold text-[var(--color-ebony)]">Sign In to Your Portal</h1>
-                    <p class="text-[11px] sm:text-xs font-sans text-[var(--color-ebony)]/60">Choose your account type, then sign in below.</p>
+                    <h1 class="font-serif text-xl sm:text-2xl font-bold text-[var(--color-ebony)]">Welcome Back!</h1>
+                    <p class="text-[11px] sm:text-xs font-sans text-[var(--color-ebony)]/60">Sign in to your customer account and continue shopping.</p>
                 </div>
 
-                {{-- ── 1. Role Selection Tabs ── --}}
-                <div class="grid grid-cols-3 gap-1.5 bg-[var(--color-offwhite)] p-1.5 rounded-xl border border-[var(--color-bisque)]">
-                    <button type="button" @click="selectRole('customer')"
-                            :class="activeRole === 'customer'
-                                ? 'bg-[var(--color-ebony)] text-white shadow'
-                                : 'text-[var(--color-ebony)]/60 hover:text-[var(--color-ebony)]'"
-                            class="py-2.5 rounded-lg text-center font-sans text-[11px] sm:text-xs font-bold uppercase tracking-wide transition-all flex flex-col items-center justify-center gap-1">
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                {{-- ── 1. Customer Welcome Badge (No Role Selection) ── --}}
+                <div class="py-2 px-3 rounded-xl text-[11px] sm:text-xs font-sans border flex items-center justify-between gap-2 bg-pink-50 border-pink-200 text-pink-900">
+                    <div class="flex items-center gap-2">
+                        <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
                         </svg>
-                        Customer
-                    </button>
-                    <button type="button" @click="selectRole('sales_associate')"
-                            :class="activeRole === 'sales_associate'
-                                ? 'bg-amber-700 text-white shadow'
-                                : 'text-[var(--color-ebony)]/60 hover:text-[var(--color-ebony)]'"
-                            class="py-2.5 rounded-lg text-center font-sans text-[11px] sm:text-xs font-bold uppercase tracking-wide transition-all flex flex-col items-center justify-center gap-1">
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"/>
-                        </svg>
-                        Sales
-                    </button>
-                    <button type="button" @click="selectRole('admin')"
-                            :class="activeRole === 'admin'
-                                ? 'bg-slate-900 text-amber-200 shadow'
-                                : 'text-[var(--color-ebony)]/60 hover:text-[var(--color-ebony)]'"
-                            class="py-2.5 rounded-lg text-center font-sans text-[11px] sm:text-xs font-bold uppercase tracking-wide transition-all flex flex-col items-center justify-center gap-1">
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/>
-                        </svg>
-                        Admin
-                    </button>
-                </div>
-
-                {{-- Role info pill --}}
-                <div class="py-2 px-3 rounded-xl text-[11px] sm:text-xs font-sans border flex items-center justify-between gap-2 transition-colors duration-200"
-                     :class="{
-                         'bg-pink-50 border-pink-200 text-pink-900': activeRole === 'customer',
-                         'bg-amber-50 border-amber-200 text-amber-900': activeRole === 'sales_associate',
-                         'bg-slate-900 text-slate-200 border-slate-700': activeRole === 'admin'
-                     }">
-                    <span class="font-bold" x-text="activeRole === 'customer' ? 'Customer — Orders & Account Hub' : (activeRole === 'sales_associate' ? 'Sales Partner — Commission & Links' : 'Administrator — Full Store Management')"></span>
+                        <span class="font-bold">Customer — Orders & Account Hub</span>
+                    </div>
                 </div>
 
                 {{-- ── 2. Auth Method Toggle ── --}}
@@ -221,34 +187,31 @@ class="min-h-[85vh] flex items-center justify-center py-8 px-3 sm:px-6 bg-gradie
                     </button>
                 </form>
 
-                {{-- ── 4. Quick Demo Switcher ── --}}
-                <div class="border-t border-[var(--color-bisque)]/60 pt-4 space-y-2.5">
-                    <p class="text-[10px] font-sans font-bold uppercase tracking-widest text-center text-[var(--color-ebony)]/50">
-                        Quick Demo — click to auto-fill credentials
-                    </p>
-                    <div class="grid grid-cols-3 gap-2">
-                        <button type="button" @click="selectRole('customer'); authMethod='email'"
-                                class="p-2.5 rounded-xl bg-gray-50 hover:bg-gray-100 border border-gray-200 text-center text-[10px] sm:text-[11px] font-sans font-bold text-gray-700 transition-colors leading-tight">
-                            👗<br class="sm:hidden" /> Customer
-                        </button>
-                        <button type="button" @click="selectRole('sales_associate'); authMethod='email'"
-                                class="p-2.5 rounded-xl bg-amber-50 hover:bg-amber-100 border border-amber-200 text-center text-[10px] sm:text-[11px] font-sans font-bold text-amber-800 transition-colors leading-tight">
-                            💼<br class="sm:hidden" /> Sales
-                        </button>
-                        <button type="button" @click="selectRole('admin'); authMethod='email'"
-                                class="p-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 border border-slate-300 text-center text-[10px] sm:text-[11px] font-sans font-bold text-slate-800 transition-colors leading-tight">
-                            👑<br class="sm:hidden" /> Admin
+                {{-- ── 4. Demo Credentials (For Testing Only) ── --}}
+                <div class="border-t border-[var(--color-bisque)]/60 pt-4">
+                    <div class="bg-blue-50 border border-blue-200 rounded-xl p-3 space-y-2">
+                        <div class="flex items-start gap-2">
+                            <svg class="w-4 h-4 text-blue-600 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M18 5v8a2 2 0 01-2 2h-5l-5 4v-4H4a2 2 0 01-2-2V5a2 2 0 012-2h12a2 2 0 012 2zm-11-1a1 1 0 11-2 0 1 1 0 012 0zm3 1a1 1 0 100-2 1 1 0 000 2zm2-1a1 1 0 11-2 0 1 1 0 012 0z" clip-rule="evenodd"/></svg>
+                            <div class="flex-1">
+                                <p class="text-[10px] sm:text-[11px] font-sans font-bold text-blue-900">Demo Customer Account</p>
+                                <p class="text-[9px] sm:text-[10px] font-sans text-blue-800 mt-0.5">
+                                    Email: <span class="font-mono bg-white/50 px-1 py-0.5 rounded">test@example.com</span> • Password: <span class="font-mono bg-white/50 px-1 py-0.5 rounded">Customer@123</span>
+                                </p>
+                            </div>
+                        </div>
+                        <button type="button" @click="authMethod = 'email'; emailInput = 'test@example.com'; passwordInput = 'Customer@123'; $nextTick(() => $el.closest('.p-5').querySelector('form').submit())" class="w-full bg-blue-600 hover:bg-blue-700 text-white text-[10px] font-sans font-bold uppercase tracking-wider py-2 rounded-xl transition-all shadow-xs flex items-center justify-center gap-1 cursor-pointer">
+                            <span>⚡ 1-Click Demo Customer Login</span>
                         </button>
                     </div>
                 </div>
 
                 {{-- Registration links --}}
-                <div class="text-center text-[11px] sm:text-xs font-sans text-[var(--color-ebony)]/70 space-y-1 pt-1">
+                <div class="text-center text-[11px] sm:text-xs font-sans text-[var(--color-ebony)]/70 space-y-1.5 pt-2 border-t border-[var(--color-bisque)]/60">
                     <div>
                         New customer? <a href="/register" class="text-[var(--color-rose-antique)] font-bold hover:underline">Create Account</a>
                     </div>
                     <div>
-                        Earn 10-15% commission? <a href="/sales/register" class="text-amber-800 font-bold hover:underline">Join Sales Partner Program ✦</a>
+                        Want to shop without an account? <a href="/checkout" class="text-[var(--color-thyme)] font-bold hover:underline">Guest Checkout →</a>
                     </div>
                 </div>
 
