@@ -146,44 +146,45 @@
                  :class="currentSlide === idx ? 'opacity-100 z-10' : 'opacity-0 z-0'">
                 <img :src="slide.image"
                      :alt="slide.titleline1 + ' ' + slide.titleline2"
-                     class="w-full h-full object-cover object-[78%_top] sm:object-[82%_top] md:object-[right_top] transition-transform duration-10000 ease-out transform scale-105"
+                     class="w-full h-full object-cover object-[center_top] sm:object-[78%_top] md:object-[right_top] transition-transform duration-10000 ease-out transform scale-105"
                      :class="currentSlide === idx ? 'scale-100' : 'scale-105'"
-                     fetchpriority="high" />
-                <div class="absolute inset-0 bg-gradient-to-r from-black/90 via-black/55 to-transparent lg:to-transparent"></div>
-                <div class="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-black/20"></div>
+                     fetchpriority="high"
+                     decoding="async" />
+                <div class="absolute inset-0 bg-gradient-to-r from-black/95 via-black/75 to-black/30 sm:via-black/55 sm:to-transparent"></div>
+                <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-black/30"></div>
             </div>
         </template>
 
         {{-- Content Overlay --}}
         <div class="relative z-20 h-full flex items-center">
-            <div class="max-w-7xl mx-auto px-5 sm:px-10 lg:px-16 w-full">
+            <div class="max-w-7xl mx-auto px-4 sm:px-10 lg:px-16 w-full">
                 <template x-for="(slide, idx) in slides" :key="idx">
                     <div x-show="currentSlide === idx"
                          x-transition:enter="transition ease-out duration-700 delay-150"
                          x-transition:enter-start="opacity-0 translate-y-6"
                          x-transition:enter-end="opacity-100 translate-y-0"
-                         class="max-w-[580px] space-y-4 sm:space-y-6 text-white">
+                         class="max-w-[580px] space-y-3.5 sm:space-y-6 text-white">
 
                         <div class="flex items-center gap-2 sm:gap-3">
-                            <span class="block w-7 sm:w-10 h-px bg-[var(--color-champagne)] flex-none"></span>
-                            <span class="text-[10px] sm:text-xs font-sans font-bold tracking-[0.25em] sm:tracking-[0.35em] text-[var(--color-champagne)] uppercase" x-text="slide.tag"></span>
+                            <span class="block w-6 sm:w-10 h-px bg-[var(--color-champagne)] flex-none"></span>
+                            <span class="text-[10px] sm:text-xs font-sans font-bold tracking-[0.2em] sm:tracking-[0.35em] text-[var(--color-champagne)] uppercase" x-text="slide.tag"></span>
                         </div>
 
-                        <h1 class="font-serif text-4xl sm:text-6xl lg:text-7xl font-bold leading-[1.05] tracking-tight">
+                        <h1 class="font-serif text-3xl xs:text-4xl sm:text-6xl lg:text-7xl font-bold leading-[1.08] sm:leading-[1.05] tracking-tight">
                             <span x-text="slide.titleline1"></span><br />
                             <em class="not-italic text-[var(--color-blush)]" x-text="slide.titleline2"></em><br />
                             <span x-text="slide.titleline3"></span>
                         </h1>
 
-                        <p class="text-xs sm:text-base font-sans text-white/80 leading-relaxed font-light max-w-[340px] sm:max-w-[440px]" x-text="slide.desc">
+                        <p class="text-xs sm:text-base font-sans text-white/90 leading-relaxed font-light max-w-[320px] sm:max-w-[440px]" x-text="slide.desc">
                         </p>
 
-                        <div class="flex flex-wrap items-center gap-4 sm:gap-6 pt-2 sm:pt-3">
-                            <a :href="slide.btnLink" class="inline-flex items-center gap-2 sm:gap-3 bg-white text-[var(--color-ebony)] hover:bg-[var(--color-blush)] font-sans text-xs font-bold uppercase tracking-[0.15em] sm:tracking-[0.2em] px-6 sm:px-8 py-3 sm:py-4 rounded-full shadow-2xl transition-all duration-300 hover:scale-[1.03] group">
+                        <div class="flex flex-wrap items-center gap-3 sm:gap-6 pt-1 sm:pt-3">
+                            <a :href="slide.btnLink" class="inline-flex items-center gap-2 sm:gap-3 bg-white text-[var(--color-ebony)] hover:bg-[var(--color-blush)] font-sans text-[11px] sm:text-xs font-bold uppercase tracking-[0.15em] sm:tracking-[0.2em] px-5 sm:px-8 py-2.5 sm:py-4 rounded-full shadow-2xl transition-all duration-300 hover:scale-[1.03] group">
                                 <span x-text="slide.btnText"></span>
-                                <svg class="w-4 h-4 transition-transform duration-200 group-hover:translate-x-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
+                                <svg class="w-3.5 h-3.5 sm:w-4 sm:h-4 transition-transform duration-200 group-hover:translate-x-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
                             </a>
-                            <a :href="slide.subLink" class="text-xs font-sans font-semibold text-white/85 hover:text-white uppercase tracking-[0.15em] sm:tracking-[0.2em] border-b border-white/40 hover:border-white pb-1 transition-all duration-200" x-text="slide.subLinkText">
+                            <a :href="slide.subLink" class="text-[11px] sm:text-xs font-sans font-semibold text-white/90 hover:text-white uppercase tracking-[0.12em] sm:tracking-[0.2em] border-b border-white/40 hover:border-white pb-0.5 sm:pb-1 transition-all duration-200" x-text="slide.subLinkText">
                             </a>
                         </div>
                     </div>
