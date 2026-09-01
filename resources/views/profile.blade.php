@@ -4,7 +4,7 @@
 
 @section('content')
 <div class="min-h-screen bg-[var(--color-offwhite)] py-6 sm:py-10" x-data="{
-    activeTab: 'all',
+    activeTab: 'orders',
     reviewModal: false,
     selectedItemToReview: null,
     rating: 5,
@@ -303,7 +303,7 @@
         </div>
 
         {{-- 6. SAVED ADDRESSES TAB --}}
-        <div x-show="activeTab === 'addresses'" class="space-y-4" style="display: none;">
+        <div x-show="activeTab === 'addresses'" class="space-y-4">
             <div class="bg-white rounded-3xl border border-[var(--color-bisque)] p-6 sm:p-8 shadow-sm space-y-4">
                 <div class="flex items-center justify-between pb-3 border-b border-[var(--color-bisque)]/60">
                     <h3 class="font-serif text-xl font-bold text-[var(--color-ebony)]">Your Delivery Addresses</h3>
@@ -325,7 +325,7 @@
         </div>
 
         {{-- 7. ACCOUNT SETTINGS TAB --}}
-        <div x-show="activeTab === 'edit'" class="space-y-6" style="display: none;">
+        <div x-show="activeTab === 'edit'" class="space-y-6">
             <div class="bg-white rounded-3xl border border-[var(--color-bisque)] p-6 sm:p-8 shadow-sm space-y-6 max-w-2xl">
                 <div class="border-b border-[var(--color-bisque)]/60 pb-3">
                     <h3 class="font-serif text-xl font-bold text-[var(--color-ebony)]">Update Profile & Security Details</h3>
