@@ -149,6 +149,11 @@
                        class="px-2.5 py-1.5 rounded-full text-[9.5px] font-sans font-semibold uppercase tracking-wide transition-all whitespace-nowrap {{ $curTab === 'reviews' ? 'bg-[#FBEAD6] text-[#1A1818] font-bold shadow-md' : 'text-white/75 hover:text-white hover:bg-white/10' }}">
                         Reviews
                     </a>
+
+                    <a href="/estilo-hq-console/profile"
+                       class="px-2.5 py-1.5 rounded-full text-[9.5px] font-sans font-semibold uppercase tracking-wide transition-all whitespace-nowrap {{ request()->is('estilo-hq-console/profile*') || $curTab === 'profile' ? 'bg-[#FBEAD6] text-[#1A1818] font-bold shadow-md' : 'text-white/75 hover:text-white hover:bg-white/10' }}">
+                        Profile
+                    </a>
                 </nav>
 
 
@@ -158,9 +163,8 @@
                         <span>Storefront ↗</span>
                     </a>
                     
-                    <a href="/estilo-hq-console?tab=profile" 
-                       @click="if (typeof activeTab !== 'undefined') { activeTab = 'profile'; window.history.pushState({}, '', '/estilo-hq-console?tab=profile'); }"
-                       class="hidden sm:flex items-center gap-2 bg-white/10 hover:bg-white/20 border border-white/15 rounded-full px-3 py-1 text-xs transition-colors cursor-pointer" title="Admin Profile">
+                    <a href="/estilo-hq-console/profile" 
+                       class="hidden sm:flex items-center gap-2 bg-white/10 hover:bg-white/20 border border-white/15 rounded-full px-3 py-1 text-xs transition-all hover:scale-105 active:scale-95 cursor-pointer" title="Admin Profile & Security">
                         <span class="w-6 h-6 rounded-full bg-[var(--color-ebony)] text-amber-200 flex items-center justify-center font-bold text-[11px]">
                             A
                         </span>

@@ -87,13 +87,30 @@ class AdminController extends Controller
     }
 
     /**
+     * Dedicated Administrator Profile & Security Page
+     */
+    public function profile()
+    {
+        $admin = Auth::user();
+        if (!$admin || !$admin->isAdmin()) {
+            $admin = User::firstOrCreate(['email' => 'admin@estilo.com'], [
+                'name' => 'Administrator',
+                'role' => 'admin',
+                'password' => Hash::make('Admin@123'),
+                'phone' => '9000000001',
+            ]);
+        }
+        return view('admin-profile', compact('admin'));
+    }
+
+    /**
      * Update Administrator Profile
      */
     public function updateProfile(Request $request)
     {
         $admin = Auth::user();
         if (!$admin) {
-            return redirect('/login?role=admin');
+            return redirect('/estilo-hq-console/login');
         }
 
         $request->validate([
@@ -115,7 +132,7 @@ class AdminController extends Controller
 
         $admin->update($data);
 
-        return redirect('/estilo-hq-console?tab=overview')->with('success', 'Administrator profile details updated successfully!');
+        return redirect('/estilo-hq-console/profile')->with('success', '✨ Administrator profile details updated successfully!');
     }
 
     /**

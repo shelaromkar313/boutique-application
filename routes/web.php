@@ -92,6 +92,7 @@ Route::match(['get', 'post'], '/estilo-hq-console/logout', [AuthController::clas
 Route::prefix('estilo-hq-console')->middleware('admin')->group(function () {
     Route::get('/', [AdminController::class, 'index']);
     Route::get('/dashboard', [AdminController::class, 'index']);
+    Route::get('/profile', [AdminController::class, 'profile']);
     Route::post('/profile', [AdminController::class, 'updateProfile']);
 
     // 4.3 Inventory & Products

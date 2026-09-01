@@ -134,9 +134,9 @@ document.addEventListener('alpine:init', function() {
                         <span class="text-xs font-bold text-[var(--color-ebony)] block">{{ $admin->name ?? 'Administrator' }}</span>
                         <span class="text-[9px] font-sans text-emerald-700 font-bold uppercase tracking-wider">Active Admin</span>
                     </div>
-                    <button onclick="adminShowModal('modal-profile')" class="text-[11px] bg-white border border-[var(--color-bisque)] hover:bg-gray-50 text-[var(--color-ebony)] font-bold px-3 py-1 rounded-full transition-colors ml-1 shadow-sm" title="View Profile">
+                    <a href="/estilo-hq-console/profile" class="text-[11px] bg-white border border-[var(--color-bisque)] hover:bg-gray-50 text-[var(--color-ebony)] font-bold px-3 py-1 rounded-full transition-all hover:scale-105 active:scale-95 ml-1 shadow-sm" title="View Profile">
                         Profile
-                    </button>
+                    </a>
                     <form action="{{ route('admin.logout') }}" method="POST" class="inline m-0">
                         @csrf
                         <button type="submit" class="text-[11px] bg-rose-50 hover:bg-rose-100 border border-rose-200 text-rose-700 font-bold px-3 py-1 rounded-full transition-colors shadow-sm" title="Log Out">
