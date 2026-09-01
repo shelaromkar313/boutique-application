@@ -11,6 +11,13 @@
     reviewComment: '',
     reviewSubmitted: false,
 
+    returnModal: false,
+    selectedOrderToReturn: null,
+    returnType: 'exchange',
+    returnReason: 'size',
+    returnNotes: '',
+    returnSubmitted: false,
+
     openReview(item) {
         this.selectedItemToReview = item;
         this.rating = 5;
@@ -24,6 +31,23 @@
         setTimeout(() => {
             this.reviewModal = false;
             $store.shop.showToast('Thank you for reviewing your couture piece! ✨');
+        }, 1200);
+    },
+
+    openReturn(order) {
+        this.selectedOrderToReturn = order;
+        this.returnType = 'exchange';
+        this.returnReason = 'size';
+        this.returnNotes = '';
+        this.returnSubmitted = false;
+        this.returnModal = true;
+    },
+
+    submitReturn() {
+        this.returnSubmitted = true;
+        setTimeout(() => {
+            this.returnModal = false;
+            $store.shop.showToast('7-Day Return / Exchange Request Submitted for Order #' + (this.selectedOrderToReturn ? this.selectedOrderToReturn.order_no : '') + '! Doorstep pickup scheduled. 🚚');
         }, 1200);
     }
 }">
@@ -279,14 +303,20 @@
                     @endforeach
                 </div>
 
-                {{-- Delivery Destination --}}
-                <div class="pt-3 border-t border-[var(--color-bisque)]/40 flex flex-col sm:flex-row justify-between text-xs text-gray-600 gap-2">
+                {{-- Delivery Destination & 7-Day Return / Exchange Trigger --}}
+                <div class="pt-3 border-t border-[var(--color-bisque)]/40 flex flex-col sm:flex-row items-start sm:items-center justify-between text-xs text-gray-600 gap-3">
                     <div>
                         <span class="font-bold text-[var(--color-ebony)]">Destination:</span>
                         {{ $ord->address }}, {{ $ord->city }}, {{ $ord->state }} - {{ $ord->pincode }}
                     </div>
-                    <div>
-                        <span class="font-bold text-[var(--color-ebony)]">Payment:</span> {{ strtoupper($ord->payment_method ?? 'Online Pre-paid') }}
+                    <div class="flex items-center gap-3">
+                        <span class="text-[10px] text-gray-500 font-bold uppercase"><span class="text-emerald-600">🛡️ 7-Day Return Eligible</span> • {{ strtoupper($ord->payment_method ?? 'Online Pre-paid') }}</span>
+                        <button type="button"
+                                @click="openReturn({{ json_encode($ord) }})"
+                                class="inline-flex items-center gap-1.5 bg-rose-50 hover:bg-rose-100 border border-rose-200 text-rose-800 text-[10px] font-sans font-bold uppercase tracking-wider px-3 py-1.5 rounded-full transition-all cursor-pointer">
+                            <span>🔄</span>
+                            <span>Return / Exchange (7 Days)</span>
+                        </button>
                     </div>
                 </div>
             </div>
@@ -417,6 +447,65 @@
             <div class="flex gap-2 pt-2">
                 <button type="button" @click="reviewModal = false" class="flex-1 bg-gray-100 hover:bg-gray-200 text-[var(--color-ebony)] text-xs font-sans font-bold py-3 rounded-xl">Cancel</button>
                 <button type="button" @click="submitReview()" class="flex-1 bg-[var(--color-ebony)] hover:bg-[var(--color-rose-deep)] text-white text-xs font-sans font-bold py-3 rounded-xl shadow-md">Submit Review ✨</button>
+            </div>
+        </div>
+    </div>
+
+    {{-- 7-DAY EASY RETURN & EXCHANGE MODAL --}}
+    <div x-show="returnModal" style="display: none;" class="fixed inset-0 z-50 flex items-center justify-center p-4">
+        <div x-show="returnModal" x-transition.opacity @click="returnModal = false" class="absolute inset-0 bg-black/60 backdrop-blur-sm"></div>
+        <div class="relative w-full max-w-lg bg-white rounded-3xl p-6 sm:p-8 shadow-2xl z-10 border border-[var(--color-bisque)] space-y-4">
+            <div class="flex items-center justify-between border-b border-[var(--color-bisque)]/60 pb-3">
+                <div>
+                    <h3 class="font-serif text-lg font-bold text-[var(--color-ebony)]">7-Day Easy Return &amp; Exchange</h3>
+                    <p class="text-[10px] text-gray-500 font-sans">Complimentary doorstep pickup within 24-48 hours</p>
+                </div>
+                <button @click="returnModal = false" class="text-gray-400 hover:text-gray-600 text-base">✕</button>
+            </div>
+
+            <template x-if="selectedOrderToReturn">
+                <div class="p-3 bg-[var(--color-offwhite)] rounded-2xl border border-[var(--color-bisque)]/60 space-y-1">
+                    <div class="flex justify-between items-center text-xs font-bold text-[var(--color-ebony)]">
+                        <span>Order #<span x-text="selectedOrderToReturn.order_no"></span></span>
+                        <span class="text-emerald-700 text-[10px] font-sans">🛡️ 7-Day Window Active</span>
+                    </div>
+                    <p class="text-[10px] text-gray-500" x-text="'Total Paid: ₹' + Number(selectedOrderToReturn.total).toLocaleString('en-IN')"></p>
+                </div>
+            </template>
+
+            <div class="space-y-3">
+                <div>
+                    <label class="block text-xs font-sans font-bold uppercase tracking-wider mb-1 text-[var(--color-ebony)]">Request Type</label>
+                    <div class="grid grid-cols-2 gap-2">
+                        <button type="button" @click="returnType = 'exchange'" :class="returnType === 'exchange' ? 'bg-[var(--color-ebony)] text-white' : 'bg-gray-100 text-gray-800'" class="py-2.5 rounded-xl text-xs font-bold transition-all">
+                            🔄 Size / Color Exchange
+                        </button>
+                        <button type="button" @click="returnType = 'refund'" :class="returnType === 'refund' ? 'bg-[var(--color-ebony)] text-white' : 'bg-gray-100 text-gray-800'" class="py-2.5 rounded-xl text-xs font-bold transition-all">
+                            💵 Full Refund Return
+                        </button>
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-sans font-bold uppercase tracking-wider mb-1 text-[var(--color-ebony)]">Reason for Return / Exchange</label>
+                    <select x-model="returnReason" class="w-full bg-[var(--color-offwhite)] border border-[var(--color-bisque)] rounded-xl px-3.5 py-2.5 text-xs font-sans focus:outline-none focus:border-[var(--color-rose-antique)]">
+                        <option value="size">Size Fitting Issue (Too tight / Too loose)</option>
+                        <option value="fabric">Fabric / Drape Preference</option>
+                        <option value="color">Color Mismatch from Image</option>
+                        <option value="damaged">Damaged or Defective Item Received</option>
+                        <option value="other">Changed Mind / Not Required</option>
+                    </select>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-sans font-bold uppercase tracking-wider mb-1 text-[var(--color-ebony)]">Notes for Pickup Agent</label>
+                    <textarea x-model="returnNotes" rows="2" placeholder="Provide any special fitting notes or preferred pickup address/time..." class="w-full bg-[var(--color-offwhite)] border border-[var(--color-bisque)] rounded-xl px-3.5 py-2.5 text-xs font-sans focus:outline-none focus:border-[var(--color-rose-antique)]"></textarea>
+                </div>
+            </div>
+
+            <div class="flex gap-2 pt-2">
+                <button type="button" @click="returnModal = false" class="flex-1 bg-gray-100 hover:bg-gray-200 text-[var(--color-ebony)] text-xs font-sans font-bold py-3 rounded-xl">Cancel</button>
+                <button type="button" @click="submitReturn()" class="flex-1 bg-[var(--color-ebony)] hover:bg-[var(--color-rose-deep)] text-white text-xs font-sans font-bold py-3 rounded-xl shadow-md cursor-pointer">Submit Return Request 🚚</button>
             </div>
         </div>
     </div>
