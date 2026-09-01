@@ -44,13 +44,12 @@ document.addEventListener('alpine:init', function() {
                 size_stock: { XS: 1, S: 2, M: 4, L: 2, XL: 3, XXL: 2 }
             },
             selectedOrder:       { id: null, items: [], parsedItems: [] },
-            selectedAssociate:   { id: null, name: '', balance: 0 },
             selectedReview:      { id: null, rating: 5, comment: '', user_name: '', is_approved: true },
             selectedAnnouncement:{ id: null, title: '', message: '', type: 'sale', color: 'amber', icon: '📢', show_in_ticker: true, show_as_banner: false, is_active: true, starts_at: '', ends_at: '' },
             selectedCoupon:      { id: null, code: '', title: '', discount_type: 'percentage', discount_value: 20, min_order_value: 1999, campaign_type: 'festival', valid_until: '', is_active: true },
 
             init() {
-                const titles = { overview:'Dashboard', inventory:'Inventory', orders:'Orders', customers:'Customers', associates:'Associates', reports:'Reports', offers:'Offers & Coupons', announcements:'Announcements', reviews:'Reviews' };
+                const titles = { overview:'Dashboard', inventory:'Inventory', orders:'Orders', customers:'Customers', reports:'Reports', offers:'Offers & Coupons', announcements:'Announcements', reviews:'Reviews' };
                 this.$watch('activeTab', t => document.title = 'Estilo HQ — ' + (titles[t] || 'Dashboard'));
             },
 
@@ -76,7 +75,6 @@ document.addEventListener('alpine:init', function() {
                 adminShowModal('modal-view-order');
             },
 
-            openPayoutModal(assoc)         { this.selectedAssociate = Object.assign({}, assoc); adminShowModal('modal-payout'); },
             openEditCoupon(coup)           { this.selectedCoupon = Object.assign({}, coup); if (coup.valid_until) this.selectedCoupon.valid_until = coup.valid_until.split('T')[0]; adminShowModal('modal-edit-coupon'); },
             openEditReview(rev)            { this.selectedReview = Object.assign({}, rev); this.selectedReview.is_approved = Boolean(Number(rev.is_approved)); this.selectedReview.rating = Number(rev.rating||5); adminShowModal('modal-edit-review'); },
             openEditAnnouncement(ann)      { this.selectedAnnouncement = Object.assign({}, ann); adminShowModal('modal-edit-announcement'); }
@@ -137,12 +135,6 @@ document.addEventListener('alpine:init', function() {
                     <a href="/estilo-hq-console/profile" class="text-[11px] bg-white border border-[var(--color-bisque)] hover:bg-gray-50 text-[var(--color-ebony)] font-bold px-3 py-1 rounded-full transition-all hover:scale-105 active:scale-95 ml-1 shadow-sm" title="View Profile">
                         Profile
                     </a>
-                    <form action="{{ route('admin.logout') }}" method="POST" class="inline m-0">
-                        @csrf
-                        <button type="submit" class="text-[11px] bg-rose-50 hover:bg-rose-100 border border-rose-200 text-rose-700 font-bold px-3 py-1 rounded-full transition-colors shadow-sm" title="Log Out">
-                            Sign Out
-                        </button>
-                    </form>
                 </div>
 
                 {{-- Action shortcuts --}}
@@ -155,17 +147,13 @@ document.addEventListener('alpine:init', function() {
                 <a href="/estilo-hq-console/announcements/create" class="inline-flex items-center gap-1.5 bg-rose-50 hover:bg-rose-100 border border-rose-200 text-rose-900 text-xs font-sans font-bold uppercase tracking-wider px-3.5 py-2.5 rounded-full transition-colors hover:scale-105 active:scale-95 shadow-xs">
                     + Announcement
                 </a>
-                <a href="/shop" target="_blank" class="inline-flex items-center gap-1.5 bg-gray-50 hover:bg-gray-100 border border-[var(--color-bisque)] text-[var(--color-ebony)] text-xs font-sans font-bold uppercase tracking-wider px-3.5 py-2.5 rounded-full transition-colors">
-                    Store ↗
-                </a>
             </div>
         </div>
-
 
         {{-- TAB 1: OVERVIEW --}}
         <div x-show="activeTab === 'overview'" class="space-y-6">
             {{-- KPI Metric Cards --}}
-            <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4">
+            <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
                 <div class="bg-white p-5 rounded-2xl border border-[var(--color-bisque)] shadow-sm space-y-1">
                     <span class="text-[10px] font-sans font-bold uppercase tracking-wider text-[var(--color-ebony)]/60">Gross Revenue</span>
                     <h3 class="font-serif text-2xl font-bold text-[var(--color-ebony)]">₹{{ number_format($totalRevenue, 0) }}</h3>
@@ -182,14 +170,9 @@ document.addEventListener('alpine:init', function() {
                     <span class="text-[10px] font-sans text-[var(--color-thyme)]">Ready for Virtual Try-On</span>
                 </div>
                 <div class="bg-white p-5 rounded-2xl border border-[var(--color-bisque)] shadow-sm space-y-1">
-                    <span class="text-[10px] font-sans font-bold uppercase tracking-wider text-amber-800">Sales Associates</span>
-                    <h3 class="font-serif text-2xl font-bold text-amber-800">{{ $totalAssociatesCount }}</h3>
-                    <span class="text-[10px] font-sans text-amber-700">Active Affiliate Partners</span>
-                </div>
-                <div class="bg-white p-5 rounded-2xl border border-[var(--color-bisque)] shadow-sm space-y-1 col-span-2 sm:col-span-1">
-                    <span class="text-[10px] font-sans font-bold uppercase tracking-wider text-purple-900">Total Commissions</span>
-                    <h3 class="font-serif text-2xl font-bold text-purple-900">₹{{ number_format($totalCommissionPaid ?: 995.64, 2) }}</h3>
-                    <span class="text-[10px] font-sans text-purple-700">Paid out to associates</span>
+                    <span class="text-[10px] font-sans font-bold uppercase tracking-wider text-[var(--color-ebony)]/60">Customer Reach</span>
+                    <h3 class="font-serif text-2xl font-bold text-[var(--color-ebony)]">{{ $customers->count() }}</h3>
+                    <span class="text-[10px] font-sans text-[var(--color-ebony)]/50">Registered shoppers</span>
                 </div>
             </div>
 
@@ -219,27 +202,6 @@ document.addEventListener('alpine:init', function() {
                     </div>
                 </div>
 
-                {{-- Top Sales Associates Snapshot --}}
-                <div class="bg-white rounded-3xl border border-[var(--color-bisque)] p-6 shadow-sm space-y-4">
-                    <div class="flex items-center justify-between border-b border-[var(--color-bisque)]/60 pb-3">
-                        <h3 class="font-serif text-lg font-bold text-[var(--color-ebony)]">Top Marketing Associates</h3>
-                        <button @click="activeTab = 'associates'" class="text-xs font-sans font-bold text-[var(--color-rose-antique)] hover:underline">Manage All →</button>
-                    </div>
-                    <div class="space-y-3">
-                        @foreach($associates->take(4) as $assoc)
-                        <div class="flex items-center justify-between p-3 rounded-xl bg-[var(--color-offwhite)] hover:bg-[var(--color-champagne-light)] transition-colors">
-                            <div>
-                                <span class="font-bold text-xs text-[var(--color-ebony)]">{{ $assoc->name }}</span>
-                                <span class="block text-[10px] font-mono text-amber-800">Code: {{ $assoc->referral_code ?? 'ESTILO-SA01' }}</span>
-                            </div>
-                            <div class="text-right">
-                                <span class="font-serif font-bold text-xs text-emerald-700">₹{{ number_format($assoc->earnings, 0) }} Total Profit</span>
-                                <span class="block text-[10px] font-bold text-[var(--color-ebony)]/60">{{ $assoc->commission_rate }}% Rate • ₹{{ number_format($assoc->balance, 0) }} Due</span>
-                            </div>
-                        </div>
-                        @endforeach
-                    </div>
-                </div>
             </div>
         </div>
 
@@ -529,69 +491,6 @@ document.addEventListener('alpine:init', function() {
                                 <td class="p-3 text-right">
                                     <span class="px-2.5 py-1 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-800">● Active</span>
                                 </td>
-                            </tr>
-                            @endforeach
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-        </div>
-
-        {{-- TAB 5: 4.6 MARKETING ASSOCIATES & SELLERS --}}
-        <div x-show="activeTab === 'associates'" class="space-y-6">
-            <div class="bg-white rounded-3xl border border-[var(--color-bisque)] p-6 sm:p-8 shadow-sm space-y-6">
-                <div class="border-b border-[var(--color-bisque)]/60 pb-3">
-                    <h2 class="font-serif text-xl sm:text-2xl font-bold text-[var(--color-ebony)]">Marketing Associates & Affiliate Sellers</h2>
-                    <p class="text-xs font-sans text-[var(--color-ebony)]/60">Configure partner commission tiers (e.g. 10%, 12%, 15%), review sales volume, verify UPI payout accounts, and approve commission disbursements.</p>
-                </div>
-
-                <div class="overflow-x-auto">
-                    <table class="w-full text-left text-xs font-sans">
-                        <thead>
-                            <tr class="bg-[var(--color-champagne-light)] text-[var(--color-ebony)] font-serif uppercase tracking-wider border-b border-[var(--color-bisque)]">
-                                <th class="p-3">Associate Details</th>
-                                <th class="p-3">Referral Code</th>
-                                <th class="p-3">Total Earnings</th>
-                                <th class="p-3">Unpaid Balance</th>
-                                <th class="p-3">Payout UPI</th>
-                                <th class="p-3">Commission Rate</th>
-                                <th class="p-3 text-right">Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody class="divide-y divide-[var(--color-bisque)]/40">
-                            @foreach($associates as $assoc)
-                            <tr class="hover:bg-[var(--color-offwhite)] transition-colors">
-                                <td class="p-3">
-                                    <span class="font-bold text-[var(--color-ebony)] block">{{ $assoc->name }}</span>
-                                    <span class="text-[10px] text-[var(--color-ebony)]/60">{{ $assoc->phone }} • {{ $assoc->email }}</span>
-                                </td>
-                                <td class="p-3">
-                                    <span class="font-mono font-bold text-amber-900 bg-amber-100/80 px-2 py-1 rounded text-xs">
-                                        {{ $assoc->referral_code ?? 'ESTILO-SA01' }}
-                                    </span>
-                                </td>
-                                <td class="p-3 font-serif font-bold text-emerald-700 text-sm">₹{{ number_format($assoc->earnings, 2) }}</td>
-                                <td class="p-3 font-serif font-bold text-purple-800 text-sm">₹{{ number_format($assoc->balance, 2) }}</td>
-                                <td class="p-3 font-mono text-[11px] text-gray-700">{{ $assoc->upi_id ?: 'Not specified' }}</td>
-                                <form action="/estilo-hq-console/associates/{{ $assoc->id }}" method="POST">
-                                    @csrf
-                                    <td class="p-3">
-                                        <div class="flex items-center gap-1">
-                                            <input type="number" step="0.5" min="0" max="100" name="commission_rate" value="{{ $assoc->commission_rate }}" class="w-16 px-2 py-1 border border-[var(--color-bisque)] rounded text-xs font-bold" />
-                                            <span class="font-bold">%</span>
-                                        </div>
-                                    </td>
-                                    <td class="p-3 text-right space-x-2">
-                                        <button type="submit" class="bg-[var(--color-ebony)] hover:bg-[var(--color-rose-deep)] text-white text-[10px] font-bold px-3 py-1.5 rounded-lg transition-colors">
-                                            Save %
-                                        </button>
-                                </form>
-                                        @if($assoc->balance > 0)
-                                        <button type="button" @click="openPayoutModal(@js($assoc))" class="bg-emerald-600 hover:bg-emerald-700 text-white text-[10px] font-bold px-3 py-1.5 rounded-lg transition-colors shadow-sm">
-                                            💸 Pay Out
-                                        </button>
-                                        @endif
-                                    </td>
                             </tr>
                             @endforeach
                         </tbody>
@@ -1190,6 +1089,10 @@ document.addEventListener('alpine:init', function() {
 
         {{-- TAB 9: ADMINISTRATOR PROFILE & SECURITY --}}
         <div x-show="activeTab === 'profile'" class="space-y-6">
+            <div class="mb-4">
+                <h2 class="font-serif text-2xl font-bold text-[var(--color-ebony)]">Admin Profile</h2>
+                <p class="text-xs font-sans text-[var(--color-ebony)]/60">Manage your administrator identity, contact details, and secure session settings.</p>
+            </div>
             <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
                 
                 {{-- Left: Profile Overview & Logout --}}
@@ -1540,36 +1443,6 @@ document.addEventListener('alpine:init', function() {
             <div class="pt-2">
                 <button type="button" onclick="adminHideModal('modal-view-order')" class="w-full bg-[var(--color-ebony)] hover:bg-[var(--color-rose-deep)] text-white text-xs font-bold py-3 rounded-xl transition-colors">Close Details</button>
             </div>
-        </div>
-    </div>
-
-    {{-- MODAL 4: APPROVE PAYOUT --}}
-    <div id="modal-payout" style="display: none;" class="fixed inset-0 z-50 flex items-center justify-center p-4">
-        <div onclick="adminHideModal('modal-payout')" class="fixed inset-0 bg-black/60 backdrop-blur-sm"></div>
-        <div class="relative w-full max-w-md bg-white rounded-3xl p-8 shadow-2xl z-10 border border-[var(--color-bisque)] space-y-4">
-            <h3 class="font-serif text-xl font-bold text-[var(--color-ebony)]">Approve Associate Payout</h3>
-            <p class="text-xs font-sans text-[var(--color-ebony)]/60">Disburse pending commission balance to registered UPI address.</p>
-
-            <form :action="'/estilo-hq-console/associates/' + selectedAssociate.id + '/payout'" method="POST" class="space-y-3">
-                @csrf
-                <div>
-                    <label class="block text-xs font-sans font-bold uppercase tracking-wider mb-1">Associate Name</label>
-                    <input type="text" x-model="selectedAssociate.name" readonly class="w-full bg-gray-100 border border-[var(--color-bisque)] rounded-xl px-4 py-2.5 text-xs font-sans" />
-                </div>
-                <div>
-                    <label class="block text-xs font-sans font-bold uppercase tracking-wider mb-1">UPI Address</label>
-                    <input type="text" x-model="selectedAssociate.upi_id" readonly class="w-full bg-gray-100 border border-[var(--color-bisque)] rounded-xl px-4 py-2.5 text-xs font-mono font-bold" />
-                </div>
-                <div>
-                    <label class="block text-xs font-sans font-bold uppercase tracking-wider mb-1">Payout Amount (₹)</label>
-                    <input type="number" step="0.01" name="amount" x-model="selectedAssociate.balance" required class="w-full bg-[var(--color-offwhite)] border border-[var(--color-bisque)] rounded-xl px-4 py-2.5 text-xs font-serif font-bold text-emerald-800" />
-                </div>
-
-                <div class="flex gap-3 pt-3">
-                    <button type="button" onclick="adminHideModal('modal-payout')" class="flex-1 bg-gray-100 text-xs font-bold py-2.5 rounded-xl">Cancel</button>
-                    <button type="submit" class="flex-1 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold py-2.5 rounded-xl shadow-md">Confirm & Disburse</button>
-                </div>
-            </form>
         </div>
     </div>
 

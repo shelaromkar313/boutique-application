@@ -248,7 +248,9 @@
     </div>
     @endif
 
-    @include('partials.navbar')
+    @if(!(request()->is('estilo-hq-console*') && !Auth::check()))
+        @include('partials.navbar')
+    @endif
     
     <main class="flex-grow">
         @yield('content')

@@ -353,13 +353,17 @@ class AuthController extends Controller
      */
     public function logout(Request $request)
     {
-        Auth::logout();
+        Auth::guard()->logout();
+
         if ($request->hasSession()) {
             $request->session()->invalidate();
+            $request->session()->flush();
             $request->session()->regenerateToken();
         }
 
-        return redirect('/login')->with('success', 'You have been logged out safely.');
+        return redirect('/login')
+            ->with('success', 'You have been logged out safely.')
+            ->header('Cache-Control', 'no-store, no-cache, must-revalidate, max-age=0, private');
     }
 
     /**
@@ -374,7 +378,7 @@ class AuthController extends Controller
         $user = Auth::user();
 
         if ($user->isAdmin()) {
-            return redirect('/estilo-hq-console?tab=profile');
+            return redirect('/admin?tab=profile');
         }
 
         if ($user->isSalesAssociate()) {
@@ -529,12 +533,16 @@ class AuthController extends Controller
      */
     public function adminLogout(Request $request)
     {
-        Auth::logout();
+        Auth::guard()->logout();
+
         if ($request->hasSession()) {
             $request->session()->invalidate();
+            $request->session()->flush();
             $request->session()->regenerateToken();
         }
 
-        return redirect('/estilo-hq-console/login')->with('info', 'You have been securely signed out of the Estilo Management Console.');
+        return redirect('/estilo-hq-console/login')
+            ->with('info', 'You have been securely signed out of the Estilo Management Console.')
+            ->header('Cache-Control', 'no-store, no-cache, must-revalidate, max-age=0, private');
     }
 }

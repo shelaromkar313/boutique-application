@@ -108,6 +108,24 @@ class AdminSessionAuthTest extends TestCase
             ]);
     }
 
+    public function test_admin_dashboard_uses_real_zero_counts_when_database_is_empty(): void
+    {
+        $admin = User::create([
+            'name' => 'Boutique Admin',
+            'email' => 'admin@estilo.com',
+            'password' => Hash::make('Admin@123'),
+            'role' => 'admin',
+        ]);
+
+        $response = $this->actingAs($admin)->getJson('/api/admin/dashboard-stats');
+
+        $response->assertStatus(200)
+            ->assertJsonPath('metrics.gross_revenue', 0)
+            ->assertJsonPath('metrics.total_orders', 0)
+            ->assertJsonPath('metrics.total_customers', 0)
+            ->assertJsonPath('metrics.total_products', 0);
+    }
+
     public function test_user_can_logout_and_session_is_cleared(): void
     {
         $user = User::create([
@@ -220,6 +238,33 @@ class AdminSessionAuthTest extends TestCase
         $response = $this->actingAs($user)->post('/logout');
 
         $response->assertRedirect('/login');
+        $this->assertGuest();
+    }
+
+    public function test_admin_login_page_does_not_render_admin_nav_when_logged_out(): void
+    {
+        $response = $this->get('/estilo-hq-console/login');
+
+        $response->assertOk();
+        $response->assertDontSee('Overview');
+        $response->assertDontSee('Inventory');
+        $response->assertDontSee('Executive Administration Suite');
+        $this->assertGuest();
+    }
+
+    public function test_admin_logout_clears_session_and_disables_browser_cache(): void
+    {
+        $admin = User::create([
+            'name' => 'Boutique Admin',
+            'email' => 'admin@estilo.com',
+            'password' => Hash::make('Admin@123'),
+            'role' => 'admin',
+        ]);
+
+        $response = $this->actingAs($admin)->post('/estilo-hq-console/logout');
+
+        $response->assertRedirect('/estilo-hq-console/login');
+        $response->assertHeader('Cache-Control', 'max-age=0, must-revalidate, no-cache, no-store, private');
         $this->assertGuest();
     }
 

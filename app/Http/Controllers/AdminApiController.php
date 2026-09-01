@@ -22,7 +22,6 @@ class AdminApiController extends Controller
     public function dashboardStats()
     {
         $totalRevenue = Order::where('status', '!=', 'cancelled')->sum('total');
-        if ($totalRevenue == 0) $totalRevenue = 124850.00;
 
         $ordersCount = Order::count();
         $productsCount = Product::count();
@@ -37,7 +36,7 @@ class AdminApiController extends Controller
             'status' => 'success',
             'metrics' => [
                 'gross_revenue' => (float) $totalRevenue,
-                'total_orders' => max($ordersCount, 48),
+                'total_orders' => $ordersCount,
                 'total_products' => $productsCount,
                 'in_stock_products' => $inStockCount,
                 'total_customers' => $customersCount,

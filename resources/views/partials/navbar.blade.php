@@ -80,7 +80,7 @@
         <div class="max-w-[1520px] mx-auto pl-3 pr-4 sm:px-6 lg:px-8">
             <div class="flex items-center justify-between gap-2 lg:gap-4">
                 
-                @if(request()->is('estilo-hq-console*'))
+                @if(Auth::check() && Auth::user()->isAdmin() && request()->is('estilo-hq-console*'))
                 {{-- ══════════════════════════════════════════════════════════════════ --}}
                 {{-- ADMIN PORTAL NAVIGATION HEADER                                    --}}
                 {{-- ══════════════════════════════════════════════════════════════════ --}}
@@ -125,11 +125,6 @@
                         Customers
                     </a>
 
-                    <a href="/estilo-hq-console?tab=associates"
-                       class="px-2.5 py-1.5 rounded-full text-[9.5px] font-sans font-semibold uppercase tracking-wide transition-all whitespace-nowrap {{ $curTab === 'associates' ? 'bg-[#FBEAD6] text-[#1A1818] font-bold shadow-md' : 'text-white/75 hover:text-white hover:bg-white/10' }}">
-                        Associates
-                    </a>
-
                     <a href="/estilo-hq-console?tab=reports"
                        class="px-2.5 py-1.5 rounded-full text-[9.5px] font-sans font-semibold uppercase tracking-wide transition-all whitespace-nowrap {{ $curTab === 'reports' ? 'bg-[#FBEAD6] text-[#1A1818] font-bold shadow-md' : 'text-white/75 hover:text-white hover:bg-white/10' }}">
                         Reports
@@ -159,10 +154,6 @@
 
                 <!-- Right: Admin Actions -->
                 <div class="flex items-center gap-2 sm:gap-3 shrink-0">
-                    <a href="/shop" target="_blank" class="inline-flex items-center gap-1 bg-white/10 hover:bg-white/20 border border-white/20 text-[#FBEAD6] text-xs font-sans font-bold uppercase tracking-wider px-3 py-1.5 rounded-full transition-all" title="View Customer Storefront">
-                        <span>Storefront ↗</span>
-                    </a>
-                    
                     <a href="/estilo-hq-console/profile" 
                        class="hidden sm:flex items-center gap-2 bg-white/10 hover:bg-white/20 border border-white/15 rounded-full px-3 py-1 text-xs transition-all hover:scale-105 active:scale-95 cursor-pointer" title="Admin Profile & Security">
                         <span class="w-6 h-6 rounded-full bg-[var(--color-ebony)] text-amber-200 flex items-center justify-center font-bold text-[11px]">
@@ -171,15 +162,20 @@
                         <span class="font-bold text-[11px] text-[#FBEAD6] hidden xl:inline">Admin</span>
                     </a>
 
-                    <form action="{{ route('admin.logout') }}" method="POST" class="inline m-0">
+                    <form action="{{ route('admin.logout') }}" method="POST" class="inline-flex">
                         @csrf
-                        <button type="submit" class="text-[11px] bg-rose-500/20 hover:bg-rose-500/30 border border-rose-400/40 text-rose-200 font-bold px-3 py-1.5 rounded-full transition-colors" title="Log Out">
-                            Sign Out
+                        <button type="submit"
+                                class="inline-flex items-center gap-1.5 rounded-full border border-rose-300/40 bg-rose-500/10 hover:bg-rose-500/20 text-rose-100 text-[10px] sm:text-[11px] font-sans font-bold uppercase tracking-wider px-2.5 sm:px-3 py-1.5 transition-all hover:scale-105 active:scale-95"
+                                title="Sign Out of Admin Console">
+                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a2 2 0 01-2 2H5a2 2 0 01-2-2V7a2 2 0 012-2h6a2 2 0 012 2v1"/>
+                            </svg>
+                            <span>Sign Out</span>
                         </button>
                     </form>
                 </div>
 
-                @else
+                @elseif(!request()->is('estilo-hq-console*') || (request()->is('estilo-hq-console*') && Auth::check() && !Auth::user()->isAdmin()))
                 {{-- ══════════════════════════════════════════════════════════════════ --}}
                 {{-- CUSTOMER STOREFRONT NAVIGATION HEADER                             --}}
                 {{-- ══════════════════════════════════════════════════════════════════ --}}
@@ -502,9 +498,6 @@
                     </a>
                     <a href="/estilo-hq-console?tab=customers" class="block text-sm font-sans font-semibold text-[var(--color-ebony)] uppercase tracking-wider hover:text-[var(--color-rose-antique)]">
                         👥 Customers
-                    </a>
-                    <a href="/estilo-hq-console?tab=associates" class="block text-sm font-sans font-semibold text-[var(--color-ebony)] uppercase tracking-wider hover:text-[var(--color-rose-antique)]">
-                        🤝 Sales Associates & Sellers
                     </a>
                     <a href="/estilo-hq-console?tab=reports" class="block text-sm font-sans font-semibold text-[var(--color-ebony)] uppercase tracking-wider hover:text-[var(--color-rose-antique)]">
                         📈 Monthly Reports & Billing

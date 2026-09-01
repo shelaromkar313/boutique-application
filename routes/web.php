@@ -89,7 +89,7 @@ Route::get('/estilo-hq-console/login', [AuthController::class, 'showAdminLogin']
 Route::post('/estilo-hq-console/login', [AuthController::class, 'adminLogin']);
 Route::match(['get', 'post'], '/estilo-hq-console/logout', [AuthController::class, 'adminLogout'])->name('admin.logout');
 
-Route::prefix('estilo-hq-console')->middleware('admin')->group(function () {
+$adminRoutes = function () {
     Route::get('/', [AdminController::class, 'index']);
     Route::get('/dashboard', [AdminController::class, 'index']);
     Route::get('/profile', [AdminController::class, 'profile']);
@@ -133,5 +133,8 @@ Route::prefix('estilo-hq-console')->middleware('admin')->group(function () {
     Route::post('/announcements/{id}', [AdminController::class, 'updateAnnouncement']);
     Route::post('/announcements/{id}/toggle', [AdminController::class, 'toggleAnnouncement']);
     Route::delete('/announcements/{id}', [AdminController::class, 'deleteAnnouncement']);
-});
+};
+
+Route::prefix('estilo-hq-console')->middleware('admin')->group($adminRoutes);
+Route::prefix('admin')->middleware('admin')->group($adminRoutes);
 

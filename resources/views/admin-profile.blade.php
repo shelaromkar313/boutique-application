@@ -94,12 +94,9 @@
                     </ul>
 
                     <div class="pt-3 border-t border-[var(--color-bisque)]/60">
-                        <form action="{{ route('admin.logout') }}" method="POST">
-                            @csrf
-                            <button type="submit" class="w-full bg-rose-50 hover:bg-rose-100 border border-rose-200 text-rose-700 text-xs font-bold uppercase tracking-wider py-2.5 rounded-xl transition-all flex items-center justify-center gap-2 shadow-xs">
-                                <span>🚪</span> Sign Out of HQ Console
-                            </button>
-                        </form>
+                        <a href="/estilo-hq-console" class="w-full bg-gray-100 hover:bg-gray-200 border border-gray-200 text-gray-700 text-xs font-bold uppercase tracking-wider py-2.5 rounded-xl transition-all flex items-center justify-center gap-2 shadow-xs">
+                            <span>◀</span> Back to Dashboard
+                        </a>
                     </div>
                 </div>
             </div>
