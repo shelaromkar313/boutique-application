@@ -14,10 +14,35 @@ class EnsureAdminRole
      */
     public function handle(Request $request, Closure $next): Response
     {
-        if (! Auth::guard('api')->check() || Auth::guard('api')->user()->role !== 'admin') {
-            return response()->json(['error' => 'Forbidden'], 403);
+        $user = Auth::user();
+
+        if (! $user) {
+            if ($request->expectsJson() || $request->is('api/*')) {
+                return response()->json([
+                    'error' => 'Unauthenticated.',
+                    'message' => 'Please log in to continue.',
+                ], 401);
+            }
+
+            return redirect('/login?role=admin')->withErrors([
+                'email' => 'Please log in with an Administrator account to access the Admin Console.'
+            ]);
+        }
+
+        if (! $user->isAdmin()) {
+            if ($request->expectsJson() || $request->is('api/*')) {
+                return response()->json([
+                    'error' => 'Unauthorized. Administrator access required.',
+                    'status' => 403
+                ], 403);
+            }
+
+            return redirect('/')->withErrors([
+                'auth' => 'Access denied. Administrator privileges required.'
+            ]);
         }
 
         return $next($request);
     }
 }
+

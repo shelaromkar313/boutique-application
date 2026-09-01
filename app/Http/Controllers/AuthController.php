@@ -7,6 +7,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Str;
 
 class AuthController extends Controller
@@ -16,15 +17,23 @@ class AuthController extends Controller
      */
     public function showLogin(Request $request)
     {
+        if (Auth::check()) {
+            return $this->redirectBasedOnRole(Auth::user());
+        }
         $role = $request->query('role', 'customer');
         return view('login', compact('role'));
     }
 
     /**
-     * Handle multi-role authentication (Email or Phone + Password/OTP).
+     * Handle multi-role authentication (Web form or JSON API).
      */
     public function login(Request $request)
     {
+        // If request is from API / Expects JSON, route to apiLogin
+        if ($request->expectsJson() || $request->is('api/*')) {
+            return $this->apiLogin($request);
+        }
+
         $role     = $request->input('role', 'customer');
         $authType = $request->input('auth_type', 'email');
         $email    = trim($request->input('email', ''));
@@ -39,7 +48,7 @@ class AuthController extends Controller
             }
 
             // Validate OTP against DB (falls back to demo code '1234')
-            $otpRecord = \DB::table('otp_codes')
+            $otpRecord = DB::table('otp_codes')
                 ->where('phone', $phone)
                 ->where('is_used', false)
                 ->where('expires_at', '>', now())
@@ -52,9 +61,8 @@ class AuthController extends Controller
                 return back()->withErrors(['otp' => 'Invalid or expired OTP. Please try again.'])->withInput();
             }
 
-            // Mark OTP as used
             if ($otpRecord) {
-                \DB::table('otp_codes')->where('id', $otpRecord->id)->update(['is_used' => true]);
+                DB::table('otp_codes')->where('id', $otpRecord->id)->update(['is_used' => true]);
             }
 
             $user = User::where('phone', $phone)->first();
@@ -65,7 +73,6 @@ class AuthController extends Controller
                 if ($role === 'admin') {
                     return back()->withErrors(['phone' => 'Admin phone login requires a pre-registered administrator number.'])->withInput();
                 }
-                // Auto-create customer on first phone login
                 $user = User::create([
                     'name'     => 'Guest Shopper (' . substr($phone, -4) . ')',
                     'phone'    => $phone,
@@ -76,6 +83,10 @@ class AuthController extends Controller
             }
 
             Auth::login($user, true);
+            if ($request->hasSession()) {
+                $request->session()->regenerate();
+            }
+
             $this->logLogin($user, 'phone_otp', $request);
             return $this->redirectBasedOnRole($user);
         }
@@ -86,16 +97,12 @@ class AuthController extends Controller
             : User::where('phone', $phone)->first();
 
         if (!$user || !Hash::check($password, $user->password)) {
-            // Demo shortcut — create users if missing (dev convenience)
-            if ($email === 'admin@estilo.com' && $password === 'Admin@123') {
+            // Demo shortcut
+            if ($email === 'admin@estilo.com' && in_array($password, ['Admin@123', 'password123'])) {
                 $user = User::firstOrCreate(['email' => 'admin@estilo.com'], [
                     'name' => 'Boutique Admin', 'role' => 'admin',
                     'password' => Hash::make('Admin@123'), 'phone' => '9000000001',
                 ]);
-            } elseif ($email === 'admin@estilo.com' && $password === 'password123') {
-                // Legacy demo password support
-                $user = User::where('email', 'admin@estilo.com')->first();
-                if ($user) { $user->update(['password' => Hash::make('Admin@123')]); }
             } elseif ($email === 'associate@estilo.com' && in_array($password, ['Partner@123', 'password123'])) {
                 $user = User::firstOrCreate(['email' => 'associate@estilo.com'], [
                     'name' => 'Pooja Verma', 'role' => 'sales_associate',
@@ -113,63 +120,231 @@ class AuthController extends Controller
         }
 
         Auth::login($user, $request->has('remember'));
+        if ($request->hasSession()) {
+            $request->session()->regenerate();
+        }
+
         $this->logLogin($user, 'email', $request);
         return $this->redirectBasedOnRole($user);
     }
 
     /**
-     * Customer registration.
+     * API Login Endpoint (Session-based).
+     */
+    public function apiLogin(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'email'    => 'required_without:phone|email',
+            'phone'    => 'required_without:email|string',
+            'password' => 'required|string',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json(['errors' => $validator->errors()], 422);
+        }
+
+        $email = $request->input('email');
+        if (empty($email) && $request->filled('phone')) {
+            $userByPhone = User::where('phone', $request->phone)->first();
+            if ($userByPhone) {
+                $email = $userByPhone->email;
+            }
+        }
+
+        $user = $email ? User::where('email', $email)->first() : null;
+
+        // Seed check for demo admin/partner
+        if (!$user || !Hash::check($request->password, $user->password)) {
+            if ($request->email === 'admin@estilo.com' && in_array($request->password, ['Admin@123', 'password123'])) {
+                $user = User::firstOrCreate(['email' => 'admin@estilo.com'], [
+                    'name' => 'Boutique Admin', 'role' => 'admin',
+                    'password' => Hash::make('Admin@123'), 'phone' => '9000000001',
+                ]);
+            } elseif ($request->email === 'associate@estilo.com' && in_array($request->password, ['Partner@123', 'password123'])) {
+                $user = User::firstOrCreate(['email' => 'associate@estilo.com'], [
+                    'name' => 'Pooja Verma', 'role' => 'sales_associate',
+                    'referral_code' => 'ESTILO-SA01',
+                    'password' => Hash::make('Partner@123'), 'phone' => '9876543211',
+                ]);
+            } elseif ($request->email === 'test@example.com' && in_array($request->password, ['Customer@123', 'password123'])) {
+                $user = User::firstOrCreate(['email' => 'test@example.com'], [
+                    'name' => 'Test Customer', 'role' => 'customer',
+                    'password' => Hash::make('Customer@123'), 'phone' => '9876543212',
+                ]);
+            } else {
+                return response()->json(['error' => 'Invalid credentials'], 401);
+            }
+        }
+
+        Auth::login($user, $request->boolean('remember'));
+        if ($request->hasSession()) {
+            $request->session()->regenerate();
+        }
+
+        $this->logLogin($user, 'api_session', $request);
+
+        return response()->json([
+            'message' => 'Logged in successfully',
+            'user'    => [
+                'id'    => $user->id,
+                'name'  => $user->name,
+                'email' => $user->email,
+                'role'  => $user->role,
+                'phone' => $user->phone,
+            ],
+            'session_authenticated' => true,
+        ]);
+    }
+
+    /**
+     * API Register Endpoint (Session-based).
+     */
+    public function register(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'name'     => 'required|string|max:255',
+            'email'    => 'required|email|unique:users,email',
+            'phone'    => 'nullable|string|max:20',
+            'password' => 'required|string|min:6',
+            'role'     => 'nullable|string|in:customer,sales_associate',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json(['errors' => $validator->errors()], 422);
+        }
+
+        $role = $request->input('role', 'customer');
+        $userData = [
+            'name'     => $request->name,
+            'email'    => $request->email,
+            'phone'    => $request->phone,
+            'password' => Hash::make($request->password),
+            'role'     => $role,
+        ];
+
+        if ($role === 'sales_associate') {
+            $userData['referral_code'] = 'ESTILO-' . strtoupper(Str::random(4)) . rand(10, 99);
+            $userData['commission_rate'] = 10.00;
+            $userData['earnings'] = 0.00;
+            $userData['balance'] = 0.00;
+        }
+
+        $user = User::create($userData);
+        Auth::login($user);
+        if ($request->hasSession()) {
+            $request->session()->regenerate();
+        }
+
+        return response()->json([
+            'message' => 'User registered successfully',
+            'user'    => [
+                'id'    => $user->id,
+                'name'  => $user->name,
+                'email' => $user->email,
+                'role'  => $user->role,
+                'phone' => $user->phone,
+            ],
+            'session_authenticated' => true,
+        ], 201);
+    }
+
+    /**
+     * Get the authenticated User profile via Session.
+     */
+    public function me(Request $request)
+    {
+        $user = Auth::user() ?? $request->user();
+        if (!$user) {
+            return response()->json(['error' => 'Unauthenticated'], 401);
+        }
+        return response()->json([
+            'user'     => [
+                'id'    => $user->id,
+                'name'  => $user->name,
+                'email' => $user->email,
+                'role'  => $user->role,
+                'phone' => $user->phone,
+            ],
+            'is_admin' => $user->isAdmin(),
+            'is_sales' => $user->isSalesAssociate(),
+        ]);
+    }
+
+    /**
+     * API Logout.
+     */
+    public function apiLogout(Request $request)
+    {
+        Auth::logout();
+        if ($request->hasSession()) {
+            $request->session()->invalidate();
+            $request->session()->regenerateToken();
+        }
+
+        return response()->json(['message' => 'Successfully logged out']);
+    }
+
+    /**
+     * Customer registration for Web UI.
      */
     public function registerCustomer(Request $request)
     {
         $request->validate([
-            'name' => 'required|string|max:255',
-            'email' => 'required|email|unique:users,email',
-            'phone' => 'nullable|string|max:20',
+            'name'     => 'required|string|max:255',
+            'email'    => 'required|email|unique:users,email',
+            'phone'    => 'nullable|string|max:20',
             'password' => 'required|min:6',
         ]);
 
         $user = User::create([
-            'name' => $request->name,
-            'email' => $request->email,
-            'phone' => $request->phone,
+            'name'     => $request->name,
+            'email'    => $request->email,
+            'phone'    => $request->phone,
             'password' => Hash::make($request->password),
-            'role' => 'customer',
+            'role'     => 'customer',
         ]);
 
         Auth::login($user);
+        if ($request->hasSession()) {
+            $request->session()->regenerate();
+        }
+
         return redirect('/')->with('success', '✨ Welcome to Estilo Wear Couture, ' . $user->name . '!');
     }
 
     /**
-     * Sales Associate registration.
+     * Sales Associate registration for Web UI.
      */
     public function registerSales(Request $request)
     {
         $request->validate([
-            'name' => 'required|string|max:255',
-            'email' => 'required|email|unique:users,email',
-            'phone' => 'required|string|max:20|unique:users,phone',
-            'upi_id' => 'nullable|string|max:100',
+            'name'     => 'required|string|max:255',
+            'email'    => 'required|email|unique:users,email',
+            'phone'    => 'required|string|max:20|unique:users,phone',
+            'upi_id'   => 'nullable|string|max:100',
             'password' => 'required|min:6',
         ]);
 
         $refCode = 'ESTILO-' . strtoupper(Str::random(4)) . rand(10, 99);
 
         $user = User::create([
-            'name' => $request->name,
-            'email' => $request->email,
-            'phone' => $request->phone,
-            'upi_id' => $request->upi_id,
-            'password' => Hash::make($request->password),
-            'role' => 'sales_associate',
-            'referral_code' => $refCode,
+            'name'            => $request->name,
+            'email'           => $request->email,
+            'phone'           => $request->phone,
+            'upi_id'          => $request->upi_id,
+            'password'        => Hash::make($request->password),
+            'role'            => 'sales_associate',
+            'referral_code'   => $refCode,
             'commission_rate' => 10.00,
-            'earnings' => 0.00,
-            'balance' => 0.00,
+            'earnings'        => 0.00,
+            'balance'         => 0.00,
         ]);
 
         Auth::login($user);
+        if ($request->hasSession()) {
+            $request->session()->regenerate();
+        }
+
         return redirect('/sales/dashboard')->with('success', '🎉 Welcome to the Estilo Partner Program! Your referral code is ' . $refCode);
     }
 
@@ -179,9 +354,75 @@ class AuthController extends Controller
     public function logout(Request $request)
     {
         Auth::logout();
-        $request->session()->invalidate();
-        $request->session()->regenerateToken();
+        if ($request->hasSession()) {
+            $request->session()->invalidate();
+            $request->session()->regenerateToken();
+        }
+
         return redirect('/login')->with('success', 'You have been logged out safely.');
+    }
+
+    /**
+     * Show Profile page based on role.
+     */
+    public function showProfile(Request $request)
+    {
+        if (!Auth::check()) {
+            return redirect('/login')->with('info', 'Please sign in to view your profile.');
+        }
+
+        $user = Auth::user();
+
+        if ($user->isAdmin()) {
+            return redirect('/admin?tab=profile');
+        }
+
+        if ($user->isSalesAssociate()) {
+            return redirect('/sales/dashboard');
+        }
+
+        // Fetch customer's orders
+        $orders = \App\Models\Order::where('email', $user->email)
+            ->orWhere(function ($q) use ($user) {
+                if (!empty($user->phone)) {
+                    $q->where('phone', $user->phone);
+                }
+            })
+            ->latest()
+            ->get();
+
+        return view('profile', compact('user', 'orders'));
+    }
+
+    /**
+     * Update customer profile details.
+     */
+    public function updateCustomerProfile(Request $request)
+    {
+        if (!Auth::check()) {
+            return redirect('/login');
+        }
+
+        $user = Auth::user();
+
+        $request->validate([
+            'name'     => 'required|string|max:255',
+            'phone'    => 'nullable|string|max:20',
+            'password' => 'nullable|min:6',
+        ]);
+
+        $data = [
+            'name'  => $request->name,
+            'phone' => $request->phone,
+        ];
+
+        if ($request->filled('password')) {
+            $data['password'] = Hash::make($request->password);
+        }
+
+        $user->update($data);
+
+        return back()->with('success', 'Your profile details have been updated successfully!');
     }
 
     /**
@@ -190,14 +431,14 @@ class AuthController extends Controller
     protected function redirectBasedOnRole(User $user)
     {
         if ($user->isAdmin()) {
-            return redirect('/admin/dashboard')->with('success', '👑 Welcome back, Administrator!');
+            return redirect('/admin')->with('success', 'Welcome back, Administrator!');
         }
 
         if ($user->isSalesAssociate()) {
-            return redirect('/sales/dashboard')->with('success', '💼 Welcome to your Sales Associate Atelier Portal!');
+            return redirect('/sales/dashboard')->with('success', 'Welcome to your Sales Associate Portal!');
         }
 
-        return redirect('/')->with('success', '✨ Welcome back, ' . $user->name . '!');
+        return redirect('/profile')->with('success', 'Welcome back, ' . $user->name . '!');
     }
 
     /**
@@ -207,15 +448,14 @@ class AuthController extends Controller
     {
         try {
             DB::table('user_logins')->insert([
-                'user_id'     => $user->id,
-                'role'        => $user->role,
-                'auth_method' => $method,
-                'ip_address'  => $request->ip(),
-                'user_agent'  => $request->userAgent(),
+                'user_id'      => $user->id,
+                'role'         => $user->role,
+                'auth_method'  => $method,
+                'ip_address'   => $request->ip(),
+                'user_agent'   => $request->userAgent(),
                 'logged_in_at' => now(),
             ]);
         } catch (\Throwable $e) {
-            // Non-critical — never block login because of audit failure
             logger()->warning('Login audit failed: ' . $e->getMessage());
         }
     }
