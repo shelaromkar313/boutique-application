@@ -28,9 +28,6 @@
     }
 
     $mainImage    = $p['images'][0] ?? '/storage/hero/hero-main.jpg';
-    $colorsPreview = array_slice($p['colors'] ?? [], 0, 3);
-    $extraColors  = max(0, count($p['colors'] ?? []) - 3);
-    $sizesPreview = array_slice($p['sizes'] ?? [], 0, 4);
     $savings      = isset($p['oldPrice']) && isset($p['price']) ? ($p['oldPrice'] - $p['price']) : 0;
 @endphp
 
@@ -71,14 +68,20 @@
         </button>
 
         <!-- Quick View & Quick Add hover drawer -->
-        <div class="absolute bottom-3 left-3 right-3 z-10 opacity-0 group-hover:opacity-100 transition-all duration-300 translate-y-3 group-hover:translate-y-0 flex items-center gap-2">
-            <a href="/product/{{ $p['id'] }}" class="flex-1 bg-white/90 hover:bg-white text-[var(--color-ebony)] font-sans text-xs font-semibold py-2.5 px-3 rounded-full backdrop-blur-md shadow-lg flex items-center justify-center gap-1.5 transition-all hover:text-[var(--color-rose-antique)]">
-                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
-                Quick View
+        <div class="absolute bottom-3 left-3 right-3 z-10 opacity-0 group-hover:opacity-100 transition-all duration-300 translate-y-3 group-hover:translate-y-0 flex flex-col gap-2">
+            <div class="flex items-center gap-2">
+                <a href="/product/{{ $p['id'] }}" class="flex-1 bg-white/90 hover:bg-white text-[var(--color-ebony)] font-sans text-xs font-semibold py-2.5 px-3 rounded-full backdrop-blur-md shadow-lg flex items-center justify-center gap-1.5 transition-all hover:text-[var(--color-rose-antique)]">
+                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
+                    Quick View
+                </a>
+                <button @click.prevent="$store.shop.addToCart({ id: '{{ $p['id'] }}', name: '{{ addslashes($p['name']) }}', price: {{ $p['price'] }}, image: '{{ $mainImage }}', category: '{{ addslashes($p['category']) }}' })" class="flex-1 bg-[var(--color-ebony)] hover:bg-[var(--color-rose-antique)] text-white font-sans text-xs font-semibold py-2.5 px-3 rounded-full shadow-lg transition-all flex items-center justify-center gap-1.5" title="Add to Bag">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"/></svg>
+                    Add to Bag
+                </button>
+            </div>
+            <a href="/checkout" class="w-full bg-[var(--color-rose-antique)] hover:bg-[var(--color-ebony)] text-white font-sans text-xs font-bold py-2.5 px-3 rounded-full shadow-lg transition-all flex items-center justify-center uppercase tracking-wide">
+                Buy Now
             </a>
-            <button @click.prevent="$store.shop.addToCart({ id: '{{ $p['id'] }}', name: '{{ addslashes($p['name']) }}', price: {{ $p['price'] }}, image: '{{ $mainImage }}', category: '{{ addslashes($p['category']) }}' })" class="w-10 h-10 rounded-full bg-[var(--color-ebony)] hover:bg-[var(--color-rose-antique)] text-white flex items-center justify-center shadow-lg transition-colors flex-shrink-0" title="Quick Add to Bag">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"/></svg>
-            </button>
         </div>
     </div>
 
@@ -99,23 +102,6 @@
             <a href="/product/{{ $p['id'] }}" class="block">
                 <h3 class="font-serif text-xs sm:text-base font-bold text-[var(--color-ebony)] group-hover:text-[var(--color-rose-antique)] transition-colors line-clamp-1">{{ $p['name'] }}</h3>
             </a>
-        </div>
-
-        <!-- Color Dots & Size Pills -->
-        <div class="flex items-center justify-between pt-1">
-            <div class="flex items-center gap-1">
-                @foreach($colorsPreview as $c)
-                    <span class="w-2.5 h-2.5 sm:w-3 sm:h-3 rounded-full border border-black/20 inline-block" style="background-color: {{ $c['hex'] }}" title="{{ $c['name'] }}"></span>
-                @endforeach
-                @if($extraColors > 0)
-                    <span class="text-[9px] sm:text-[10px] text-[var(--color-ebony)]/50 font-sans">+{{ $extraColors }}</span>
-                @endif
-            </div>
-            <div class="hidden sm:flex items-center gap-1 text-[10px] font-sans font-semibold text-[var(--color-ebony)]/60">
-                @foreach($sizesPreview as $s)
-                    <span class="bg-[var(--color-offwhite)] px-1.5 py-0.5 rounded border border-[var(--color-bisque)]/50">{{ $s }}</span>
-                @endforeach
-            </div>
         </div>
 
         <!-- Price & Savings -->
