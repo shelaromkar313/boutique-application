@@ -7,15 +7,14 @@
     $profileUrl = '/login';
     if (Auth::check()) {
         if (Auth::user()->role === 'admin') {
-            $profileUrl = '/estilo-hq-console/dashboard';
+            $profileUrl = '/admin/dashboard';
         } elseif (Auth::user()->role === 'sales_associate') {
             $profileUrl = '/sales/dashboard';
         }
     }
-    $isProfileActive = request()->is('login*') || request()->is('register*') || request()->is('sales*') || request()->is('estilo-hq-console*');
+    $isProfileActive = request()->is('login*') || request()->is('register*') || request()->is('sales*') || request()->is('admin*');
 @endphp
 
-@if(!request()->is('estilo-hq-console*'))
 <nav class="fixed bottom-0 left-0 right-0 z-40 lg:hidden bg-white/95 backdrop-blur-lg border-t border-[var(--color-bisque)]/70 shadow-[0_-4px_25px_rgba(26,24,24,0.08)] px-2 pt-2 pb-[calc(env(safe-area-inset-bottom,0px)+0.5rem)] transition-all duration-300 select-none"
      aria-label="Mobile Bottom Navigation">
     <div class="max-w-md mx-auto grid grid-cols-5 items-center justify-around text-center">
@@ -94,4 +93,3 @@
 
     </div>
 </nav>
-@endif

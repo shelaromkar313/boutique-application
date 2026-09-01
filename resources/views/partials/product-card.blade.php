@@ -27,42 +27,41 @@
         if (!isset($p['isBestSeller']) && isset($p['is_best_seller'])) $p['isBestSeller'] = $p['is_best_seller'];
     }
 
-    $mainImage    = $p['images'][0] ?? '/storage/hero/hero-main.jpg';
-    $rawColors    = is_array($p['colors'] ?? null) ? $p['colors'] : [];
-    $colorsPreview = array_slice($rawColors, 0, 3);
-    $extraColors  = max(0, count($rawColors) - 3);
-    $sizesPreview = array_slice(is_array($p['sizes'] ?? null) ? $p['sizes'] : [], 0, 4);
-    $savings      = isset($p['oldPrice']) && isset($p['price']) ? ($p['oldPrice'] - $p['price']) : 0;
+    $mainImage = $p['images'][0] ?? '/storage/hero/hero-main.jpg';
 
-    $colorMap = [
-        'red' => '#DC2626', 'crimson' => '#991B1B', 'maroon' => '#800000',
-        'rose' => '#E11D48', 'blush' => '#FDA4AF', 'pink' => '#F472B6',
-        'navy' => '#1E3A8A', 'blue' => '#2563EB', 'royal' => '#1D4ED8', 'sky' => '#38BDF8',
-        'green' => '#16A34A', 'emerald' => '#059669', 'mint' => '#6EE7B7', 'thyme' => '#4D7C0F', 'olive' => '#65A30D',
-        'gold' => '#D97706', 'yellow' => '#FBBF24', 'amber' => '#F59E0B', 'mustard' => '#CA8A04', 'zari' => '#D4AF37',
-        'purple' => '#9333EA', 'lavender' => '#C084FC', 'plum' => '#7E22CE', 'violet' => '#7C3AED',
-        'black' => '#18181B', 'ebony' => '#1A1818', 'charcoal' => '#374151',
-        'white' => '#FFFFFF', 'ivory' => '#FFFFF0', 'cream' => '#FEF3C7', 'beige' => '#F5F5DC',
-        'orange' => '#EA580C', 'coral' => '#F87171', 'peach' => '#FDBA74',
-        'silver' => '#9CA3AF', 'grey' => '#6B7280', 'gray' => '#6B7280',
+    // Normalize colors: DB may store as plain strings ["Red","Blue"] or objects [{"hex":"#..","name":".."}]
+    $colorNameToHex = [
+        'red' => '#E53E3E', 'rose' => '#FB7185', 'pink' => '#F472B6', 'maroon' => '#7B2D42',
+        'blue' => '#3B82F6', 'navy' => '#1E3A5F', 'sky' => '#38BDF8', 'teal' => '#14B8A6',
+        'green' => '#22C55E', 'olive' => '#6B7A2A', 'mint' => '#86EFAC',
+        'yellow' => '#FACC15', 'gold' => '#D4A843', 'orange' => '#F97316', 'peach' => '#FBCBA8',
+        'purple' => '#A855F7', 'violet' => '#7C3AED', 'lavender' => '#C4B5FD',
+        'brown' => '#92400E', 'beige' => '#F5E6C8', 'cream' => '#FFF8E7', 'ivory' => '#FFFFF0',
+        'black' => '#1A1A1A', 'white' => '#FFFFFF', 'grey' => '#9CA3AF', 'gray' => '#9CA3AF',
+        'silver' => '#C0C0C0', 'copper' => '#B87333', 'mustard' => '#D4A843',
+        'magenta' => '#D946EF', 'coral' => '#FF6B6B', 'champagne' => '#FBEAD6',
+        'turquoise' => '#40E0D0', 'indigo' => '#6366F1', 'fuchsia' => '#E879F9',
+        'multicolor' => 'linear-gradient(135deg, #f43f5e, #f59e0b, #10b981)',
     ];
 
-    $getColorHex = function($color) use ($colorMap) {
-        if (is_array($color)) return $color['hex'] ?? $color['color'] ?? '#C5A880';
-        if (!is_string($color)) return '#C5A880';
-        $trimmed = trim($color);
-        if (str_starts_with($trimmed, '#')) return $trimmed;
-        $lower = strtolower($trimmed);
-        foreach ($colorMap as $name => $hex) {
-            if (str_contains($lower, $name)) return $hex;
+    $rawColors = $p['colors'] ?? [];
+    $normalizedColors = [];
+    foreach ($rawColors as $c) {
+        if (is_array($c) && isset($c['hex'])) {
+            $normalizedColors[] = $c; // already correct format
+        } elseif (is_string($c)) {
+            $key = strtolower(trim($c));
+            $normalizedColors[] = [
+                'name' => $c,
+                'hex'  => $colorNameToHex[$key] ?? '#CCCCCC',
+            ];
         }
-        return '#C5A880';
-    };
+    }
 
-    $getColorName = function($color) {
-        if (is_array($color)) return $color['name'] ?? $color['hex'] ?? 'Couture Shade';
-        return is_string($color) ? $color : 'Couture Shade';
-    };
+    $colorsPreview = array_slice($normalizedColors, 0, 3);
+    $extraColors   = max(0, count($normalizedColors) - 3);
+    $sizesPreview = array_slice($p['sizes'] ?? [], 0, 4);
+    $savings      = isset($p['oldPrice']) && isset($p['price']) ? ($p['oldPrice'] - $p['price']) : 0;
 @endphp
 
 <div class="group relative bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-[var(--shadow-floating)] transition-all duration-500 border border-[var(--color-bisque)]/30 flex flex-col" x-data="{ wishlisted: false }">
@@ -102,20 +101,14 @@
         </button>
 
         <!-- Quick View & Quick Add hover drawer -->
-        <div class="absolute bottom-3 left-3 right-3 z-10 opacity-0 group-hover:opacity-100 transition-all duration-300 translate-y-3 group-hover:translate-y-0 flex flex-col gap-2">
-            <div class="flex items-center gap-2">
-                <a href="/product/{{ $p['id'] }}" class="flex-1 bg-white/90 hover:bg-white text-[var(--color-ebony)] font-sans text-xs font-semibold py-2.5 px-3 rounded-full backdrop-blur-md shadow-lg flex items-center justify-center gap-1.5 transition-all hover:text-[var(--color-rose-antique)]">
-                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
-                    Quick View
-                </a>
-                <button @click.prevent="$store.shop.addToCart({ id: '{{ $p['id'] }}', name: '{{ addslashes($p['name']) }}', price: {{ $p['price'] }}, image: '{{ $mainImage }}', category: '{{ addslashes($p['category']) }}' })" class="flex-1 bg-[var(--color-ebony)] hover:bg-[var(--color-rose-antique)] text-white font-sans text-xs font-semibold py-2.5 px-3 rounded-full shadow-lg transition-all flex items-center justify-center gap-1.5" title="Add to Bag">
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"/></svg>
-                    Add to Bag
-                </button>
-            </div>
-            <a href="/checkout" class="w-full bg-[var(--color-rose-antique)] hover:bg-[var(--color-ebony)] text-white font-sans text-xs font-bold py-2.5 px-3 rounded-full shadow-lg transition-all flex items-center justify-center uppercase tracking-wide">
-                Buy Now
+        <div class="absolute bottom-3 left-3 right-3 z-10 opacity-0 group-hover:opacity-100 transition-all duration-300 translate-y-3 group-hover:translate-y-0 flex items-center gap-2">
+            <a href="/product/{{ $p['id'] }}" class="flex-1 bg-white/90 hover:bg-white text-[var(--color-ebony)] font-sans text-xs font-semibold py-2.5 px-3 rounded-full backdrop-blur-md shadow-lg flex items-center justify-center gap-1.5 transition-all hover:text-[var(--color-rose-antique)]">
+                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
+                Quick View
             </a>
+            <button @click.prevent="$store.shop.addToCart({ id: '{{ $p['id'] }}', name: '{{ addslashes($p['name']) }}', price: {{ $p['price'] }}, image: '{{ $mainImage }}', category: '{{ addslashes($p['category']) }}' })" class="w-10 h-10 rounded-full bg-[var(--color-ebony)] hover:bg-[var(--color-rose-antique)] text-white flex items-center justify-center shadow-lg transition-colors flex-shrink-0" title="Quick Add to Bag">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"/></svg>
+            </button>
         </div>
     </div>
 
@@ -142,7 +135,7 @@
         <div class="flex items-center justify-between pt-1">
             <div class="flex items-center gap-1">
                 @foreach($colorsPreview as $c)
-                    <span class="w-2.5 h-2.5 sm:w-3 sm:h-3 rounded-full border border-black/20 inline-block shadow-2xs" style="background-color: {{ $getColorHex($c) }}" title="{{ $getColorName($c) }}"></span>
+                    <span class="w-2.5 h-2.5 sm:w-3 sm:h-3 rounded-full border border-black/20 inline-block" style="background-color: {{ $c['hex'] }}" title="{{ $c['name'] }}"></span>
                 @endforeach
                 @if($extraColors > 0)
                     <span class="text-[9px] sm:text-[10px] text-[var(--color-ebony)]/50 font-sans">+{{ $extraColors }}</span>

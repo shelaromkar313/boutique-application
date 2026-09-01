@@ -5,98 +5,25 @@
 @section('content')
 
 @php
-$colorHexMap = [
-    'rose blush' => '#C87D87',
-    'antique rose' => '#C87D87',
-    'dusty rose' => '#C87D87',
-    'royal navy' => '#1E293B',
-    'golden ochre' => '#D4AF37',
-    'imperial gold' => '#D4AF37',
-    'champagne gold' => '#FBEAD6',
-    'champagne ivory' => '#FBEAD6',
-    'champagne beige' => '#FBEAD6',
-    'blush pink' => '#F0C4CB',
-    'royal emerald' => '#6B7556',
-    'sage thyme' => '#6B7556',
-    'thyme green' => '#6B7556',
-    'dried thyme' => '#6B7556',
-    'dried thyme green' => '#6B7556',
-    'antique crimson' => '#A25964',
-    'crimson red' => '#A25964',
-    'bisque' => '#E5BCA9',
-    'pure ivory' => '#FFF9F5',
+$categories = ['Designer Kurtis','Cotton Kurtis','Chikankari Kurtis','Straight Kurtis','Anarkali Suits','Banarasi Sarees','Silk Sarees','Organza Sarees','Linen Sarees','Cotton Sarees','Co-Ord Sets','Boutique Dresses','Ethnic Dresses'];
+$fabrics    = ['Pure Silk','Chikankari Cotton','Mulmul Cotton','Organza','Banarasi Brocade','Organic Linen'];
+$occasions  = ['Wedding Collection','Festive Wear','Office Wear','Casual Wear','Party Wear'];
+$sizes      = ['XS','S','M','L','XL','XXL','Free Size'];
+
+$allProducts = [
+  ['id'=>'est-001','name'=>'Gulzar Handcrafted Chikankari Anarkali Set',      'category'=>'Chikankari Kurtis','fabric'=>'Chikankari Cotton','occasion'=>'Festive Wear',       'price'=>1899,'oldPrice'=>2599,'discount'=>27,'rating'=>4.9,'reviewCount'=>42,'isNewArrival'=>true, 'isBestSeller'=>true, 'colors'=>[['name'=>'Antique Rose','hex'=>'#C87D87'],['name'=>'Bisque','hex'=>'#E5BCA9']],'sizes'=>['XS','S','M','L','XL','XXL'],'images'=>['/storage/products/est-001-chikankari-anarkali.jpg']],
+  ['id'=>'est-002','name'=>'Varanasi Royal Zari Banarasi Silk Saree',         'category'=>'Banarasi Sarees',  'fabric'=>'Banarasi Brocade','occasion'=>'Wedding Collection',  'price'=>2499,'oldPrice'=>3499,'discount'=>29,'rating'=>5.0,'reviewCount'=>38,'isNewArrival'=>true, 'isBestSeller'=>true, 'colors'=>[['name'=>'Blush Pink','hex'=>'#F0C4CB'],['name'=>'Royal Emerald','hex'=>'#6B7556']],'sizes'=>['Free Size'],'images'=>['/storage/products/est-002-banarasi-saree.jpg']],
+  ['id'=>'est-003','name'=>'Noor Hand-Painted Floral Organza Saree',          'category'=>'Organza Sarees',   'fabric'=>'Organza',         'occasion'=>'Party Wear',          'price'=>1699,'oldPrice'=>2299,'discount'=>26,'rating'=>4.8,'reviewCount'=>29,'isNewArrival'=>true, 'isBestSeller'=>false,'colors'=>[['name'=>'Champagne Gold','hex'=>'#FBEAD6']],'sizes'=>['Free Size'],'images'=>['/storage/products/est-003-organza-saree.jpg']],
+  ['id'=>'est-004','name'=>'Raysha Silk Blend Printed Peplum Co-Ord Set',     'category'=>'Co-Ord Sets',      'fabric'=>'Pure Silk',        'occasion'=>'Casual Wear',         'price'=>1499,'oldPrice'=>1999,'discount'=>25,'rating'=>4.7,'reviewCount'=>31,'isNewArrival'=>false,'isBestSeller'=>true, 'colors'=>[['name'=>'Dried Thyme Green','hex'=>'#6B7556']],'sizes'=>['S','M','L','XL'],'images'=>['/storage/products/est-004-coord-set.jpg']],
+  ['id'=>'est-005','name'=>'Aarya Hand Block Printed Cotton Straight Kurti',  'category'=>'Cotton Kurtis',    'fabric'=>'Mulmul Cotton',    'occasion'=>'Office Wear',         'price'=>1099,'oldPrice'=>1499,'discount'=>27,'rating'=>4.9,'reviewCount'=>54,'isNewArrival'=>true, 'isBestSeller'=>true, 'colors'=>[['name'=>'Sage Thyme','hex'=>'#6B7556'],['name'=>'Dusty Rose','hex'=>'#C87D87']],'sizes'=>['S','M','L','XL','XXL'],'images'=>['/storage/products/est-005-cotton-kurti.jpg']],
+  ['id'=>'est-006','name'=>'Sultana Royal Zardozi Embroidered Silk Anarkali',  'category'=>'Anarkali Suits',   'fabric'=>'Pure Silk',        'occasion'=>'Wedding Collection',  'price'=>2399,'oldPrice'=>3299,'discount'=>27,'rating'=>5.0,'reviewCount'=>19,'isNewArrival'=>true, 'isBestSeller'=>false,'colors'=>[['name'=>'Antique Crimson','hex'=>'#A25964']],'sizes'=>['S','M','L','XL'],'images'=>['/storage/products/est-006-silk-anarkali.jpg']],
+  ['id'=>'est-007','name'=>'Kashvi Chanderi Silk Foil Printed Boutique Dress', 'category'=>'Boutique Dresses', 'fabric'=>'Pure Silk',        'occasion'=>'Party Wear',          'price'=>1599,'oldPrice'=>2199,'discount'=>27,'rating'=>4.8,'reviewCount'=>33,'isNewArrival'=>false,'isBestSeller'=>true, 'colors'=>[['name'=>'Champagne Beige','hex'=>'#FBEAD6']],'sizes'=>['XS','S','M','L','XL'],'images'=>['/storage/products/est-007-boutique-dress.jpg']],
+  ['id'=>'est-008','name'=>'Manjari Organic Handloom Linen Saree',             'category'=>'Linen Sarees',     'fabric'=>'Organic Linen',    'occasion'=>'Casual Wear',         'price'=>1299,'oldPrice'=>1799,'discount'=>28,'rating'=>4.7,'reviewCount'=>22,'isNewArrival'=>false,'isBestSeller'=>false,'colors'=>[['name'=>'Dried Thyme','hex'=>'#6B7556']],'sizes'=>['Free Size'],'images'=>['/storage/products/est-008-linen-saree.jpg']],
+  ['id'=>'est-009','name'=>'Reeva Sequin Embroidered Georgette Designer Kurti','category'=>'Designer Kurtis',  'fabric'=>'Pure Silk',        'occasion'=>'Party Wear',          'price'=>1199,'oldPrice'=>1599,'discount'=>25,'rating'=>4.8,'reviewCount'=>36,'isNewArrival'=>true, 'isBestSeller'=>false,'colors'=>[['name'=>'Antique Rose','hex'=>'#C87D87']],'sizes'=>['S','M','L','XL'],'images'=>['/storage/products/est-009-designer-kurti.jpg']],
+  ['id'=>'est-010','name'=>'Meera Handloom Mulmul Cotton Jamdani Saree',       'category'=>'Cotton Sarees',    'fabric'=>'Mulmul Cotton',    'occasion'=>'Office Wear',         'price'=>1799,'oldPrice'=>2399,'discount'=>25,'rating'=>4.9,'reviewCount'=>27,'isNewArrival'=>false,'isBestSeller'=>true, 'colors'=>[['name'=>'Champagne Ivory','hex'=>'#FBEAD6']],'sizes'=>['Free Size'],'images'=>['/storage/products/est-010-jamdani-saree.jpg']],
+  ['id'=>'est-011','name'=>'Tarang Printed Angrakha Style Ethnic Dress',       'category'=>'Ethnic Dresses',   'fabric'=>'Chikankari Cotton','occasion'=>'Festive Wear',        'price'=>1399,'oldPrice'=>1899,'discount'=>26,'rating'=>4.9,'reviewCount'=>45,'isNewArrival'=>true, 'isBestSeller'=>false,'colors'=>[['name'=>'Thyme Green','hex'=>'#6B7556']],'sizes'=>['XS','S','M','L','XL'],'images'=>['/storage/products/est-011-ethnic-dress.jpg']],
+  ['id'=>'est-012','name'=>'Bhavya Pure Kanjivaram Golden Zari Silk Saree',    'category'=>'Silk Sarees',      'fabric'=>'Pure Silk',        'occasion'=>'Wedding Collection',  'price'=>2299,'oldPrice'=>3199,'discount'=>28,'rating'=>5.0,'reviewCount'=>51,'isNewArrival'=>true, 'isBestSeller'=>true, 'colors'=>[['name'=>'Antique Crimson','hex'=>'#A25964']],'sizes'=>['Free Size'],'images'=>['/storage/products/est-012-kanjivaram-saree.jpg']],
 ];
-
-$dbProducts = \App\Models\Product::where('in_stock', true)->latest()->get();
-if ($dbProducts->isEmpty()) {
-    $dbProducts = \App\Models\Product::latest()->get();
-}
-
-$allProducts = $dbProducts->map(function ($p) use ($colorHexMap) {
-    $imgArr = $p->images;
-    if (is_string($imgArr)) {
-        $imgArr = json_decode($imgArr, true);
-    }
-    $images = (is_array($imgArr) && count($imgArr)) ? $imgArr : ['/storage/hero/hero-main.jpg'];
-
-    $colorArr = $p->colors;
-    if (is_string($colorArr)) {
-        $colorArr = json_decode($colorArr, true);
-    }
-    if (!is_array($colorArr)) {
-        $colorArr = ['Royal Navy'];
-    }
-    $colors = [];
-    foreach ($colorArr as $c) {
-        if (is_array($c)) {
-            $colors[] = [
-                'name' => $c['name'] ?? 'Couture Shade',
-                'hex'  => $c['hex'] ?? ($colorHexMap[strtolower($c['name'] ?? '')] ?? '#C87D87')
-            ];
-        } elseif (is_string($c)) {
-            $colors[] = [
-                'name' => $c,
-                'hex'  => $colorHexMap[strtolower(trim($c))] ?? '#1E293B'
-            ];
-        }
-    }
-    if (empty($colors)) {
-        $colors = [['name' => 'Royal Heritage', 'hex' => '#C87D87']];
-    }
-
-    $sizesArr = $p->sizes;
-    if (is_string($sizesArr)) {
-        $sizesArr = json_decode($sizesArr, true);
-    }
-    $sizes = (is_array($sizesArr) && count($sizesArr)) ? $sizesArr : ['XS', 'S', 'M', 'L', 'XL', 'XXL'];
-
-    return [
-        'id'           => $p->est_id ?: 'est-' . str_pad($p->id, 3, '0', STR_PAD_LEFT),
-        'name'         => $p->name,
-        'category'     => $p->category,
-        'fabric'       => $p->fabric ?: 'Handloom Artisanal',
-        'occasion'     => $p->occasion ?: 'Festive Wear',
-        'price'        => (float) $p->price,
-        'oldPrice'     => (float) ($p->old_price ?: ($p->price * 1.25)),
-        'discount'     => (int) ($p->discount ?: 20),
-        'rating'       => (float) ($p->rating ?: 5.0),
-        'reviewCount'  => (int) ($p->review_count ?: 1),
-        'isNewArrival' => (bool) $p->is_new_arrival,
-        'isBestSeller' => (bool) $p->is_best_seller,
-        'isFeatured'   => (bool) $p->is_featured,
-        'colors'       => $colors,
-        'sizes'        => $sizes,
-        'images'       => $images,
-    ];
-})->values()->toArray();
-
-$categories = \App\Models\Category::pluck('name')->toArray();
-if (empty($categories)) {
-    $categories = ['Kurtis & Suits', 'Chikankari Kurtis', 'Anarkali Suits', 'Luxury Sarees', 'Banarasi Sarees', 'Silk Sarees', 'Co-Ord Sets', 'Ethnic Dresses'];
-}
-$fabrics    = ['Pure Silk', 'Chikankari Cotton', 'Mulmul Cotton', 'Organza', 'Banarasi Brocade', 'Organic Linen', 'Handloom Artisanal'];
-$occasions  = ['Wedding Collection', 'Festive Wear', 'Office Wear', 'Casual Wear', 'Party Wear'];
-$sizes      = ['XS', 'S', 'M', 'L', 'XL', 'XXL', 'Free Size'];
 @endphp
 
 {{-- Pass products JSON to Alpine --}}
@@ -123,7 +50,7 @@ $sizes      = ['XS', 'S', 'M', 'L', 'XL', 'XXL', 'Free Size'];
                 Filters
             </button>
 
-            <div class="flex items-center gap-3 text-lg font-sans text-[var(--color-ebony)]/70 flex-wrap">
+            <div class="flex items-center gap-3 text-xs font-sans text-[var(--color-ebony)]/70 flex-wrap">
                 <span>Showing <strong class="text-[var(--color-ebony)]" x-text="filteredProducts.length"></strong> Products</span>
                 <span x-show="searchQuery" style="display:none;" class="inline-flex items-center gap-1.5 px-3 py-1 bg-[var(--color-champagne-light)] border border-[var(--color-bisque)] rounded-full text-xs font-semibold text-[var(--color-ebony)]">
                     Search: "<span x-text="searchQuery"></span>"
@@ -202,20 +129,6 @@ $sizes      = ['XS', 'S', 'M', 'L', 'XL', 'XXL', 'Free Size'];
                     </div>
                 </div>
 
-                {{-- Colors --}}
-                <div class="space-y-3">
-                    <h3 class="font-serif text-base font-bold text-[var(--color-ebony)] border-b border-[var(--color-bisque)] pb-2 uppercase tracking-wider">Colors</h3>
-                    <div class="space-y-2">
-                        <template x-for="color in getAllColors()" :key="color.hex">
-                            <label class="flex items-center gap-2.5 text-xs font-sans text-[var(--color-ebony)]/80 cursor-pointer hover:text-[var(--color-rose-antique)]">
-                                <input type="checkbox" :value="color.name" @change="toggleColor(color.name)" :checked="selectedColors.includes(color.name)" class="accent-[#C87D87] rounded" />
-                                <span class="w-3 h-3 rounded-full border border-black/20" :style="'background-color: ' + color.hex"></span>
-                                <span x-text="color.name"></span>
-                            </label>
-                        </template>
-                    </div>
-                </div>
-
                 {{-- Size --}}
                 <div class="space-y-3">
                     <h3 class="font-serif text-base font-bold text-[var(--color-ebony)] border-b border-[var(--color-bisque)] pb-2 uppercase tracking-wider">Size</h3>
@@ -256,20 +169,10 @@ $sizes      = ['XS', 'S', 'M', 'L', 'XL', 'XXL', 'Free Size'];
                                 <button @click.prevent="wishlisted = !wishlisted" class="absolute top-2 sm:top-3 right-2 sm:right-3 z-10 w-7 h-7 sm:w-9 sm:h-9 rounded-full bg-white/90 backdrop-blur-md shadow-md flex items-center justify-center text-[#1A1818] hover:text-[#C87D87] hover:scale-110 transition-all duration-300">
                                     <svg :class="wishlisted ? 'fill-[#C87D87] text-[#C87D87]' : 'fill-none'" class="w-3 h-3 sm:w-4 sm:h-4" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/></svg>
                                 </button>
-                                {{-- Quick View, Add to Bag & Buy Now hover --}}
-                                <div class="absolute bottom-3 left-3 right-3 z-10 opacity-0 group-hover:opacity-100 transition-all duration-300 translate-y-3 group-hover:translate-y-0 flex flex-col gap-2">
-                                    <div class="flex items-center gap-1.5 sm:gap-2">
-                                        <a :href="'/product/' + product.id" class="flex-1 bg-white/90 hover:bg-white text-[#1A1818] font-sans text-[10px] sm:text-xs font-semibold py-2.5 px-2.5 rounded-full backdrop-blur-md shadow-lg flex items-center justify-center gap-1 transition-all hover:text-[#C87D87]">
-                                            <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
-                                            Quick View
-                                        </a>
-                                        <button @click.prevent="$store.shop.addToCart({ id: product.id, name: product.name, price: product.price, image: product.images[0], category: product.category })" class="flex-1 bg-[#1A1818] hover:bg-[#C87D87] text-white font-sans text-[10px] sm:text-xs font-semibold py-2.5 px-2.5 rounded-full shadow-lg transition-all flex items-center justify-center gap-1" title="Add to Bag">
-                                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"/></svg>
-                                            Add to Bag
-                                        </button>
-                                    </div>
-                                    <a href="/checkout" class="w-full bg-[#C87D87] hover:bg-[#1A1818] text-white font-sans text-[10px] sm:text-xs font-bold uppercase tracking-wider py-2.5 px-2.5 rounded-full shadow-lg transition-all flex items-center justify-center">
-                                        Buy Now
+                                {{-- Quick View hover --}}
+                                <div class="absolute bottom-3 right-3 z-10 opacity-0 group-hover:opacity-100 transition-all duration-300 translate-y-3 group-hover:translate-y-0">
+                                    <a :href="'/product/' + product.id" class="p-2.5 rounded-full bg-white/95 hover:bg-white text-[#1A1818] hover:text-[#C87D87] shadow-lg flex items-center justify-center transition-all" title="Quick View">
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
                                     </a>
                                 </div>
                             </div>
@@ -288,7 +191,20 @@ $sizes      = ['XS', 'S', 'M', 'L', 'XL', 'XXL', 'Free Size'];
                                         <h3 class="font-serif text-xs sm:text-base font-bold text-[#1A1818] group-hover:text-[#C87D87] transition-colors line-clamp-1" x-text="product.name"></h3>
                                     </a>
                                 </div>
-
+                                {{-- Color dots --}}
+                                <div class="flex items-center justify-between pt-1">
+                                    <div class="flex items-center gap-1">
+                                        <template x-for="(c, ci) in product.colors.slice(0,3)" :key="ci">
+                                            <span class="w-2.5 h-2.5 sm:w-3 sm:h-3 rounded-full border border-black/20 inline-block" :style="'background-color:' + c.hex" :title="c.name"></span>
+                                        </template>
+                                        <span x-show="product.colors.length > 3" class="text-[9px] sm:text-[10px] text-[#1A1818]/50 font-sans" x-text="'+' + (product.colors.length - 3)"></span>
+                                    </div>
+                                    <div class="hidden sm:flex items-center gap-1 text-[10px] font-sans font-semibold text-[#1A1818]/60">
+                                        <template x-for="(s, si) in product.sizes.slice(0,4)" :key="si">
+                                            <span class="bg-[#FFF9F5] px-1.5 py-0.5 rounded border border-[rgba(229,188,169,0.5)]" x-text="s"></span>
+                                        </template>
+                                    </div>
+                                </div>
                                 {{-- Price --}}
                                 <div class="flex items-baseline gap-1 sm:gap-2 pt-1.5 sm:pt-2 border-t border-[rgba(229,188,169,0.3)]">
                                     <span class="font-serif text-sm sm:text-lg font-bold text-[#1A1818]" x-text="'₹' + product.price.toLocaleString('en-IN')"></span>
@@ -351,7 +267,6 @@ function shopPage(products, meta) {
         selectedCategory: new URLSearchParams(window.location.search).get('category') || '',
         selectedFabric:   new URLSearchParams(window.location.search).get('fabric') || '',
         selectedOccasion: new URLSearchParams(window.location.search).get('occasion') || '',
-        selectedColors:   [],
         selectedSizes:    [],
         priceRange:       25000,
         sortBy:           new URLSearchParams(window.location.search).get('filter') === 'new' ? 'newest' : 'featured',
@@ -366,32 +281,11 @@ function shopPage(products, meta) {
                 : this.selectedSizes.push(s);
         },
 
-        toggleColor(colorName) {
-            this.selectedColors.includes(colorName)
-                ? this.selectedColors = this.selectedColors.filter(c => c !== colorName)
-                : this.selectedColors.push(colorName);
-        },
-
-        getAllColors() {
-            const colorsMap = new Map();
-            this.products.forEach(p => {
-                if (p.colors && Array.isArray(p.colors)) {
-                    p.colors.forEach(c => {
-                        if (!colorsMap.has(c.hex)) {
-                            colorsMap.set(c.hex, c);
-                        }
-                    });
-                }
-            });
-            return Array.from(colorsMap.values());
-        },
-
         clearFilters() {
             this.searchQuery      = '';
             this.selectedCategory = '';
             this.selectedFabric   = '';
             this.selectedOccasion = '';
-            this.selectedColors   = [];
             this.selectedSizes    = [];
             this.priceRange       = 25000;
             // Clear URL search param if present without full reload
@@ -420,7 +314,6 @@ function shopPage(products, meta) {
                 if (this.selectedCategory && !p.category.toLowerCase().includes(this.selectedCategory.toLowerCase())) return false;
                 if (this.selectedFabric   && p.fabric   !== this.selectedFabric)   return false;
                 if (this.selectedOccasion && p.occasion !== this.selectedOccasion) return false;
-                if (this.selectedColors.length && !p.colors.some(c => this.selectedColors.includes(c.name))) return false;
                 if (this.selectedSizes.length && !p.sizes.some(s => this.selectedSizes.includes(s))) return false;
                 if (p.price > this.priceRange) return false;
                 return true;

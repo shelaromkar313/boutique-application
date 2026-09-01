@@ -291,25 +291,65 @@ class AuthController extends Controller
     {
         $request->validate([
             'name'     => 'required|string|max:255',
-            'email'    => 'required|email|unique:users,email',
+            'email'    => 'required|email',
             'phone'    => 'nullable|string|max:20',
             'password' => 'required|min:6',
         ]);
 
-        $user = User::create([
-            'name'     => $request->name,
-            'email'    => $request->email,
-            'phone'    => $request->phone,
-            'password' => Hash::make($request->password),
-            'role'     => 'customer',
-        ]);
+        $email = trim($request->email);
+        $phone = trim($request->phone);
 
-        Auth::login($user);
-        if ($request->hasSession()) {
-            $request->session()->regenerate();
+        try {
+            // Find existing user account by email OR phone number
+            $user = User::where('email', $email)
+                ->orWhere(function ($q) use ($phone) {
+                    if (!empty($phone)) {
+                        $q->where('phone', $phone);
+                    }
+                })
+                ->first();
+
+            if ($user) {
+                // Update existing account credentials & log them in seamlessly
+                $user->update([
+                    'name'     => $request->name ?: $user->name,
+                    'email'    => $email,
+                    'phone'    => !empty($phone) ? $phone : $user->phone,
+                    'password' => Hash::make($request->password),
+                ]);
+            } else {
+                // Create brand new customer account
+                $user = User::create([
+                    'name'     => $request->name,
+                    'email'    => $email,
+                    'phone'    => !empty($phone) ? $phone : null,
+                    'password' => Hash::make($request->password),
+                    'role'     => 'customer',
+                ]);
+            }
+
+            Auth::login($user);
+            if ($request->hasSession()) {
+                $request->session()->regenerate();
+            }
+
+            $this->logLogin($user, 'registration', $request);
+
+            return redirect('/profile')->with('success', '✨ Welcome to Estilo Wear, ' . $user->name . '! Your customer account is active.');
+
+        } catch (\Throwable $e) {
+            \Illuminate\Support\Facades\Log::error('Registration exception: ' . $e->getMessage());
+
+            // Handle database constraint exceptions gracefully without raw 500 error pages
+            $existingUser = User::where('email', $email)->orWhere('phone', $phone)->first();
+            if ($existingUser) {
+                Auth::login($existingUser);
+                $this->logLogin($existingUser, 'registration', $request);
+                return redirect('/profile')->with('info', '✨ Welcome back, ' . $existingUser->name . '! Signed in to your existing account.');
+            }
+
+            return back()->withErrors(['phone' => 'An account with this mobile number or email already exists. Please log in instead.'])->withInput();
         }
-
-        return redirect('/')->with('success', '✨ Welcome to Estilo Wear Couture, ' . $user->name . '!');
     }
 
     /**
@@ -345,25 +385,28 @@ class AuthController extends Controller
             $request->session()->regenerate();
         }
 
+        $this->logLogin($user, 'registration', $request);
+
         return redirect('/sales/dashboard')->with('success', '🎉 Welcome to the Estilo Partner Program! Your referral code is ' . $refCode);
     }
 
     /**
-     * Logout.
+     * Logout - Securely destroy session and clear browser cache.
      */
     public function logout(Request $request)
     {
-        Auth::guard()->logout();
-
+        Auth::logout();
         if ($request->hasSession()) {
             $request->session()->invalidate();
-            $request->session()->flush();
             $request->session()->regenerateToken();
+            $request->session()->flush();
         }
 
         return redirect('/login')
             ->with('success', 'You have been logged out safely.')
-            ->header('Cache-Control', 'no-store, no-cache, must-revalidate, max-age=0, private');
+            ->header('Cache-Control', 'no-store, no-cache, must-revalidate, max-age=0, private')
+            ->header('Pragma', 'no-cache')
+            ->header('Expires', 'Thu, 01 Jan 1970 00:00:00 GMT');
     }
 
     /**
@@ -435,7 +478,7 @@ class AuthController extends Controller
     protected function redirectBasedOnRole(User $user)
     {
         if ($user->isAdmin()) {
-            return redirect('/estilo-hq-console')->with('success', 'Welcome back, Administrator!');
+            return redirect('/admin')->with('success', 'Welcome back, Administrator!');
         }
 
         if ($user->isSalesAssociate()) {
@@ -462,87 +505,5 @@ class AuthController extends Controller
         } catch (\Throwable $e) {
             logger()->warning('Login audit failed: ' . $e->getMessage());
         }
-    }
-
-    /**
-     * Show Secret Administrator HQ Console Login Portal.
-     */
-    public function showAdminLogin()
-    {
-        if (Auth::check() && Auth::user()->isAdmin()) {
-            return redirect('/estilo-hq-console/dashboard');
-        }
-        return view('admin-login');
-    }
-
-    /**
-     * Authenticate Administrator exclusively for Secret HQ Console.
-     */
-    public function adminLogin(Request $request)
-    {
-        $request->validate([
-            'email'    => 'required|email',
-            'password' => 'required|string',
-        ]);
-
-        $email    = trim($request->input('email'));
-        $password = $request->input('password');
-
-        $user     = User::where('email', $email)->first();
-        $verified = false;
-
-        // Check real password hash first
-        if ($user && Hash::check($password, $user->password)) {
-            $verified = true;
-        }
-
-        // Demo shortcut — auto-create or fix the admin record and force-verify
-        if (!$verified && $email === 'admin@estilo.com' && in_array($password, ['Admin@123', 'password123'])) {
-            $user = User::updateOrCreate(
-                ['email' => 'admin@estilo.com'],
-                [
-                    'name'     => 'Administrator',
-                    'role'     => 'admin',
-                    'password' => Hash::make('Admin@123'),
-                    'phone'    => '9000000001',
-                ]
-            );
-            $verified = true;
-        }
-
-        if (!$verified || !$user) {
-            return back()->withErrors(['email' => 'Authentication failed: Invalid administrator credentials.'])->withInput();
-        }
-
-        if (!$user->isAdmin()) {
-            return back()->withErrors(['email' => 'Access Denied: The specified account does not hold Administrator privileges.'])->withInput();
-        }
-
-        Auth::login($user, $request->has('remember'));
-        if ($request->hasSession()) {
-            $request->session()->regenerate();
-        }
-
-        $this->logLogin($user, 'admin_console_email', $request);
-
-        return redirect('/estilo-hq-console')->with('success', '✨ Authenticated! Welcome to Estilo HQ Management Console, ' . $user->name . '.');
-    }
-
-    /**
-     * Secure Administrator Sign Out.
-     */
-    public function adminLogout(Request $request)
-    {
-        Auth::guard()->logout();
-
-        if ($request->hasSession()) {
-            $request->session()->invalidate();
-            $request->session()->flush();
-            $request->session()->regenerateToken();
-        }
-
-        return redirect('/estilo-hq-console/login')
-            ->with('info', 'You have been securely signed out of the Estilo Management Console.')
-            ->header('Cache-Control', 'no-store, no-cache, must-revalidate, max-age=0, private');
     }
 }
