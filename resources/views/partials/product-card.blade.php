@@ -28,13 +28,10 @@
     }
 
     $mainImage    = $p['images'][0] ?? '/storage/hero/hero-main.jpg';
-<<<<<<< HEAD
-=======
     $rawColors    = is_array($p['colors'] ?? null) ? $p['colors'] : [];
     $colorsPreview = array_slice($rawColors, 0, 3);
     $extraColors  = max(0, count($rawColors) - 3);
     $sizesPreview = array_slice(is_array($p['sizes'] ?? null) ? $p['sizes'] : [], 0, 4);
->>>>>>> 4cf0ba5 (Fix: TypeError in product-card and product view by safely supporting string color names and object color maps)
     $savings      = isset($p['oldPrice']) && isset($p['price']) ? ($p['oldPrice'] - $p['price']) : 0;
 
     $colorMap = [
@@ -141,8 +138,6 @@
             </a>
         </div>
 
-<<<<<<< HEAD
-=======
         <!-- Color Dots & Size Pills -->
         <div class="flex items-center justify-between pt-1">
             <div class="flex items-center gap-1">
@@ -160,7 +155,6 @@
             </div>
         </div>
 
->>>>>>> 4cf0ba5 (Fix: TypeError in product-card and product view by safely supporting string color names and object color maps)
         <!-- Price & Savings -->
         <div class="flex items-baseline gap-1 sm:gap-2 pt-1.5 sm:pt-2 border-t border-[var(--color-bisque)]/30">
             <span class="font-serif text-sm sm:text-lg font-bold text-[var(--color-ebony)]">₹{{ number_format($p['price']) }}</span>

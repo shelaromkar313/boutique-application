@@ -27,7 +27,7 @@ class AdminApiController extends Controller
         $productsCount = Product::count();
         $inStockCount = Product::where('in_stock', true)->count();
         $customersCount = User::where('role', 'customer')->orWhereNull('role')->count();
-        $associatesCount = User::whereIn('role', ['sales_associate', 'sales_executive', 'associate'])->count();
+        $associatesCount = DB::table('sales_associates')->count();
         $totalCommissionPaid = ReferralSale::where('status', 'paid')->sum('commission_earned');
 
         $recentOrders = Order::latest()->take(5)->get();
@@ -103,8 +103,7 @@ class AdminApiController extends Controller
      */
     public function getAssociates()
     {
-        $associates = User::whereIn('role', ['sales_associate', 'sales_executive', 'associate'])
-            ->with(['referralSales'])
+        $associates = DB::table('sales_associates')
             ->latest()
             ->get();
 

@@ -24,38 +24,19 @@ class DemoOrdersAndUsersSeeder extends Seeder
             ]
         );
 
-        // 2. Create Sales Associates (Executives)
-        $associateNeha = User::firstOrCreate(
-            ['email' => 'neha.verma@estilo.com'],
-            [
-                'name'            => 'Neha Verma',
-                'role'            => 'sales_associate',
-                'password'        => Hash::make('Associate@123'),
-                'phone'           => '+91 98200 11223',
-                'referral_code'   => 'ESTILO-NEHA01',
-                'commission_rate' => 10.00,
-                'earnings'        => 12800.00,
-                'balance'         => 4250.00,
-                'upi_id'          => 'neha.verma@okaxis',
-            ]
-        );
-
         $associateRajesh = User::firstOrCreate(
-            ['email' => 'rajesh.patel@estilo.com'],
+            ['email' => 'rajesh.singh@estilo.com'],
             [
-                'name'            => 'Rajesh Patel',
-                'role'            => 'sales_associate',
-                'password'        => Hash::make('Associate@123'),
-                'phone'           => '+91 98110 33445',
-                'referral_code'   => 'ESTILO-RAJESH02',
+                'name' => 'Rajesh Singh',
+                'role' => 'sales_associate',
+                'password' => Hash::make('Partner@123'),
+                'phone' => '+91 98765 43211',
+                'referral_code' => 'ESTILO-RAJ01',
                 'commission_rate' => 12.00,
-                'earnings'        => 8900.00,
-                'balance'         => 3180.00,
-                'upi_id'          => 'rajesh.patel@okicici',
             ]
         );
 
-        // 3. Create Customers
+        // 2. Create Customers
         $customerMeera = User::firstOrCreate(
             ['email' => 'meera.patel@gmail.com'],
             [
@@ -149,20 +130,6 @@ class DemoOrdersAndUsersSeeder extends Seeder
                 'status'            => 'confirmed',
                 'items'             => json_encode($order1Items),
                 'note'              => 'Payment Mode: UPI Instant (Verified) • Coupon Applied: BOUTIQUE10 • Referred by: ESTILO-NEHA01',
-                'created_at'        => now()->subHours(4),
-            ]
-        );
-
-        ReferralSale::updateOrCreate(
-            ['order_no' => 'EST-849201'],
-            [
-                'associate_id'      => $associateNeha->id,
-                'product_name'      => $order1Items[0]['name'] . ' (+1 more)',
-                'sale_amount'       => $total1,
-                'commission_rate'   => 10.00,
-                'commission_earned' => round($total1 * 0.10, 2),
-                'customer_name'     => 'Meera Patel',
-                'status'            => 'paid',
                 'created_at'        => now()->subHours(4),
             ]
         );

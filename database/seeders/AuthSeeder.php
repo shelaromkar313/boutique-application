@@ -44,54 +44,7 @@ class AuthSeeder extends Seeder
             'email_verified_at' => now(),
         ]);
 
-        // ── 2. Sales Associates / Partners ───────────────────────────────────
-        $associates = [
-            [
-                'name'            => 'Pooja Verma',
-                'email'           => 'associate@estilo.com',
-                'phone'           => '9876543211',
-                'password'        => Hash::make('Partner@123'),
-                'role'            => 'sales_associate',
-                'referral_code'   => 'ESTILO-SA01',
-                'commission_rate' => 12.00,
-                'earnings'        => 14580.00,
-                'balance'         => 6420.00,
-                'upi_id'          => 'pooja.verma@okhdfcbank',
-                'email_verified_at' => now(),
-            ],
-            [
-                'name'            => 'Priya Sharma',
-                'email'           => 'priya.sharma@estilo.com',
-                'phone'           => '9876543213',
-                'password'        => Hash::make('Partner@123'),
-                'role'            => 'sales_associate',
-                'referral_code'   => 'ESTILO-SA02',
-                'commission_rate' => 10.00,
-                'earnings'        => 8240.00,
-                'balance'         => 3120.00,
-                'upi_id'          => 'priya.sharma@paytm',
-                'email_verified_at' => now(),
-            ],
-            [
-                'name'            => 'Aarav Mehta',
-                'email'           => 'aarav.mehta@estilo.com',
-                'phone'           => '9876543214',
-                'password'        => Hash::make('Partner@123'),
-                'role'            => 'sales_associate',
-                'referral_code'   => 'ESTILO-SA03',
-                'commission_rate' => 10.00,
-                'earnings'        => 5300.00,
-                'balance'         => 2100.00,
-                'upi_id'          => 'aarav.mehta@upi',
-                'email_verified_at' => now(),
-            ],
-        ];
-
-        foreach ($associates as $a) {
-            $this->upsertUser($a);
-        }
-
-        // ── 3. Customers ─────────────────────────────────────────────────────
+        // ── 2. Customers ─────────────────────────────────────────────────────
         $customers = [
             [
                 'name'     => 'Test Customer',
@@ -139,6 +92,44 @@ class AuthSeeder extends Seeder
             $this->upsertUser($c);
         }
 
+        // ── 3. Sales Associates ──────────────────────────────────────────────
+        $associates = [
+            [
+                'name' => 'Rajesh Singh',
+                'email' => 'rajesh.singh@estilo.com',
+                'phone' => '9876543211',
+                'password' => Hash::make('Partner@123'),
+                'role' => 'sales_associate',
+                'referral_code' => 'ESTILO-RAJ01',
+                'commission_rate' => 12.00,
+                'email_verified_at' => now(),
+            ],
+            [
+                'name' => 'Priya Sharma',
+                'email' => 'priya.sharma@estilo.com',
+                'phone' => '9876543213',
+                'password' => Hash::make('Partner@123'),
+                'role' => 'sales_associate',
+                'referral_code' => 'ESTILO-PRI01',
+                'commission_rate' => 10.00,
+                'email_verified_at' => now(),
+            ],
+            [
+                'name' => 'Aarav Mehta',
+                'email' => 'aarav.mehta@estilo.com',
+                'phone' => '9876543214',
+                'password' => Hash::make('Partner@123'),
+                'role' => 'sales_associate',
+                'referral_code' => 'ESTILO-AAR01',
+                'commission_rate' => 10.00,
+                'email_verified_at' => now(),
+            ],
+        ];
+
+        foreach ($associates as $associate) {
+            $this->upsertUser($associate);
+        }
+
         // ── 4. Demo OTP codes (for testing phone login without SMS) ───────────
         $this->seedDemoOtpCodes();
 
@@ -148,9 +139,6 @@ class AuthSeeder extends Seeder
             [
                 ['Admin',          'admin@estilo.com',        '9000000001', 'Admin@123'],
                 ['Admin',          'superadmin@estilo.com',   '9000000002', 'SuperAdmin@123'],
-                ['Sales Partner',  'associate@estilo.com',    '9876543211', 'Partner@123'],
-                ['Sales Partner',  'priya.sharma@estilo.com', '9876543213', 'Partner@123'],
-                ['Sales Partner',  'aarav.mehta@estilo.com',  '9876543214', 'Partner@123'],
                 ['Customer',       'test@example.com',        '9876543212', 'Customer@123'],
                 ['Customer',       'meera.nair@gmail.com',    '9123456789', 'Customer@123'],
                 ['Customer',       'divya.raj@gmail.com',     '9198765432', 'Customer@123'],

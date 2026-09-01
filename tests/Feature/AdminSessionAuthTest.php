@@ -411,7 +411,7 @@ class AdminSessionAuthTest extends TestCase
 
         // 4. Verify unauthenticated access is now blocked
         $blockedRes = $this->get('/admin');
-        $blockedRes->assertRedirect('/login?role=admin');
+        $blockedRes->assertRedirect('/estilo-hq-console/login');
     }
 
     public function test_profile_route_redirects_appropriately_based_on_role(): void

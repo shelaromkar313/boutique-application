@@ -43,7 +43,7 @@ class AdminController extends Controller
         $categories = Category::all();
         $orders = Order::latest()->get();
         $customers = User::where('role', 'customer')->orWhereNull('role')->latest()->get();
-        $associates = User::whereIn('role', ['sales_associate', 'sales_executive', 'associate'])->latest()->get();
+        $associates = DB::table('sales_associates')->latest()->get();
         $reviews = Review::latest()->get();
         $coupons = Coupon::latest()->get();
         $announcedCoupons = Coupon::where('is_announced', true)->where('is_active', true)
@@ -97,7 +97,7 @@ class AdminController extends Controller
     {
         $admin = Auth::user();
         if (!$admin || !$admin->isAdmin()) {
-            return redirect('/login?role=admin')->withErrors([
+            return redirect('/estilo-hq-console/login')->withErrors([
                 'email' => 'Restricted Area: Please authenticate with your Administrator credentials.'
             ]);
         }
@@ -112,7 +112,7 @@ class AdminController extends Controller
     {
         $admin = Auth::user();
         if (!$admin || !$admin->isAdmin()) {
-            return redirect('/login?role=admin')->withErrors([
+            return redirect('/estilo-hq-console/login')->withErrors([
                 'email' => 'Restricted Area: Please authenticate with your Administrator credentials.'
             ]);
         }

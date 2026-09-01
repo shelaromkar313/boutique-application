@@ -47,23 +47,7 @@ class DatabaseSeeder extends Seeder
             ]
         );
 
-        // 3. Sales Associate / Executive User
-        $associate = User::updateOrCreate(
-            ['email' => 'associate@estilo.com'],
-            [
-                'name' => 'Pooja Verma',
-                'phone' => '9876543211',
-                'password' => Hash::make('password123'),
-                'role' => 'sales_associate',
-                'referral_code' => 'ESTILO-SA01',
-                'commission_rate' => 12.00,
-                'earnings' => 14580.00,
-                'balance' => 6420.00,
-                'upi_id' => 'pooja.verma@okhdfcbank',
-            ]
-        );
-
-        // 4. Seed Coupons / Offers
+        // 3. Seed Coupons / Offers
         \App\Models\Coupon::updateOrCreate(
             ['code' => 'BOUTIQUE10'],
             [
@@ -106,50 +90,7 @@ class DatabaseSeeder extends Seeder
             ]
         );
 
-        // 5. Seed Referral Sales for Sales Associate
-        \App\Models\ReferralSale::updateOrCreate(
-            ['order_no' => 'EST-ORD-9021'],
-            [
-                'associate_id' => $associate->id,
-                'product_name' => 'Gulzar Handcrafted Chikankari Anarkali Set',
-                'sale_amount' => 1899.00,
-                'commission_rate' => 12.00,
-                'commission_earned' => 227.88,
-                'customer_name' => 'Meera Nair',
-                'status' => 'paid',
-                'created_at' => now()->subDays(12),
-            ]
-        );
-
-        \App\Models\ReferralSale::updateOrCreate(
-            ['order_no' => 'EST-ORD-9045'],
-            [
-                'associate_id' => $associate->id,
-                'product_name' => 'Varanasi Royal Banarasi Katan Silk Saree',
-                'sale_amount' => 3899.00,
-                'commission_rate' => 12.00,
-                'commission_earned' => 467.88,
-                'customer_name' => 'Rhea Kapoor',
-                'status' => 'paid',
-                'created_at' => now()->subDays(5),
-            ]
-        );
-
-        \App\Models\ReferralSale::updateOrCreate(
-            ['order_no' => 'EST-ORD-9088'],
-            [
-                'associate_id' => $associate->id,
-                'product_name' => 'Zahira Pure Handloom Mulberry Silk Kurti Set',
-                'sale_amount' => 2499.00,
-                'commission_rate' => 12.00,
-                'commission_earned' => 299.88,
-                'customer_name' => 'Sneha Patil',
-                'status' => 'approved',
-                'created_at' => now()->subDays(1),
-            ]
-        );
-
-        // 6. Seed Sample Product Reviews (Including sample low rating for admin moderation testing)
+        // 5. Seed Sample Product Reviews (Including sample low rating for admin moderation testing)
         \App\Models\Review::updateOrCreate(
             ['product_est_id' => 'est-001', 'user_name' => 'Ananya Sharma'],
             [

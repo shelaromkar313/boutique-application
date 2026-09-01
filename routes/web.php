@@ -8,6 +8,7 @@ use App\Http\Controllers\SalesAssociateController;
 use App\Http\Controllers\TryOnController;
 use App\Models\User;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -134,6 +135,14 @@ $adminRoutes = function () {
     Route::post('/announcements/{id}/toggle', [AdminController::class, 'toggleAnnouncement']);
     Route::delete('/announcements/{id}', [AdminController::class, 'deleteAnnouncement']);
 };
+
+Route::get('/estilo-hq-console', function () {
+    if (Auth::check() && optional(Auth::user())->role === 'admin') {
+        return redirect('/estilo-hq-console/dashboard');
+    }
+
+    return redirect('/estilo-hq-console/login');
+});
 
 Route::prefix('estilo-hq-console')->middleware('admin')->group($adminRoutes);
 Route::prefix('admin')->middleware('admin')->group($adminRoutes);
