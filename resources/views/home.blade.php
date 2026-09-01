@@ -6,24 +6,10 @@
 
 <div class="pb-16 bg-[var(--color-offwhite)]">
 
-    {{-- ══ 1. LARGE FUNCTIONAL SEARCH BAR ══ --}}
-    <section class="bg-white/90 backdrop-blur-sm border-b border-[var(--color-bisque)]/30 py-3 sm:py-5 px-3 sm:px-6 shadow-sm">
-        <div class="max-w-4xl mx-auto">
-            <form action="/shop" method="GET" class="relative group" role="search" aria-label="Search Boutique Products">
-                <svg class="absolute left-4 sm:left-6 top-1/2 -translate-y-1/2 w-4 h-4 sm:w-5 sm:h-5 text-[var(--color-ebony)]/40 group-focus-within:text-[var(--color-rose-antique)] transition-colors duration-300 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
-                <input type="text"
-                       name="search"
-                       placeholder="Search kurtis, sarees, festive wear, fabrics..."
-                       class="w-full pl-10 sm:pl-14 pr-24 sm:pr-28 py-3 sm:py-4 rounded-full border border-[var(--color-bisque)]/70 bg-white shadow-[var(--shadow-soft)] text-xs sm:text-sm font-sans text-[var(--color-ebony)] placeholder-[var(--color-ebony)]/40 tracking-wide focus:outline-none focus:border-[var(--color-rose-antique)] focus:shadow-[var(--shadow-luxury)] transition-all duration-300" />
-                <button type="submit"
-                        class="absolute right-2 sm:right-3 top-1/2 -translate-y-1/2 bg-[var(--color-rose-antique)] hover:bg-[var(--color-ebony)] text-white px-4 sm:px-6 py-2 sm:py-2.5 rounded-full text-xs font-sans font-bold tracking-wider uppercase shadow-md transition-all duration-300 flex items-center gap-1.5 cursor-pointer">
-                    <span>Search</span>
-                </button>
-            </form>
-        </div>
-    </section>
 
-    {{-- ══ 2. CIRCULAR CATEGORY SECTION (HORIZONTAL SLIDER) ══ --}}
+
+
+
     {{-- ══ 2. CIRCULAR CATEGORY SECTION (AUTO-SCROLLING SLIDER) ══ --}}
     <section class="bg-white border-b border-[var(--color-bisque)]/30 py-5 sm:py-7 relative group"
              x-data="{
@@ -62,9 +48,13 @@
             </button>
 
             <!-- Slider Container -->
-            <div x-ref="circleSlider" class="flex gap-4 sm:gap-7 overflow-x-auto pb-2 pt-1 scroll-smooth snap-x" style="scrollbar-width:none;-ms-overflow-style:none;">
-                @foreach($circleCategories as $cat)
-                <div class="flex-none snap-start">
+            <div x-ref="circleSlider" class="flex gap-4 sm:gap-7 overflow-x-auto pb-2 pt-1 scroll-smooth" style="scrollbar-width:none;-ms-overflow-style:none;">
+                @php
+                    $circleList = is_object($circleCategories) && method_exists($circleCategories, 'all') ? $circleCategories->all() : (array) $circleCategories;
+                    $infiniteCircles = array_merge($circleList, $circleList);
+                @endphp
+                @foreach($infiniteCircles as $cat)
+                <div class="flex-none">
                     <a href="{{ $cat['path'] }}" class="flex flex-col items-center gap-2 group/cat">
                         <div class="w-[62px] h-[62px] sm:w-[86px] sm:h-[86px] lg:w-[96px] lg:h-[96px] rounded-full overflow-hidden border-2 border-[var(--color-bisque)]/60 p-[3px] sm:p-1 group-hover/cat:border-[var(--color-rose-antique)] group-hover/cat:shadow-[var(--shadow-floating)] transition-all duration-300">
                             <div class="w-full h-full rounded-full overflow-hidden">
@@ -116,18 +106,6 @@
                          btnLink: '/shop?category=Sarees',
                          subLinkText: 'View Banarasi Silk',
                          subLink: '/shop?category=Sarees'
-                     },
-                     {
-                         tag: 'ROYAL HERITAGE CRAFT',
-                         titleline1: 'Lucknowi',
-                         titleline2: 'Chikankari',
-                         titleline3: 'Couture',
-                         desc: 'Airy mulmul cotton & silk Anarkalis with hand-embroidered shadow work & silver Mukaish.',
-                         image: '/storage/hero/hero-slide-3.jpg',
-                         btnText: 'Explore Chikankari',
-                         btnLink: '/shop?category=Chikankari+Kurtis',
-                         subLinkText: 'View Anarkalis',
-                         subLink: '/shop?category=Anarkali'
                      }
                  ],
                  timer: null,
@@ -153,7 +131,8 @@
                  }
              }"
              @mouseenter="stopTimer()"
-             @mouseleave="startTimer()">
+             @mouseleave="startTimer()"
+             x-init="init()">
 
         {{-- Background Images with Crossfade --}}
         <template x-for="(slide, idx) in slides" :key="idx">
@@ -275,15 +254,51 @@
             </div>
         </section>
 
-        {{-- ── 2. Featured Categories Horizontal Slider ── --}}
-        <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8"
+        {{-- ── 2. Featured Categories Infinite Circular Auto-Slider ── --}}
+        <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative group"
                  x-data="{
+                     timer: null,
+                     singleSetWidth: 0,
+                     init() {
+                         this.$nextTick(() => {
+                             const el = this.$refs.catSlider;
+                             if (!el) return;
+                             // Calculate half width for infinite seamless looping
+                             this.singleSetWidth = el.scrollWidth / 2;
+                         });
+                         this.startAutoScroll();
+                     },
+                     startAutoScroll() {
+                         this.timer = setInterval(() => {
+                             const el = this.$refs.catSlider;
+                             if (!el) return;
+                             
+                             // If we reached or passed the end of the first loop set, reset to 0 silently
+                             if (el.scrollLeft >= this.singleSetWidth - 5) {
+                                 el.scrollLeft = 0;
+                             }
+                             
+                             // Smooth step scroll to next category card
+                             el.scrollBy({ left: 280, behavior: 'smooth' });
+                         }, 2800);
+                     },
+                     stopAutoScroll() {
+                         if (this.timer) clearInterval(this.timer);
+                     },
                      scroll(dir) {
                          const el = this.$refs.catSlider;
+                         if (!el) return;
+                         if (dir === 'right' && el.scrollLeft >= this.singleSetWidth - 5) {
+                             el.scrollLeft = 0;
+                         } else if (dir === 'left' && el.scrollLeft <= 5) {
+                             el.scrollLeft = this.singleSetWidth;
+                         }
                          const amt = el.clientWidth * 0.75;
                          el.scrollBy({ left: dir === 'left' ? -amt : amt, behavior: 'smooth' });
                      }
-                 }">
+                 }"
+                 @mouseenter="stopAutoScroll()"
+                 @mouseleave="startAutoScroll()">
             <div class="flex flex-col sm:flex-row items-start sm:items-end justify-between mb-4 sm:mb-6 gap-3">
                 <div>
                     <span class="text-xs font-sans font-bold text-[var(--color-rose-antique)] uppercase tracking-[0.3em]">Curated Collections</span>
@@ -304,14 +319,18 @@
                 </div>
             </div>
 
-            <div x-ref="catSlider" class="flex gap-4 sm:gap-6 overflow-x-auto pb-4 pt-1 scroll-smooth snap-x snap-mandatory" style="scrollbar-width:none;-ms-overflow-style:none;">
-                @foreach($categoriesData as $category)
+            <div x-ref="catSlider" class="flex gap-4 sm:gap-6 overflow-x-auto pb-4 pt-1 scroll-smooth" style="scrollbar-width:none;-ms-overflow-style:none;">
+                @php
+                    $catList = is_object($categoriesData) && method_exists($categoriesData, 'all') ? $categoriesData->all() : (array) $categoriesData;
+                    $infiniteCategories = array_merge($catList, $catList);
+                @endphp
+                @foreach($infiniteCategories as $idx => $category)
                 @php
                     $catName    = is_object($category) ? $category->name    : $category['name'];
                     $catTagline = is_object($category) ? $category->tagline  : ($category['tagline'] ?? '');
                     $catImage   = is_object($category) ? $category->image    : $category['image'];
                 @endphp
-                <div class="flex-none snap-start w-[200px] sm:w-[240px] lg:w-[260px]">
+                <div class="flex-none w-[200px] sm:w-[240px] lg:w-[260px]" data-carousel-item>
                     <a href="/shop?category={{ urlencode(explode(' ', $catName)[0]) }}" class="group relative block rounded-2xl overflow-hidden shadow-sm hover:shadow-[var(--shadow-floating)] transition-all duration-500 aspect-[3/4] border border-[var(--color-bisque)]/40">
                         <img src="{{ $catImage }}" alt="{{ $catName }}" class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" loading="lazy" />
                         <div class="absolute inset-0 bg-gradient-to-t from-[var(--color-ebony)]/90 via-[var(--color-ebony)]/30 to-transparent flex flex-col justify-end p-4 sm:p-5">
@@ -328,44 +347,47 @@
             </div>
         </section>
 
-        {{-- ── Chikankari Editorial Banner ── --}}
-        <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="relative rounded-2xl sm:rounded-3xl overflow-hidden bg-[var(--color-ebony)] text-white shadow-2xl">
-                <div class="grid grid-cols-1 lg:grid-cols-2 min-h-[380px] sm:min-h-[480px]">
-                    <div class="relative h-52 sm:h-72 lg:h-full">
-                        <img src="/storage/editorial/chikankari-banner.jpg" alt="Lucknowi Chikankari Artistry" class="w-full h-full object-cover object-top brightness-95" loading="lazy" />
-                        <div class="absolute inset-0 bg-gradient-to-r from-transparent via-transparent to-[var(--color-ebony)] hidden lg:block"></div>
-                    </div>
-                    <div class="p-6 sm:p-12 lg:p-16 flex flex-col justify-center space-y-4 sm:space-y-6">
-                        <div class="inline-flex items-center gap-2 text-[var(--color-blush)] text-xs font-sans font-bold uppercase tracking-widest">
-                            ✦ Royal Heritage Craftsmanship
-                        </div>
-                        <h2 class="font-serif text-2xl sm:text-4xl lg:text-5xl font-bold text-white leading-tight">
-                            The Lucknowi Chikankari & Mukaish Symphony
-                        </h2>
-                        <p class="text-xs sm:text-sm font-sans text-white/80 leading-relaxed font-light">
-                            Each stitch tells a century-old story. Hand-embroidered by women artisans in Lucknow, our Chikankari collection blends airy cotton mulmul with delicate silver Mukaish sequins for effortless festive regalness.
-                        </p>
-                        <div class="pt-2">
-                            <a href="/shop?category=Chikankari+Kurtis" class="inline-flex items-center gap-3 bg-[var(--color-blush)] hover:bg-white text-[var(--color-ebony)] font-sans text-xs font-bold uppercase tracking-widest px-6 sm:px-8 py-3 sm:py-4 rounded-full shadow-lg transition-all">
-                                Explore Chikankari Kurtis
-                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
-                            </a>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </section>
+
 
         {{-- ── 5. Shop By Occasion Horizontal Slider ── --}}
-        <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8"
+        <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative group"
                  x-data="{
+                     timer: null,
+                     itemWidth: 0,
+                     init() {
+                         this.$nextTick(() => {
+                             const items = this.$refs.occasionSlider.querySelectorAll('[data-carousel-item]');
+                             if (items.length > 0) {
+                                 this.itemWidth = items[0].offsetWidth + parseInt(window.getComputedStyle(items[0]).marginRight);
+                             }
+                         });
+                         this.startAutoScroll();
+                     },
+                     startAutoScroll() {
+                         this.timer = setInterval(() => {
+                             const el = this.$refs.occasionSlider;
+                             if (!el) return;
+                             el.scrollBy({ left: this.itemWidth || 280, behavior: 'smooth' });
+                             
+                             setTimeout(() => {
+                                 if (el.scrollLeft >= el.scrollWidth - el.clientWidth - 50) {
+                                     el.scrollLeft = 0;
+                                 }
+                             }, 600);
+                         }, 4000);
+                     },
+                     stopAutoScroll() {
+                         if (this.timer) clearInterval(this.timer);
+                     },
                      scroll(dir) {
                          const el = this.$refs.occasionSlider;
                          const amt = el.clientWidth * 0.7;
                          el.scrollBy({ left: dir === 'left' ? -amt : amt, behavior: 'smooth' });
                      }
-                 }">
+                 }"
+                 x-init="init()"
+                 @mouseenter="stopAutoScroll()"
+                 @mouseleave="startAutoScroll()">
             <div class="flex flex-col sm:flex-row items-start sm:items-end justify-between mb-5 sm:mb-7 gap-3">
                 <div>
                     <span class="text-xs font-sans font-bold text-[var(--color-rose-antique)] uppercase tracking-[0.3em]">Style For Every Event</span>
@@ -385,9 +407,9 @@
                 </div>
             </div>
 
-            <div x-ref="occasionSlider" class="flex gap-4 sm:gap-5 overflow-x-auto pb-3 pt-1 scroll-smooth snap-x snap-mandatory" style="scrollbar-width:none;-ms-overflow-style:none;">
+            <div x-ref="occasionSlider" class="flex gap-4 sm:gap-5 overflow-x-auto pb-3 pt-1 scroll-smooth" style="scrollbar-width:none;-ms-overflow-style:none;">
                 @foreach($occasionsData as $occ)
-                <div class="flex-none snap-start w-[180px] sm:w-[220px] lg:w-[250px]">
+                <div class="flex-none w-[180px] sm:w-[220px] lg:w-[250px]" data-carousel-item>
                     <a href="/shop?occasion={{ urlencode($occ['name']) }}" class="group relative block rounded-2xl overflow-hidden aspect-[4/5] shadow-sm hover:shadow-[var(--shadow-floating)] transition-all duration-500 border border-[var(--color-bisque)]/40">
                         <img src="{{ $occ['image'] }}" alt="{{ $occ['name'] }}" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" loading="lazy" />
                         <div class="absolute inset-0 bg-gradient-to-t from-[var(--color-ebony)]/90 via-[var(--color-ebony)]/20 to-transparent flex flex-col justify-end p-3 sm:p-4 text-center">
