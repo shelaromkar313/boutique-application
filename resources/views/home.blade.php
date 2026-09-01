@@ -568,15 +568,50 @@
             </div>
         </section>
 
-        {{-- ── 8. Instagram Lookbook Horizontal Slider ── --}}
-        <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8"
+        {{-- ── 8. Instagram Lookbook / Reels Continuous Auto-Sliding Marquee ── --}}
+        <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative group"
                  x-data="{
+                     timer: null,
+                     singleSetWidth: 0,
+                     init() {
+                         this.$nextTick(() => {
+                             const el = this.$refs.instaSlider;
+                             if (!el) return;
+                             // Calculate single set width for seamless infinite loop
+                             this.singleSetWidth = el.scrollWidth / 3;
+                         });
+                         this.startAutoScroll();
+                     },
+                     startAutoScroll() {
+                         this.timer = setInterval(() => {
+                             const el = this.$refs.instaSlider;
+                             if (!el) return;
+                             
+                             // If we reached or passed the end of single set, reset to 0 silently
+                             if (el.scrollLeft >= this.singleSetWidth) {
+                                 el.scrollLeft = 0;
+                             } else {
+                                 el.scrollLeft += 1.5;
+                             }
+                         }, 20);
+                     },
+                     stopAutoScroll() {
+                         if (this.timer) clearInterval(this.timer);
+                     },
                      scroll(dir) {
                          const el = this.$refs.instaSlider;
+                         if (!el) return;
+                         if (dir === 'right' && el.scrollLeft >= this.singleSetWidth) {
+                             el.scrollLeft = 0;
+                         } else if (dir === 'left' && el.scrollLeft <= 5) {
+                             el.scrollLeft = this.singleSetWidth;
+                         }
                          const amt = el.clientWidth * 0.7;
                          el.scrollBy({ left: dir === 'left' ? -amt : amt, behavior: 'smooth' });
                      }
-                 }">
+                 }"
+                 @mouseenter="stopAutoScroll()"
+                 @mouseleave="startAutoScroll()">
             <div class="flex flex-col sm:flex-row items-start sm:items-end justify-between mb-5 sm:mb-7 gap-3">
                 <div class="space-y-1">
                     <div class="inline-flex items-center gap-1.5 text-xs font-sans font-bold text-[var(--color-rose-antique)] uppercase tracking-widest">
@@ -600,9 +635,13 @@
             </div>
 
             <!-- Horizontal Instagram Slider -->
-            <div x-ref="instaSlider" class="flex gap-3 sm:gap-4 overflow-x-auto pb-3 pt-1 scroll-smooth snap-x snap-mandatory" style="scrollbar-width:none;-ms-overflow-style:none;">
-                @foreach($instagramPosts as $post)
-                <div class="flex-none snap-start w-[180px] sm:w-[240px] lg:w-[270px]">
+            <div x-ref="instaSlider" class="flex gap-3 sm:gap-4 overflow-x-auto pb-3 pt-1" style="scrollbar-width:none;-ms-overflow-style:none;">
+                @php
+                    $instaList = is_object($instagramPosts) && method_exists($instagramPosts, 'all') ? $instagramPosts->all() : (array) $instagramPosts;
+                    $infiniteInsta = array_merge($instaList, $instaList, $instaList);
+                @endphp
+                @foreach($infiniteInsta as $post)
+                <div class="flex-none w-[180px] sm:w-[240px] lg:w-[270px]">
                     <div class="group relative rounded-xl sm:rounded-2xl overflow-hidden aspect-square border border-[var(--color-bisque)]/40">
                         <img src="{{ $post['image'] }}" alt="Instagram Look" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" loading="lazy" />
                         <div class="absolute inset-0 bg-[var(--color-ebony)]/50 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col items-center justify-center text-white space-y-1 sm:space-y-2">
