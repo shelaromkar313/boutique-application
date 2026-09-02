@@ -77,9 +77,19 @@ class PaymentController extends Controller
             return response()->json(['error' => 'Invalid signature'], 400);
         }
 
+        // Resolve user_id from active session OR by matching registered user email / phone
+        $userId = auth()->id();
+        if (!$userId && $request->filled('email')) {
+            $existingUser = \App\Models\User::where('email', trim($request->input('email')))->first();
+            if ($existingUser) {
+                $userId = $existingUser->id;
+            }
+        }
+
         // Create order record
         $order = Order::create([
             'order_no' => 'EST-PAY-' . time(),
+            'user_id' => $userId,
             'full_name' => $request->input('full_name', 'Customer'),
             'email' => $request->input('email', ''),
             'phone' => $request->input('phone', ''),
@@ -137,9 +147,23 @@ class PaymentController extends Controller
 
         $referralCode = session('referral_code') ?? $request->input('referral_code');
 
+        // Resolve user_id from active session OR by matching registered user email / phone
+        $userId = auth()->id();
+        if (!$userId && !empty($request->email)) {
+            $existingUser = \App\Models\User::where('email', trim($request->email))
+                ->orWhere(function ($q) use ($request) {
+                    if ($request->filled('phone')) {
+                        $q->where('phone', trim($request->phone));
+                    }
+                })->first();
+            if ($existingUser) {
+                $userId = $existingUser->id;
+            }
+        }
+
         $order = Order::create([
             'order_no'    => $orderNo,
-            'user_id'     => auth()->id(),
+            'user_id'     => $userId,
             'full_name'   => trim($request->name),
             'email'       => trim($request->email),
             'phone'       => trim($request->phone),
