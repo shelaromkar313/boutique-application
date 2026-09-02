@@ -269,7 +269,7 @@
         @include('partials.cart-drawer')
         @include('partials.search-modal')
         @include('partials.size-guide-modal')
-        @include('partials.virtual-tryon-modal')
+
 
         {{-- WhatsApp Quick Chat Floating Button --}}
         <a href="https://wa.me/919876543210?text={{ urlencode('Hello Estilo Wear, I want to connect for a boutique order.') }}"
