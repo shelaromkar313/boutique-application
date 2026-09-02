@@ -463,27 +463,65 @@
                 </a>
             </div>
 
-            <!-- Manual Instagram Reels Grid (100% Free) -->
-            <div class="mt-8 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-5">
-                <!-- Reel 1 -->
-                <div class="rounded-2xl overflow-hidden bg-white shadow-md border border-[var(--color-bisque)]/40 h-[450px] relative">
-                    <iframe src="https://www.instagram.com/p/Dcfo7E_BVdZ/embed" class="absolute inset-0 w-full h-full" frameborder="0" scrolling="no" allowtransparency="true"></iframe>
-                </div>
+            <!-- Self-Hosted Video Reels Grid (100% Free, Clean UI) -->
+            @php
+                // Pointing to local files you will upload to the public/videos folder
+                $videoUrls = [
+                    asset('videos/reel1.mp4'),
+                    asset('videos/reel2.mp4'),
+                    asset('videos/reel3.mp4'),
+                    asset('videos/reel4.mp4'),
+                ];
                 
-                <!-- Reel 2 -->
-                <div class="rounded-2xl overflow-hidden bg-white shadow-md border border-[var(--color-bisque)]/40 h-[450px] relative">
-                    <iframe src="https://www.instagram.com/p/DbGEGV2T0Bh/embed" class="absolute inset-0 w-full h-full" frameborder="0" scrolling="no" allowtransparency="true"></iframe>
-                </div>
+                // You can update the tags and likes here to match the real reels!
+                $reelData = [
+                    ['tag' => '#ChitrasCollection', 'likes' => '4.2k'],
+                    ['tag' => '#EstiloWearStudio', 'likes' => '3.8k'],
+                    ['tag' => '#SamgraphyLife', 'likes' => '2.1k'],
+                    ['tag' => '#EstiloGlamour', 'likes' => '5.6k'],
+                ];
+            @endphp
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-5 mt-8">
+                @foreach($instagramPosts->take(4) as $index => $post)
+                <div class="group relative rounded-2xl overflow-hidden aspect-[4/5] bg-black shadow-md border border-[var(--color-bisque)]/40"
+                     x-data="{ isMuted: true }">
 
-                <!-- Reel 3 -->
-                <div class="rounded-2xl overflow-hidden bg-white shadow-md border border-[var(--color-bisque)]/40 h-[450px] relative">
-                    <iframe src="https://www.instagram.com/p/DcBuuWDE0PA/embed" class="absolute inset-0 w-full h-full" frameborder="0" scrolling="no" allowtransparency="true"></iframe>
-                </div>
+                    {{-- HTML5 Video Element playing continuously --}}
+                    <video autoplay loop muted playsinline
+                           poster="{{ $post['image'] }}"
+                           class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105">
+                        <source src="{{ $videoUrls[$index % count($videoUrls)] }}" type="video/mp4">
+                        <img src="{{ $post['image'] }}" alt="Fashion Reel" class="w-full h-full object-cover" />
+                    </video>
 
-                <!-- Reel 4 -->
-                <div class="rounded-2xl overflow-hidden bg-white shadow-md border border-[var(--color-bisque)]/40 h-[450px] relative">
-                    <iframe src="https://www.instagram.com/p/DYwMGN2Ttf6/embed" class="absolute inset-0 w-full h-full" frameborder="0" scrolling="no" allowtransparency="true"></iframe>
+                    {{-- Live REEL Badge Overlay --}}
+                    <div class="absolute top-3 left-3 z-10 flex items-center gap-1.5 bg-black/60 backdrop-blur-md px-2.5 py-1 rounded-full text-white text-[10px] font-sans font-bold tracking-wider uppercase border border-white/20">
+                        <span class="w-2 h-2 rounded-full bg-red-500 animate-ping"></span>
+                        <span>REEL</span>
+                    </div>
+
+                    {{-- Sound Toggle Button --}}
+                    <button @click="$el.closest('div').querySelector('video').muted = !$el.closest('div').querySelector('video').muted; isMuted = !isMuted"
+                            class="absolute top-3 right-3 z-10 w-7 h-7 rounded-full bg-black/50 backdrop-blur-md text-white flex items-center justify-center text-xs hover:bg-[var(--color-rose-antique)] transition-colors border border-white/20"
+                            aria-label="Toggle Sound">
+                        <span x-text="isMuted ? '🔇' : '🔊'"></span>
+                    </button>
+
+                    {{-- Bottom Caption Overlay --}}
+                    <div class="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/90 via-black/40 to-transparent p-3.5 sm:p-4 text-white flex flex-col justify-end space-y-1">
+                        <div class="flex items-center justify-between text-xs font-sans font-bold">
+                            <span class="text-[var(--color-blush)] truncate">{{ $reelData[$index]['tag'] }}</span>
+                            <span class="text-[10px] text-white/80 font-normal">❤️ {{ $reelData[$index]['likes'] }}</span>
+                        </div>
+                        <p class="text-[10px] font-sans text-white/70 truncate">Estilo Atelier Handloom Collection ✦</p>
+                    </div>
+
+                    {{-- Invisible Link over the whole card --}}
+                    <a href="https://instagram.com/estilo_wear_studio" target="_blank" class="absolute inset-0 z-20">
+                        <span class="sr-only">View Reel on Instagram</span>
+                    </a>
                 </div>
+                @endforeach
             </div>
         </section>
 
