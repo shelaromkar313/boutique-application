@@ -37,7 +37,7 @@ class User extends Authenticatable
 
     public function isSalesAssociate(): bool
     {
-        return in_array($this->role, ['sales_associate', 'sales_executive', 'associate']);
+        return in_array($this->role, ['sales_associate', 'associate', 'sales_executive'], true);
     }
 
     public function isCustomer(): bool

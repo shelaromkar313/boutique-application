@@ -498,6 +498,16 @@ class BoutiqueSeeder extends Seeder
         ];
 
         foreach ($products as $product) {
+            if (!isset($product['size_stock'])) {
+                $sizes = $product['sizes'] ?? ['XS', 'S', 'M', 'L', 'XL', 'XXL'];
+                $stockMap = [];
+                if (in_array('Free Size', $sizes) || in_array('FREE SIZE', $sizes)) {
+                    $stockMap = ['FREE SIZE' => 6];
+                } else {
+                    $stockMap = ['XS' => 1, 'S' => 2, 'M' => 4, 'L' => 2, 'XL' => 3, 'XXL' => 2];
+                }
+                $product['size_stock'] = $stockMap;
+            }
             Product::updateOrCreate(['est_id' => $product['est_id']], $product);
         }
     }

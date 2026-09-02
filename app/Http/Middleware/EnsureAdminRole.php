@@ -24,8 +24,8 @@ class EnsureAdminRole
                 ], 401);
             }
 
-            return redirect('/login?role=admin')->withErrors([
-                'email' => 'Please log in with an Administrator account to access the Admin Console.'
+            return redirect('/estilo-hq-console/login')->withErrors([
+                'email' => 'Restricted Area: Please authenticate with your Administrator credentials.'
             ]);
         }
 
@@ -37,8 +37,8 @@ class EnsureAdminRole
                 ], 403);
             }
 
-            return redirect('/')->withErrors([
-                'auth' => 'Access denied. Administrator privileges required.'
+            return redirect('/estilo-hq-console/login')->withErrors([
+                'email' => 'Access Denied: Current account lacks Administrator privileges.'
             ]);
         }
 

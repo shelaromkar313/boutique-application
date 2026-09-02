@@ -38,6 +38,7 @@ class Product extends Model
         'sku',
         'colors',
         'sizes',
+        'size_stock',
         'description',
         'details',
         'care',
@@ -65,9 +66,39 @@ class Product extends Model
             'in_stock' => 'boolean',
             'colors' => 'array',
             'sizes' => 'array',
+            'size_stock' => 'array',
             'details' => 'array',
             'images' => 'array',
         ];
+    }
+
+    /**
+     * Get total quantity of all size stock units
+     */
+    public function getTotalUnitsAttribute(): int
+    {
+        if (is_array($this->size_stock) && count($this->size_stock) > 0) {
+            return (int) array_sum($this->size_stock);
+        }
+        return (is_array($this->sizes) && count($this->sizes) > 0) ? count($this->sizes) * 2 : 0;
+    }
+
+    /**
+     * Helper to get formatted size stock breakdown e.g. "XS-1, S-2, M-4, L-2, XL-3, XXL-2"
+     */
+    public function getSizeStockFormattedAttribute(): string
+    {
+        if (is_array($this->size_stock) && count($this->size_stock) > 0) {
+            $parts = [];
+            foreach ($this->size_stock as $sz => $qty) {
+                $parts[] = strtoupper($sz) . '-' . $qty;
+            }
+            return implode(', ', $parts);
+        }
+        if (is_array($this->sizes) && count($this->sizes) > 0) {
+            return implode(', ', array_map(fn($s) => strtoupper($s) . '-2', $this->sizes));
+        }
+        return 'Standard-1';
     }
 
     /**
@@ -76,6 +107,33 @@ class Product extends Model
     public function getEffectiveSalesPriceAttribute(): float
     {
         return (float) ($this->sales_price && $this->sales_price > 0 ? $this->sales_price : ($this->price * 1.05));
+    }
+
+    /**
+     * Customer reviews relationship
+     */
+    public function reviews()
+    {
+        return $this->hasMany(Review::class, 'product_est_id', 'est_id');
+    }
+
+    /**
+     * Recalculate average star rating and review count from approved reviews
+     */
+    public function updateRatingStats(): void
+    {
+        $approvedReviews = Review::where('product_est_id', $this->est_id)
+            ->where('is_approved', true)
+            ->get();
+
+        if ($approvedReviews->count() > 0) {
+            $this->rating = round($approvedReviews->avg('rating'), 1);
+            $this->review_count = $approvedReviews->count();
+        } else {
+            $this->rating = 5.0;
+            $this->review_count = 0;
+        }
+        $this->save();
     }
 
     /**

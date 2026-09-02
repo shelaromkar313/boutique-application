@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Announcement;
 use App\Models\Category;
 use App\Models\Coupon;
 use App\Models\Order;
@@ -17,36 +18,44 @@ use Illuminate\Support\Str;
 
 class AdminController extends Controller
 {
+    private function adminBaseUrl(?string $tab = null): string
+    {
+        $base = request()->is('estilo-hq-console*') || request()->path() === 'estilo-hq-console' ? '/estilo-hq-console' : '/admin';
+
+        return $tab ? $base . '?tab=' . $tab : $base;
+    }
+
     /**
      * Comprehensive Admin Management Portal (Unified & Tabbed)
      */
     public function index(Request $request)
     {
-        $tab = $request->query('tab', 'overview');
         $admin = Auth::user();
         if (!$admin || !$admin->isAdmin()) {
-            $admin = User::firstOrCreate(['email' => 'admin@estilo.com'], [
-                'name' => 'Administrator',
-                'role' => 'admin',
-                'password' => Hash::make('Admin@123'),
-                'phone' => '9000000001',
+            return redirect('/estilo-hq-console/login')->withErrors([
+                'email' => 'Restricted Area: Please authenticate with your Administrator credentials.'
             ]);
         }
+
+        $tab = $request->query('tab', 'overview');
 
         $products = Product::latest()->get();
         $categories = Category::all();
         $orders = Order::latest()->get();
         $customers = User::where('role', 'customer')->orWhereNull('role')->latest()->get();
-        $associates = User::whereIn('role', ['sales_associate', 'sales_executive', 'associate'])->latest()->get();
+        $associates = DB::table('sales_associates')->latest()->get();
         $reviews = Review::latest()->get();
         $coupons = Coupon::latest()->get();
+        $announcedCoupons = Coupon::where('is_announced', true)->where('is_active', true)
+            ->where(function($q) { $q->whereNull('valid_until')->orWhere('valid_until', '>=', now()); })
+            ->get();
+        $announcements = Announcement::orderBy('sort_order', 'asc')->latest()->get();
         $referralSales = ReferralSale::with('associate')->latest()->get();
 
         // Key KPI Metrics
         $totalRevenue = $orders->where('status', '!=', 'cancelled')->sum('total');
-        if ($totalRevenue == 0) $totalRevenue = 124850.00; // Realistic demo fallback
 
-        $totalOrdersCount = max($orders->count(), 48);
+        $totalOrdersCount = $orders->count();
         $totalProductsCount = $products->count();
         $inStockCount = $products->where('in_stock', true)->count();
         $totalAssociatesCount = $associates->count();
@@ -68,6 +77,8 @@ class AdminController extends Controller
             'associates',
             'reviews',
             'coupons',
+            'announcedCoupons',
+            'announcements',
             'referralSales',
             'totalRevenue',
             'totalOrdersCount',
@@ -80,13 +91,30 @@ class AdminController extends Controller
     }
 
     /**
+     * Dedicated Administrator Profile & Security Page
+     */
+    public function profile()
+    {
+        $admin = Auth::user();
+        if (!$admin || !$admin->isAdmin()) {
+            return redirect('/estilo-hq-console/login')->withErrors([
+                'email' => 'Restricted Area: Please authenticate with your Administrator credentials.'
+            ]);
+        }
+
+        return view('admin-profile', compact('admin'));
+    }
+
+    /**
      * Update Administrator Profile
      */
     public function updateProfile(Request $request)
     {
         $admin = Auth::user();
-        if (!$admin) {
-            return redirect('/login?role=admin');
+        if (!$admin || !$admin->isAdmin()) {
+            return redirect('/estilo-hq-console/login')->withErrors([
+                'email' => 'Restricted Area: Please authenticate with your Administrator credentials.'
+            ]);
         }
 
         $request->validate([
@@ -108,7 +136,7 @@ class AdminController extends Controller
 
         $admin->update($data);
 
-        return redirect('/admin?tab=overview')->with('success', 'Administrator profile details updated successfully!');
+        return redirect($this->adminBaseUrl('overview'))->with('success', '✨ Administrator profile details updated successfully!');
     }
 
     /**
@@ -119,7 +147,6 @@ class AdminController extends Controller
         $request->validate([
             'name'        => 'required|string|max:255',
             'category'    => 'required|string',
-            'fabric'      => 'required|string',
             'price'       => 'required|numeric|min:1',
             'description' => 'required|string',
         ]);
@@ -136,11 +163,40 @@ class AdminController extends Controller
             $images = [$request->image_url];
         }
 
-        // Colors & Sizes
+        // Colors
         $colors = array_filter(array_map('trim', explode(',', $request->input('colors', 'Royal Navy, Rose Blush, Golden Zari'))));
-        $sizes = array_filter(array_map('trim', explode(',', $request->input('sizes', 'XS, S, M, L, XL, XXL'))));
 
-        $salesPrice = $request->filled('sales_price') ? (float) $request->sales_price : round($request->price * 1.05 + 50, -1);
+        // Process Size-Wise Stock Inventory e.g. XS: 1, S: 2, M: 4, L: 2, XL: 3, XXL: 2
+        $sizeStock = [];
+        if ($request->has('size_stock') && is_array($request->input('size_stock'))) {
+            foreach ($request->input('size_stock') as $sz => $qty) {
+                if (is_numeric($qty) && (int) $qty >= 0) {
+                    $sizeStock[strtoupper(trim($sz))] = (int) $qty;
+                }
+            }
+        } elseif ($request->filled('size_stock_text')) {
+            $entries = explode(',', $request->input('size_stock_text'));
+            foreach ($entries as $entry) {
+                if (str_contains($entry, '-') || str_contains($entry, ':')) {
+                    $delim = str_contains($entry, '-') ? '-' : ':';
+                    [$sz, $qty] = explode($delim, $entry, 2);
+                    $sizeStock[strtoupper(trim($sz))] = max(0, (int) trim($qty));
+                }
+            }
+        }
+
+        if (empty($sizeStock)) {
+            $sizes = array_filter(array_map('trim', explode(',', $request->input('sizes', 'XS, S, M, L, XL, XXL'))));
+            foreach ($sizes as $s) {
+                $sizeStock[strtoupper($s)] = 2;
+            }
+        }
+
+        $sizes = array_keys($sizeStock);
+        $totalUnits = array_sum($sizeStock);
+        $inStock = $totalUnits > 0;
+        $salesPrice = round($request->price * 1.05 + 50, -1);
+        $fabric = $request->input('fabric', 'Handloom Artisanal');
 
         Product::create([
             'est_id'         => $estId,
@@ -149,7 +205,7 @@ class AdminController extends Controller
             'category'       => $request->category,
             'main_category'  => $request->input('main_category', 'Women Couture'),
             'sub_category'   => $request->input('sub_category', $request->category),
-            'fabric'         => $request->fabric,
+            'fabric'         => $fabric,
             'occasion'       => $request->input('occasion', 'Festive / Wedding'),
             'price'          => $request->price,
             'sales_price'    => $salesPrice,
@@ -157,18 +213,19 @@ class AdminController extends Controller
             'discount'       => 20,
             'rating'         => 5.0,
             'review_count'   => 1,
-            'in_stock'       => $request->has('in_stock'),
+            'in_stock'       => $inStock,
             'is_new_arrival' => true,
             'is_featured'    => $request->has('is_featured'),
             'colors'         => $colors,
             'sizes'          => $sizes,
+            'size_stock'     => $sizeStock,
             'description'    => $request->description,
             'details'        => ['Craft' => 'Handloom Artisanal', 'Origin' => 'Lucknow / Varanasi'],
             'care'           => 'Dry Clean Only. Steam iron on reverse.',
             'images'         => $images,
         ]);
 
-        return redirect('/admin?tab=inventory')->with('success', '✨ New Couture Outfit added successfully to catalog!');
+        return redirect($this->adminBaseUrl('inventory'))->with('success', "✨ New Couture Outfit added successfully with {$totalUnits} units in stock!");
     }
 
     /**
@@ -178,15 +235,41 @@ class AdminController extends Controller
     {
         $product = Product::findOrFail($id);
 
+        // Process Size-Wise Stock Inventory
+        $sizeStock = is_array($product->size_stock) ? $product->size_stock : [];
+        if ($request->has('size_stock') && is_array($request->input('size_stock'))) {
+            $sizeStock = [];
+            foreach ($request->input('size_stock') as $sz => $qty) {
+                if (is_numeric($qty) && (int) $qty >= 0) {
+                    $sizeStock[strtoupper(trim($sz))] = (int) $qty;
+                }
+            }
+        } elseif ($request->filled('size_stock_text')) {
+            $sizeStock = [];
+            $entries = explode(',', $request->input('size_stock_text'));
+            foreach ($entries as $entry) {
+                if (str_contains($entry, '-') || str_contains($entry, ':')) {
+                    $delim = str_contains($entry, '-') ? '-' : ':';
+                    [$sz, $qty] = explode($delim, $entry, 2);
+                    $sizeStock[strtoupper(trim($sz))] = max(0, (int) trim($qty));
+                }
+            }
+        }
+
+        $totalUnits = count($sizeStock) > 0 ? array_sum($sizeStock) : 0;
+        $inStock = $totalUnits > 0;
+        $sizes = count($sizeStock) > 0 ? array_keys($sizeStock) : $product->sizes;
+
         $data = [
             'name'        => $request->input('name', $product->name),
             'category'    => $request->input('category', $product->category),
             'price'       => $request->input('price', $product->price),
-            'sales_price' => $request->filled('sales_price') ? $request->input('sales_price') : $product->sales_price,
-            'fabric'      => $request->input('fabric', $product->fabric),
-            'in_stock'    => $request->has('in_stock'),
+            'sales_price' => round($request->input('price', $product->price) * 1.05 + 50, -1),
+            'in_stock'    => $inStock,
             'is_featured' => $request->has('is_featured'),
             'description' => $request->input('description', $product->description),
+            'sizes'       => $sizes,
+            'size_stock'  => $sizeStock,
         ];
 
         if ($request->hasFile('image')) {
@@ -198,13 +281,9 @@ class AdminController extends Controller
             $data['colors'] = array_filter(array_map('trim', explode(',', $request->input('colors'))));
         }
 
-        if ($request->filled('sizes')) {
-            $data['sizes'] = array_filter(array_map('trim', explode(',', $request->input('sizes'))));
-        }
-
         $product->update($data);
 
-        return redirect('/admin?tab=inventory')->with('success', "✨ Product '{$product->name}' updated successfully!");
+        return redirect($this->adminBaseUrl('inventory'))->with('success', "✨ Product '{$product->name}' updated successfully ({$totalUnits} units in stock)!");
     }
 
     /**
@@ -214,7 +293,7 @@ class AdminController extends Controller
     {
         $product = Product::findOrFail($id);
         $product->delete();
-        return redirect('/admin?tab=inventory')->with('success', 'Product removed from catalog.');
+        return redirect($this->adminBaseUrl('inventory'))->with('success', 'Product removed from catalog.');
     }
 
     /**
@@ -227,34 +306,95 @@ class AdminController extends Controller
             'name' => $request->name,
             'slug' => Str::slug($request->name),
         ]);
-        return redirect('/admin?tab=inventory')->with('success', 'New Category created successfully!');
+        return redirect($this->adminBaseUrl('inventory'))->with('success', 'New Category created successfully!');
     }
 
     public function deleteCategory($id)
     {
         $cat = Category::findOrFail($id);
         $cat->delete();
-        return redirect('/admin?tab=inventory')->with('success', 'Category removed.');
+        return redirect($this->adminBaseUrl('inventory'))->with('success', 'Category removed.');
     }
 
     /**
-     * Reviews Moderation: Edit Ratings & Reviews
+     * Reviews Moderation: Edit Ratings (1-5 Stars) & Reviews (Modify Bad/Low Reviews)
      */
     public function updateReview(Request $request, $id)
     {
+        $request->validate([
+            'rating'    => 'required|integer|min:1|max:5',
+            'comment'   => 'required|string|max:2000',
+            'user_name' => 'nullable|string|max:255',
+        ]);
+
         $review = Review::findOrFail($id);
         $review->update([
-            'rating'      => $request->input('rating', $review->rating),
-            'comment'     => $request->input('comment', $review->comment),
-            'is_approved' => $request->has('is_approved'),
+            'user_name'   => $request->input('user_name', $review->user_name),
+            'rating'      => (int) $request->input('rating', $review->rating),
+            'comment'     => trim($request->input('comment', $review->comment)),
+            'is_approved' => $request->boolean('is_approved'),
         ]);
-        return redirect('/admin?tab=reviews')->with('success', 'Customer review & rating updated successfully.');
+
+        // Recalculate product overall star rating
+        $product = Product::where('est_id', $review->product_est_id)->first();
+        if ($product && method_exists($product, 'updateRatingStats')) {
+            $product->updateRatingStats();
+        }
+
+        return redirect($this->adminBaseUrl('reviews'))->with('success', "✨ Review #{$review->id} updated successfully! Rating set to {$review->rating} Stars.");
     }
 
+    /**
+     * Quick Action: Boost a low/bad rating to 5 Stars and approve it
+     */
+    public function boostReview($id)
+    {
+        $review = Review::findOrFail($id);
+        $review->rating = 5;
+        $review->is_approved = true;
+        $review->save();
+
+        $product = Product::where('est_id', $review->product_est_id)->first();
+        if ($product && method_exists($product, 'updateRatingStats')) {
+            $product->updateRatingStats();
+        }
+
+        return redirect($this->adminBaseUrl('reviews'))->with('success', "⭐ Review #{$review->id} boosted to 5 Stars & Approved!");
+    }
+
+    /**
+     * Quick Action: Toggle Review Public Approval Visibility
+     */
+    public function toggleReview($id)
+    {
+        $review = Review::findOrFail($id);
+        $review->is_approved = !$review->is_approved;
+        $review->save();
+
+        $product = Product::where('est_id', $review->product_est_id)->first();
+        if ($product && method_exists($product, 'updateRatingStats')) {
+            $product->updateRatingStats();
+        }
+
+        $status = $review->is_approved ? 'Approved & Live' : 'Hidden from Store';
+        return redirect($this->adminBaseUrl('reviews'))->with('success', "Review #{$review->id} is now {$status}.");
+    }
+
+    /**
+     * Delete Review
+     */
     public function deleteReview($id)
     {
-        Review::findOrFail($id)->delete();
-        return redirect('/admin?tab=reviews')->with('success', 'Review removed.');
+        $review = Review::findOrFail($id);
+        $estId = $review->product_est_id;
+        $review->delete();
+
+        $product = Product::where('est_id', $estId)->first();
+        if ($product && method_exists($product, 'updateRatingStats')) {
+            $product->updateRatingStats();
+        }
+
+        return redirect($this->adminBaseUrl('reviews'))->with('success', 'Review removed from database.');
     }
 
     /**
@@ -265,7 +405,7 @@ class AdminController extends Controller
         $order = Order::findOrFail($id);
         $status = $request->input('status', 'confirmed');
         $order->update(['status' => $status]);
-        return redirect('/admin?tab=orders')->with('success', "Order #{$order->order_no} status updated to " . strtoupper($status));
+        return redirect($this->adminBaseUrl('orders'))->with('success', "Order #{$order->order_no} status updated to " . strtoupper($status));
     }
 
     /**
@@ -279,7 +419,7 @@ class AdminController extends Controller
             'balance'         => $request->input('balance', $associate->balance),
             'upi_id'          => $request->input('upi_id', $associate->upi_id),
         ]);
-        return redirect('/admin?tab=associates')->with('success', "Settings for {$associate->name} updated successfully.");
+        return redirect($this->adminBaseUrl('customers'))->with('success', "Settings for {$associate->name} updated successfully.");
     }
 
     /**
@@ -297,10 +437,38 @@ class AdminController extends Controller
                 ->where('status', 'pending')
                 ->update(['status' => 'paid']);
 
-            return redirect('/admin?tab=associates')->with('success', "✨ Payout of ₹" . number_format($amount, 2) . " processed successfully for {$associate->name} ({$associate->upi_id}).");
+            return redirect($this->adminBaseUrl('customers'))->with('success', "✨ Payout of ₹" . number_format($amount, 2) . " processed successfully for {$associate->name} ({$associate->upi_id}).");
         }
 
-        return redirect('/admin?tab=associates')->withErrors(['payout' => 'Invalid payout amount.']);
+        return redirect($this->adminBaseUrl('customers'))->withErrors(['payout' => 'Invalid payout amount.']);
+    }
+
+    /**
+     * Dedicated Create Coupon Page
+     */
+    public function createCoupon()
+    {
+        $admin = Auth::user();
+        return view('admin-create-coupon', compact('admin'));
+    }
+
+    /**
+     * Dedicated Create Announcement Page
+     */
+    public function createAnnouncement()
+    {
+        $admin = Auth::user();
+        return view('admin-create-announcement', compact('admin'));
+    }
+
+    /**
+     * Dedicated Create Product Page
+     */
+    public function createProduct()
+    {
+        $admin = Auth::user();
+        $categories = Category::all();
+        return view('admin-create-product', compact('admin', 'categories'));
     }
 
     /**
@@ -325,14 +493,38 @@ class AdminController extends Controller
             'is_active'       => true,
         ]);
 
-        return redirect('/admin?tab=offers')->with('success', "Coupon '{$request->code}' generated and published successfully!");
+        return redirect($this->adminBaseUrl('offers'))->with('success', "Coupon '{$request->code}' generated and published successfully!");
+    }
+
+    public function updateCoupon(Request $request, $id)
+    {
+        $coupon = Coupon::findOrFail($id);
+
+        $request->validate([
+            'code'           => 'required|string|unique:coupons,code,' . $coupon->id,
+            'title'          => 'required|string',
+            'discount_value' => 'required|numeric|min:1',
+        ]);
+
+        $coupon->update([
+            'code'            => strtoupper($request->code),
+            'title'           => $request->title,
+            'discount_type'   => $request->input('discount_type', 'percentage'),
+            'discount_value'  => $request->discount_value,
+            'min_order_value' => $request->input('min_order_value', 0),
+            'campaign_type'   => $request->input('campaign_type', 'festival'),
+            'valid_until'     => $request->input('valid_until', $coupon->valid_until),
+            'is_active'       => $request->boolean('is_active', true),
+        ]);
+
+        return redirect($this->adminBaseUrl('offers'))->with('success', "Coupon '{$coupon->code}' updated successfully!");
     }
 
     public function toggleCoupon($id)
     {
         $coupon = Coupon::findOrFail($id);
         $coupon->update(['is_active' => !$coupon->is_active]);
-        return redirect('/admin?tab=offers')->with('success', "Coupon '{$coupon->code}' status updated.");
+        return redirect($this->adminBaseUrl('offers'))->with('success', "Coupon '{$coupon->code}' status updated.");
     }
 
     public function deleteCoupon($id)
@@ -340,6 +532,114 @@ class AdminController extends Controller
         $coupon = Coupon::findOrFail($id);
         $code = $coupon->code;
         $coupon->delete();
-        return redirect('/admin?tab=offers')->with('success', "Coupon '{$code}' deleted successfully.");
+        return redirect($this->adminBaseUrl('offers'))->with('success', "Coupon '{$code}' deleted successfully.");
+    }
+
+    /**
+     * Toggle Coupon Announcement in Storefront Ticker
+     * Allows admin to broadcast a coupon as a marquee announcement to all visitors.
+     */
+    public function announceCoupon(Request $request, $id)
+    {
+        $coupon = Coupon::findOrFail($id);
+
+        // If custom announcement text provided, save it; otherwise auto-generate
+        $announcementText = $request->filled('announcement_text')
+            ? trim($request->input('announcement_text'))
+            : null;
+
+        if (!$announcementText) {
+            $discountLabel = $coupon->discount_type === 'percentage'
+                ? "{$coupon->discount_value}% OFF"
+                : "₹{$coupon->discount_value} OFF";
+            $announcementText = "🎉 Use code {$coupon->code} and get {$discountLabel}! {$coupon->title}";
+            if ($coupon->valid_until) {
+                $announcementText .= ' — Valid till ' . $coupon->valid_until->format('d M Y');
+            }
+        }
+
+        // Toggle: if already announced with same text, turn it off
+        $isNowAnnounced = !($coupon->is_announced && $coupon->announcement_text === $announcementText);
+
+        $coupon->update([
+            'is_announced'      => $isNowAnnounced,
+            'announcement_text' => $isNowAnnounced ? $announcementText : null,
+        ]);
+
+        $msg = $isNowAnnounced
+            ? "📢 Coupon '{$coupon->code}' is now announced on the storefront!"
+            : "🔕 Announcement for '{$coupon->code}' has been removed from the storefront.";
+
+        return redirect($this->adminBaseUrl('offers'))->with('success', $msg);
+    }
+
+    /**
+     * 4.9 Storefront Announcements Suite
+     */
+    public function storeAnnouncement(Request $request)
+    {
+        $request->validate([
+            'title'   => 'required|string|max:255',
+            'message' => 'required|string|max:1000',
+            'type'    => 'nullable|string',
+            'color'   => 'nullable|string',
+            'icon'    => 'nullable|string|max:10',
+        ]);
+
+        Announcement::create([
+            'title'          => $request->title,
+            'message'        => $request->message,
+            'type'           => $request->input('type', 'sale'),
+            'color'          => $request->input('color', 'amber'),
+            'icon'           => $request->input('icon', '📢'),
+            'show_in_ticker' => $request->has('show_in_ticker'),
+            'show_as_banner' => $request->has('show_as_banner'),
+            'is_active'      => true,
+            'starts_at'      => $request->filled('starts_at') ? $request->starts_at : null,
+            'ends_at'        => $request->filled('ends_at') ? $request->ends_at : null,
+            'sort_order'     => (int) $request->input('sort_order', 0),
+        ]);
+
+        return redirect($this->adminBaseUrl('announcements'))->with('success', '📢 Announcement published live to storefront!');
+    }
+
+    public function updateAnnouncement(Request $request, $id)
+    {
+        $announcement = Announcement::findOrFail($id);
+        $request->validate([
+            'title'   => 'required|string|max:255',
+            'message' => 'required|string|max:1000',
+        ]);
+
+        $announcement->update([
+            'title'          => $request->title,
+            'message'        => $request->message,
+            'type'           => $request->input('type', $announcement->type),
+            'color'          => $request->input('color', $announcement->color),
+            'icon'           => $request->input('icon', $announcement->icon),
+            'show_in_ticker' => $request->has('show_in_ticker'),
+            'show_as_banner' => $request->has('show_as_banner'),
+            'is_active'      => $request->has('is_active'),
+            'starts_at'      => $request->filled('starts_at') ? $request->starts_at : null,
+            'ends_at'        => $request->filled('ends_at') ? $request->ends_at : null,
+        ]);
+
+        return redirect($this->adminBaseUrl('announcements'))->with('success', 'Announcement updated successfully!');
+    }
+
+    public function toggleAnnouncement($id)
+    {
+        $announcement = Announcement::findOrFail($id);
+        $announcement->update(['is_active' => !$announcement->is_active]);
+        $status = $announcement->is_active ? 'Active (Live)' : 'Paused (Hidden)';
+        return redirect($this->adminBaseUrl('announcements'))->with('success', "Announcement '{$announcement->title}' status set to {$status}.");
+    }
+
+    public function deleteAnnouncement($id)
+    {
+        $announcement = Announcement::findOrFail($id);
+        $title = $announcement->title;
+        $announcement->delete();
+        return redirect($this->adminBaseUrl('announcements'))->with('success', "Announcement '{$title}' removed.");
     }
 }

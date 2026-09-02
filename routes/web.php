@@ -8,6 +8,7 @@ use App\Http\Controllers\SalesAssociateController;
 use App\Http\Controllers\TryOnController;
 use App\Models\User;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -19,7 +20,6 @@ Route::get('/about', function () { return view('about'); });
 Route::get('/contact', function () { return view('contact'); });
 Route::get('/wishlist', function () { return view('wishlist'); });
 Route::get('/cart', function () { return view('cart'); });
-
 // ── Checkout - Allow both authenticated and guest customers ──
 Route::get('/checkout', function () { 
     return view('checkout'); 
@@ -28,6 +28,7 @@ Route::post('/checkout/place-order', [PaymentController::class, 'placeOrder'])->
 
 Route::post('/api/payments/create-order', [PaymentController::class, 'createOrder']);
 Route::post('/api/payments/verify', [PaymentController::class, 'verify']);
+Route::post('/api/coupons/validate', [PaymentController::class, 'validateCoupon']);
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Referral Tracking — Short Link + Session Cookie
@@ -53,6 +54,10 @@ Route::get('/product/{id}', function (Request $request, $id) {
     }
     return view('product', ['id' => $id]);
 });
+
+// Customer Ratings & Reviews (1 to 5 Stars Max)
+Route::post('/product/{id}/review', [\App\Http\Controllers\ReviewController::class, 'store'])->name('product.review.store');
+Route::get('/api/product/{id}/reviews', [\App\Http\Controllers\ReviewController::class, 'index']);
 
 // Virtual Try-On API
 Route::get('/api/virtual-tryon/models', [TryOnController::class, 'getDemoModels']);
@@ -88,11 +93,16 @@ Route::prefix('sales')->group(function () {
 });
 
 // ─────────────────────────────────────────────────────────────────────────────
-// 4. Admin Management Suite (Protected by Admin Middleware)
+// 4. Secret Admin Authentication & Management Suite
 // ─────────────────────────────────────────────────────────────────────────────
-Route::prefix('admin')->middleware('admin')->group(function () {
+Route::get('/estilo-hq-console/login', [AuthController::class, 'showAdminLogin'])->name('admin.login');
+Route::post('/estilo-hq-console/login', [AuthController::class, 'adminLogin']);
+Route::match(['get', 'post'], '/estilo-hq-console/logout', [AuthController::class, 'adminLogout'])->name('admin.logout');
+
+$adminRoutes = function () {
     Route::get('/', [AdminController::class, 'index']);
     Route::get('/dashboard', [AdminController::class, 'index']);
+    Route::get('/profile', [AdminController::class, 'profile']);
     Route::post('/profile', [AdminController::class, 'updateProfile']);
 
     // 4.3 Inventory & Products
@@ -101,8 +111,13 @@ Route::prefix('admin')->middleware('admin')->group(function () {
     Route::delete('/products/{id}', [AdminController::class, 'deleteProduct']);
     Route::post('/categories', [AdminController::class, 'storeCategory']);
     Route::delete('/categories/{id}', [AdminController::class, 'deleteCategory']);
+
+    // Ratings & Reviews Moderation (Edit low ratings, change comments, approve/boost)
+    Route::match(['get', 'post'], '/reviews/{id}/boost', [AdminController::class, 'boostReview']);
+    Route::match(['get', 'post'], '/reviews/{id}/toggle', [AdminController::class, 'toggleReview']);
     Route::post('/reviews/{id}', [AdminController::class, 'updateReview']);
     Route::delete('/reviews/{id}', [AdminController::class, 'deleteReview']);
+    Route::match(['get', 'post', 'delete'], '/reviews/{id}/delete', [AdminController::class, 'deleteReview']);
 
     // 4.4 Orders Processing
     Route::post('/orders/{id}/status', [AdminController::class, 'updateOrderStatus']);
@@ -111,9 +126,33 @@ Route::prefix('admin')->middleware('admin')->group(function () {
     Route::post('/associates/{id}', [AdminController::class, 'updateAssociate']);
     Route::post('/associates/{id}/payout', [AdminController::class, 'approvePayout']);
 
+    // Dedicated Create Pages
+    Route::get('/products/create', [AdminController::class, 'createProduct']);
+    Route::get('/coupons/create', [AdminController::class, 'createCoupon']);
+    Route::get('/announcements/create', [AdminController::class, 'createAnnouncement']);
+
     // 4.8 Offers & Coupons
     Route::post('/coupons', [AdminController::class, 'storeCoupon']);
+    Route::post('/coupons/{id}', [AdminController::class, 'updateCoupon']);
     Route::post('/coupons/{id}/toggle', [AdminController::class, 'toggleCoupon']);
+    Route::post('/coupons/{id}/announce', [AdminController::class, 'announceCoupon']);
     Route::delete('/coupons/{id}', [AdminController::class, 'deleteCoupon']);
+
+    // 4.9 Storefront Announcements Suite
+    Route::post('/announcements', [AdminController::class, 'storeAnnouncement']);
+    Route::post('/announcements/{id}', [AdminController::class, 'updateAnnouncement']);
+    Route::post('/announcements/{id}/toggle', [AdminController::class, 'toggleAnnouncement']);
+    Route::delete('/announcements/{id}', [AdminController::class, 'deleteAnnouncement']);
+};
+
+Route::get('/estilo-hq-console', function () {
+    if (Auth::check() && optional(Auth::user())->role === 'admin') {
+        return redirect('/estilo-hq-console/dashboard');
+    }
+
+    return redirect('/estilo-hq-console/login');
 });
+
+Route::prefix('estilo-hq-console')->middleware('admin')->group($adminRoutes);
+Route::prefix('admin')->middleware('admin')->group($adminRoutes);
 

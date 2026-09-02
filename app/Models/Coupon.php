@@ -19,12 +19,15 @@ class Coupon extends Model
         'valid_until',
         'usage_count',
         'is_active',
+        'is_announced',
+        'announcement_text',
     ];
 
     protected $casts = [
-        'is_active' => 'boolean',
-        'valid_until' => 'date',
-        'discount_value' => 'decimal:2',
+        'is_active'    => 'boolean',
+        'is_announced' => 'boolean',
+        'valid_until'  => 'date',
+        'discount_value'  => 'decimal:2',
         'min_order_value' => 'decimal:2',
     ];
 }

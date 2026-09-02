@@ -238,10 +238,72 @@ class PaymentController extends Controller
             ->orderBy('created_at', 'desc')
             ->first();
 
-        if (!$order) {
-            return response()->json(['order' => null], 200);
+        return response()->json(['order' => $order], 200);
+    }
+
+    /**
+     * Validate a coupon code against the MySQL database and calculate dynamic discount.
+     */
+    public function validateCoupon(Request $request)
+    {
+        $request->validate([
+            'code'     => 'required|string',
+            'subtotal' => 'nullable|numeric|min:0',
+        ]);
+
+        $code     = strtoupper(trim($request->input('code')));
+        $subtotal = (float) $request->input('subtotal', 0);
+
+        $coupon = \App\Models\Coupon::where('code', $code)
+            ->where('is_active', true)
+            ->first();
+
+        if (!$coupon) {
+            return response()->json([
+                'success' => false,
+                'message' => "Invalid or expired coupon code '{$code}'.",
+            ], 422);
         }
 
-        return response()->json(['order' => $order], 200);
+        // Check validity date
+        if ($coupon->valid_until && $coupon->valid_until->isPast()) {
+            return response()->json([
+                'success' => false,
+                'message' => "Coupon '{$code}' has expired.",
+            ], 422);
+        }
+
+        // Check minimum order value
+        if ($coupon->min_order_value > 0 && $subtotal > 0 && $subtotal < $coupon->min_order_value) {
+            return response()->json([
+                'success' => false,
+                'message' => "Coupon '{$code}' requires a minimum order of ₹" . number_format($coupon->min_order_value) . " (Current cart: ₹" . number_format($subtotal) . ").",
+            ], 422);
+        }
+
+        // Calculate discount
+        $discountAmount = 0;
+        if ($coupon->discount_type === 'percentage') {
+            $discountAmount = ($subtotal > 0) ? round(($subtotal * (float) $coupon->discount_value) / 100) : 0;
+            $discountText   = "{$coupon->discount_value}% OFF";
+        } else {
+            $discountAmount = min($subtotal > 0 ? $subtotal : (float) $coupon->discount_value, (float) $coupon->discount_value);
+            $discountText   = "₹" . number_format($coupon->discount_value) . " FLAT OFF";
+        }
+
+        // Increment usage count
+        $coupon->increment('usage_count');
+
+        return response()->json([
+            'success'         => true,
+            'code'            => $coupon->code,
+            'title'           => $coupon->title,
+            'discount_type'   => $coupon->discount_type,
+            'discount_value'  => (float) $coupon->discount_value,
+            'discount_amount' => (float) $discountAmount,
+            'discount_text'   => $discountText,
+            'min_order_value' => (float) $coupon->min_order_value,
+            'message'         => "✨ Coupon '{$coupon->code}' applied successfully ({$discountText})!",
+        ]);
     }
 }
