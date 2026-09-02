@@ -151,7 +151,12 @@ class AdminController extends Controller
             'description' => 'required|string',
         ]);
 
-        $estId = 'est-' . str_pad(Product::count() + 1, 3, '0', STR_PAD_LEFT);
+        $nextId = ((int) Product::max('id')) + 1;
+        $estId = 'est-' . str_pad($nextId, 3, '0', STR_PAD_LEFT);
+        while (Product::where('est_id', $estId)->exists()) {
+            $nextId++;
+            $estId = 'est-' . str_pad($nextId, 3, '0', STR_PAD_LEFT);
+        }
         $sku = 'EST-' . strtoupper(Str::random(4)) . '-' . rand(100, 999);
 
         // Handle image upload or image URL
@@ -214,7 +219,9 @@ class AdminController extends Controller
             'rating'         => 5.0,
             'review_count'   => 1,
             'in_stock'       => $inStock,
-            'is_new_arrival' => true,
+            'is_trending'    => $request->has('is_trending'),
+            'is_new_arrival' => $request->has('is_new_arrival'),
+            'is_best_seller' => $request->has('is_best_seller') || $request->has('is_featured'),
             'is_featured'    => $request->has('is_featured'),
             'colors'         => $colors,
             'sizes'          => $sizes,
@@ -265,11 +272,13 @@ class AdminController extends Controller
             'category'    => $request->input('category', $product->category),
             'price'       => $request->input('price', $product->price),
             'sales_price' => round($request->input('price', $product->price) * 1.05 + 50, -1),
-            'in_stock'    => $inStock,
-            'is_featured' => $request->has('is_featured'),
-            'description' => $request->input('description', $product->description),
-            'sizes'       => $sizes,
-            'size_stock'  => $sizeStock,
+            'in_stock'       => $inStock,
+            'is_featured'    => $request->has('is_featured'),
+            'is_trending'    => $request->has('is_trending'),
+            'is_new_arrival' => $request->has('is_new_arrival'),
+            'description'    => $request->input('description', $product->description),
+            'sizes'          => $sizes,
+            'size_stock'     => $sizeStock,
         ];
 
         if ($request->hasFile('image')) {

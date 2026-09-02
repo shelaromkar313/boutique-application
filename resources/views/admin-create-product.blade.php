@@ -117,12 +117,49 @@
                               class="w-full bg-[var(--color-offwhite)] border border-[var(--color-bisque)] rounded-xl p-4 text-xs font-sans focus:outline-none focus:border-amber-400 focus:bg-white transition-all shadow-inner">Exquisitely tailored artisanal handloom outfit with royal gold zari borders and breathable inner lining.</textarea>
                 </div>
 
-                {{-- Checkbox --}}
-                <div class="flex items-center gap-3">
-                    <label class="flex items-center gap-2.5 cursor-pointer text-xs font-sans font-bold text-gray-800">
-                        <input type="checkbox" name="is_featured" checked value="1" class="w-4 h-4 rounded accent-[var(--color-rose-antique)]" />
-                        <span>Feature on Storefront Homepage Showcase</span>
-                    </label>
+                {{-- Homepage Visibility & Placement Options --}}
+                <div class="p-5 bg-gradient-to-r from-[var(--color-champagne-light)]/40 to-pink-50/40 rounded-2xl border border-[var(--color-bisque)] space-y-3.5">
+                    <div>
+                        <label class="block text-xs font-sans font-bold uppercase tracking-wider text-[var(--color-ebony)]">
+                            🌟 Storefront Showcase & Homepage Placement
+                        </label>
+                        <p class="text-[11px] text-gray-500 font-sans mt-0.5">Select which prominent featured collections on the customer storefront should include this outfit:</p>
+                    </div>
+
+                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                        {{-- Trending This Season --}}
+                        <label class="flex items-start gap-2.5 p-3 bg-white rounded-xl border border-[var(--color-bisque)] hover:border-amber-400 cursor-pointer shadow-xs transition-all hover:scale-[1.01]">
+                            <input type="checkbox" name="is_trending" checked value="1" class="mt-0.5 w-4 h-4 rounded accent-amber-600 cursor-pointer shrink-0" />
+                            <div class="space-y-0.5">
+                                <span class="block text-xs font-bold text-gray-900 flex items-center gap-1">
+                                    🔥 Trending This Season
+                                </span>
+                                <span class="block text-[10px] text-gray-500 leading-tight">Display in top horizontal slider on homepage</span>
+                            </div>
+                        </label>
+
+                        {{-- New Arrivals Collection --}}
+                        <label class="flex items-start gap-2.5 p-3 bg-white rounded-xl border border-[var(--color-bisque)] hover:border-rose-400 cursor-pointer shadow-xs transition-all hover:scale-[1.01]">
+                            <input type="checkbox" name="is_new_arrival" checked value="1" class="mt-0.5 w-4 h-4 rounded accent-[var(--color-rose-antique)] cursor-pointer shrink-0" />
+                            <div class="space-y-0.5">
+                                <span class="block text-xs font-bold text-gray-900 flex items-center gap-1">
+                                    ✨ New Arrivals Collection
+                                </span>
+                                <span class="block text-[10px] text-gray-500 leading-tight">Display in 'Fresh Off The Looms' carousel</span>
+                            </div>
+                        </label>
+
+                        {{-- Best Seller / Spotlight --}}
+                        <label class="flex items-start gap-2.5 p-3 bg-white rounded-xl border border-[var(--color-bisque)] hover:border-emerald-400 cursor-pointer shadow-xs transition-all hover:scale-[1.01]">
+                            <input type="checkbox" name="is_featured" checked value="1" class="mt-0.5 w-4 h-4 rounded accent-emerald-600 cursor-pointer shrink-0" />
+                            <div class="space-y-0.5">
+                                <span class="block text-xs font-bold text-gray-900 flex items-center gap-1">
+                                    👑 Featured Best Seller
+                                </span>
+                                <span class="block text-[10px] text-gray-500 leading-tight">Highlight with Best Seller badge & spotlight</span>
+                            </div>
+                        </label>
+                    </div>
                 </div>
 
                 {{-- Action Buttons --}}

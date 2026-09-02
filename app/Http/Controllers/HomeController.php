@@ -33,19 +33,21 @@ class HomeController extends Controller
         });
 
         // 4. Products from DB (Trending, New Arrivals, Sarees)
-        $trendingProducts = Product::where('is_trending', true)->get();
+        $trendingProducts = Product::where('is_trending', true)->orderBy('created_at', 'desc')->get();
         if ($trendingProducts->count() < 4) {
-            $trendingProducts = Product::all();
+            $extra = Product::whereNotIn('id', $trendingProducts->pluck('id'))->orderBy('created_at', 'desc')->take(6)->get();
+            $trendingProducts = $trendingProducts->concat($extra);
         }
 
-        $newArrivals = Product::where('is_new_arrival', true)->get();
+        $newArrivals = Product::where('is_new_arrival', true)->orderBy('created_at', 'desc')->get();
         if ($newArrivals->count() < 4) {
-            $newArrivals = Product::orderBy('created_at', 'desc')->get();
+            $extra = Product::whereNotIn('id', $newArrivals->pluck('id'))->orderBy('created_at', 'desc')->take(6)->get();
+            $newArrivals = $newArrivals->concat($extra);
         }
 
-        $sareeSpotlight = Product::where('main_category', 'Sarees')->orWhere('category', 'LIKE', '%Saree%')->get();
+        $sareeSpotlight = Product::where('main_category', 'Sarees')->orWhere('category', 'LIKE', '%Saree%')->orderBy('created_at', 'desc')->get();
         if ($sareeSpotlight->count() < 4) {
-            $sareeSpotlight = Product::where('category', 'LIKE', '%Saree%')->get();
+            $sareeSpotlight = Product::where('category', 'LIKE', '%Saree%')->orderBy('created_at', 'desc')->get();
         }
 
         // 5. Hardcoded static aesthetic sections (testimonials, instagram)
