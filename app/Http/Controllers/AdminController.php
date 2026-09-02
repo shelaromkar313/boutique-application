@@ -171,12 +171,18 @@ class AdminController extends Controller
         // Colors
         $colors = array_filter(array_map('trim', explode(',', $request->input('colors', 'Royal Navy, Rose Blush, Golden Zari'))));
 
-        // Process Size-Wise Stock Inventory e.g. XS: 1, S: 2, M: 4, L: 2, XL: 3, XXL: 2
+        // Process Size-Wise Stock Inventory e.g. Free Size: 10, or XS: 1, S: 2, M: 4, L: 2, XL: 3, XXL: 2
         $sizeStock = [];
         if ($request->has('size_stock') && is_array($request->input('size_stock'))) {
             foreach ($request->input('size_stock') as $sz => $qty) {
-                if (is_numeric($qty) && (int) $qty >= 0) {
-                    $sizeStock[strtoupper(trim($sz))] = (int) $qty;
+                if (is_numeric($qty) && (int) $qty > 0) {
+                    $cleanSz = trim($sz);
+                    if (in_array(strtolower($cleanSz), ['free size', 'freesize', 'one size', 'onesize', 'unstitched'])) {
+                        $key = 'Free Size';
+                    } else {
+                        $key = strtoupper($cleanSz);
+                    }
+                    $sizeStock[$key] = (int) $qty;
                 }
             }
         } elseif ($request->filled('size_stock_text')) {
@@ -185,15 +191,26 @@ class AdminController extends Controller
                 if (str_contains($entry, '-') || str_contains($entry, ':')) {
                     $delim = str_contains($entry, '-') ? '-' : ':';
                     [$sz, $qty] = explode($delim, $entry, 2);
-                    $sizeStock[strtoupper(trim($sz))] = max(0, (int) trim($qty));
+                    $cleanSz = trim($sz);
+                    if (in_array(strtolower($cleanSz), ['free size', 'freesize', 'one size', 'onesize', 'unstitched'])) {
+                        $key = 'Free Size';
+                    } else {
+                        $key = strtoupper($cleanSz);
+                    }
+                    $sizeStock[$key] = max(0, (int) trim($qty));
                 }
             }
         }
 
         if (empty($sizeStock)) {
-            $sizes = array_filter(array_map('trim', explode(',', $request->input('sizes', 'XS, S, M, L, XL, XXL'))));
-            foreach ($sizes as $s) {
-                $sizeStock[strtoupper($s)] = 2;
+            $catLower = strtolower($request->input('category', ''));
+            if (str_contains($catLower, 'saree') || str_contains($catLower, 'sari') || str_contains($catLower, 'dupatta') || str_contains($catLower, 'shawl') || str_contains($catLower, 'unstitched')) {
+                $sizeStock['Free Size'] = 5;
+            } else {
+                $sizes = array_filter(array_map('trim', explode(',', $request->input('sizes', 'XS, S, M, L, XL, XXL'))));
+                foreach ($sizes as $s) {
+                    $sizeStock[strtoupper($s)] = 2;
+                }
             }
         }
 
@@ -247,8 +264,14 @@ class AdminController extends Controller
         if ($request->has('size_stock') && is_array($request->input('size_stock'))) {
             $sizeStock = [];
             foreach ($request->input('size_stock') as $sz => $qty) {
-                if (is_numeric($qty) && (int) $qty >= 0) {
-                    $sizeStock[strtoupper(trim($sz))] = (int) $qty;
+                if (is_numeric($qty) && (int) $qty > 0) {
+                    $cleanSz = trim($sz);
+                    if (in_array(strtolower($cleanSz), ['free size', 'freesize', 'one size', 'onesize', 'unstitched'])) {
+                        $key = 'Free Size';
+                    } else {
+                        $key = strtoupper($cleanSz);
+                    }
+                    $sizeStock[$key] = (int) $qty;
                 }
             }
         } elseif ($request->filled('size_stock_text')) {
@@ -258,7 +281,13 @@ class AdminController extends Controller
                 if (str_contains($entry, '-') || str_contains($entry, ':')) {
                     $delim = str_contains($entry, '-') ? '-' : ':';
                     [$sz, $qty] = explode($delim, $entry, 2);
-                    $sizeStock[strtoupper(trim($sz))] = max(0, (int) trim($qty));
+                    $cleanSz = trim($sz);
+                    if (in_array(strtolower($cleanSz), ['free size', 'freesize', 'one size', 'onesize', 'unstitched'])) {
+                        $key = 'Free Size';
+                    } else {
+                        $key = strtoupper($cleanSz);
+                    }
+                    $sizeStock[$key] = max(0, (int) trim($qty));
                 }
             }
         }

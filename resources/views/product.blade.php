@@ -208,10 +208,37 @@ $relatedProducts = collect($productsData)->filter(function ($p) use ($product) {
                     </div>
                     @endif
 
+                    @php
+                        $isFreeSize = (isset($product['sizes']) && count($product['sizes']) === 1 && in_array(strtolower($product['sizes'][0]), ['free size', 'one size', 'unstitched']))
+                                     || (isset($product['category']) && str_contains(strtolower($product['category']), 'saree'));
+                    @endphp
+
                     @if(isset($product['sizes']) && count($product['sizes']) > 0)
                     <div class="pt-2">
+                        @if($isFreeSize)
+                        {{-- 🥻 Free Size / Saree Display Card --}}
+                        <div class="space-y-2">
+                            <div class="flex items-center justify-between">
+                                <span class="text-xs font-sans font-bold text-[var(--color-ebony)] uppercase tracking-wider flex items-center gap-1.5">
+                                    <span>🥻 Garment Size:</span>
+                                    <span class="text-[var(--color-rose-antique)] font-bold">Free Size / Universal Fit</span>
+                                </span>
+                                <span class="text-[10px] font-sans font-bold uppercase tracking-wider text-amber-800 bg-amber-100 border border-amber-300 px-2.5 py-0.5 rounded-full">One Size</span>
+                            </div>
+                            <div class="p-3.5 bg-gradient-to-r from-[var(--color-champagne-light)]/40 to-pink-50/30 rounded-2xl border border-[var(--color-bisque)] flex items-center gap-3">
+                                <span class="w-9 h-9 rounded-xl bg-white border border-[var(--color-bisque)] shadow-xs flex items-center justify-center text-base shrink-0">✨</span>
+                                <div class="text-xs font-sans text-[var(--color-ebony)]/90 space-y-0.5">
+                                    <p class="font-bold">Universal Standard Dimensions</p>
+                                    <p class="text-[11px] text-gray-600">Standard 5.5 Meter Handloom Saree Length + 0.8 Meter Unstitched Matching Blouse Piece included.</p>
+                                </div>
+                            </div>
+                        </div>
+                        @else
+                        {{-- 👗 Standard Apparel Sizes Selection (XS, S, M, L, XL, XXL) --}}
                         <div class="flex items-center justify-between mb-2">
-                            <span class="text-xs font-sans font-bold text-[var(--color-ebony)] uppercase tracking-wider">Select Size</span>
+                            <span class="text-xs font-sans font-bold text-[var(--color-ebony)] uppercase tracking-wider">
+                                Select Size: <span class="text-[var(--color-rose-antique)] font-bold" x-text="selectedSize"></span>
+                            </span>
                             <button type="button" @click="$store.shop.isSizeGuideOpen = true" class="text-xs font-sans text-[var(--color-rose-antique)] hover:underline font-semibold flex items-center gap-1">
                                 <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/></svg>
                                 Size Guide
@@ -222,6 +249,7 @@ $relatedProducts = collect($productsData)->filter(function ($p) use ($product) {
                                 <button @click="selectedSize = s" :class="selectedSize === s ? 'bg-[var(--color-ebony)] text-white border-[var(--color-ebony)] shadow-md' : 'bg-white text-[var(--color-ebony)] border-[var(--color-bisque)] hover:border-[var(--color-rose-antique)]'" class="px-5 py-2.5 rounded-xl text-xs font-sans font-bold border transition-all" x-text="s"></button>
                             </template>
                         </div>
+                        @endif
                     </div>
                     @endif
 

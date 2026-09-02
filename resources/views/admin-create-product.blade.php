@@ -20,11 +20,22 @@
         {{-- Main Creation Card --}}
         <div class="bg-white rounded-3xl border border-[var(--color-bisque)] shadow-xl p-6 sm:p-10 space-y-8"
              x-data="{
+                sizeMode: 'apparel',
+                freeSizeQty: 10,
                 product: {
                     name: 'Handloom Pure Tussar Silk Anarkali Suit',
                     category: 'Anarkali Suits',
                     price: 2899,
                     size_stock: { 'XS': 1, 'S': 2, 'M': 4, 'L': 2, 'XL': 3, 'XXL': 2 }
+                },
+                checkCategory() {
+                    const cat = (this.product.category || '').toLowerCase();
+                    if (cat.includes('saree') || cat.includes('sari') || cat.includes('dupatta') || cat.includes('shawl') || cat.includes('stole') || cat.includes('unstitched')) {
+                        this.sizeMode = 'freesize';
+                    }
+                },
+                init() {
+                    this.checkCategory();
                 }
              }">
 
@@ -46,8 +57,11 @@
                                class="w-full bg-[var(--color-offwhite)] border border-[var(--color-bisque)] rounded-xl px-4 py-3 text-sm font-sans focus:outline-none focus:border-amber-400 focus:bg-white transition-all shadow-inner" />
                     </div>
                     <div>
-                        <label class="block text-xs font-sans font-bold uppercase tracking-wider mb-1.5 text-[var(--color-ebony)]">Category *</label>
-                        <input type="text" name="category" list="cat_list" x-model="product.category" placeholder="e.g. Chikankari Kurtis, Silk Sarees" required
+                        <div class="flex items-center justify-between mb-1.5">
+                            <label class="block text-xs font-sans font-bold uppercase tracking-wider text-[var(--color-ebony)]">Category *</label>
+                            <span x-show="sizeMode === 'freesize'" class="text-[10px] font-bold text-amber-700 bg-amber-50 px-2 py-0.5 rounded-md border border-amber-200">🥻 Free Size Mode Active</span>
+                        </div>
+                        <input type="text" name="category" list="cat_list" x-model="product.category" @input="checkCategory()" @change="checkCategory()" placeholder="e.g. Chikankari Kurtis, Silk Sarees" required
                                class="w-full bg-[var(--color-offwhite)] border border-[var(--color-bisque)] rounded-xl px-4 py-3 text-sm font-sans focus:outline-none focus:border-amber-400 focus:bg-white transition-all shadow-inner" />
                         <datalist id="cat_list">
                             @foreach($categories as $cat)
@@ -76,24 +90,67 @@
                     </div>
                 </div>
 
-                {{-- Size-Wise Stock Quantity (XS, S, M, L, XL, XXL) --}}
-                <div class="p-5 bg-[var(--color-champagne-light)]/40 rounded-2xl border border-[var(--color-bisque)] space-y-3">
-                    <div class="flex items-center justify-between">
-                        <label class="block text-xs font-sans font-bold uppercase tracking-wider text-[var(--color-ebony)]">
-                            📦 Stock Inventory Quantity Per Size
-                        </label>
-                        <span class="text-xs font-bold text-emerald-900 bg-emerald-100 border border-emerald-300 px-3 py-0.5 rounded-full"
-                              x-text="'Total: ' + (Object.values(product.size_stock).reduce((acc, val) => Number(acc) + Number(val || 0), 0)) + ' Units In Stock'">
+                {{-- Size Selection Mode & Stock Quantity (Free Size for Sarees vs Standard Apparel Sizes) --}}
+                <div class="p-5 bg-[var(--color-champagne-light)]/40 rounded-2xl border border-[var(--color-bisque)] space-y-4">
+                    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                        <div>
+                            <label class="block text-xs font-sans font-bold uppercase tracking-wider text-[var(--color-ebony)]">
+                                📦 Garment Sizing & Inventory Stock
+                            </label>
+                            <p class="text-[11px] text-gray-500 font-sans mt-0.5">Select sizing format based on outfit type (e.g. Free Size for Sarees & Dupattas vs standard sizes for stitched suits):</p>
+                        </div>
+                        <span class="text-xs font-bold text-emerald-900 bg-emerald-100 border border-emerald-300 px-3 py-1 rounded-full self-start sm:self-auto shrink-0"
+                              x-text="'Total In Stock: ' + (sizeMode === 'freesize' ? (Number(freeSizeQty) || 0) : (Object.values(product.size_stock).reduce((acc, val) => Number(acc) + Number(val || 0), 0))) + ' Units'">
                         </span>
                     </div>
-                    <p class="text-[11px] text-gray-500 font-sans">Set exact physical warehouse units for each garment size:</p>
-                    <div class="grid grid-cols-3 sm:grid-cols-6 gap-3 pt-1">
-                        <template x-for="sz in ['XS', 'S', 'M', 'L', 'XL', 'XXL']" :key="sz">
-                            <div class="bg-white p-2.5 rounded-xl border border-[var(--color-bisque)] text-center space-y-1 shadow-xs">
-                                <span class="block text-xs font-bold font-mono text-[var(--color-ebony)]" x-text="sz"></span>
-                                <input type="number" min="0" :name="'size_stock[' + sz + ']'" x-model="product.size_stock[sz]" class="w-full bg-[var(--color-offwhite)] border border-gray-200 rounded-lg py-1.5 text-center text-xs font-bold font-mono focus:outline-none focus:border-[var(--color-rose-antique)]" />
+
+                    {{-- Mode Toggle Tabs --}}
+                    <div class="grid grid-cols-2 gap-2 p-1 bg-white rounded-xl border border-[var(--color-bisque)] shadow-xs">
+                        <button type="button" @click="sizeMode = 'freesize'"
+                                :class="sizeMode === 'freesize' ? 'bg-[var(--color-ebony)] text-white font-bold shadow-sm' : 'text-gray-600 hover:text-[var(--color-ebony)] font-medium'"
+                                class="py-2 px-3 rounded-lg text-xs font-sans transition-all flex items-center justify-center gap-1.5 cursor-pointer">
+                            <span>🥻 Free Size / One Size</span>
+                            <span class="text-[10px] opacity-80 hidden sm:inline">(Sarees, Dupattas, Shawls)</span>
+                        </button>
+                        <button type="button" @click="sizeMode = 'apparel'"
+                                :class="sizeMode === 'apparel' ? 'bg-[var(--color-ebony)] text-white font-bold shadow-sm' : 'text-gray-600 hover:text-[var(--color-ebony)] font-medium'"
+                                class="py-2 px-3 rounded-lg text-xs font-sans transition-all flex items-center justify-center gap-1.5 cursor-pointer">
+                            <span>👗 Standard Stitched Sizes</span>
+                            <span class="text-[10px] opacity-80 hidden sm:inline">(XS to XXL Kurtis & Suits)</span>
+                        </button>
+                    </div>
+
+                    {{-- 1. Free Size Input Card --}}
+                    <div x-show="sizeMode === 'freesize'" x-transition class="bg-white p-4 rounded-xl border border-amber-300/80 space-y-2.5">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <span class="text-xs font-bold text-[var(--color-ebony)] block">✨ Free Size / Universal Dimensions</span>
+                                <span class="text-[11px] text-gray-500">Universal standard fit for handloom sarees (5.5m + 0.8m blouse), shawls, stoles, and unstitched dress materials.</span>
                             </div>
-                        </template>
+                            <span class="text-[10px] font-bold uppercase tracking-wider text-amber-800 bg-amber-100 px-2.5 py-0.5 rounded-full">One Size</span>
+                        </div>
+                        <div class="flex items-center gap-3 pt-1">
+                            <label class="text-xs font-sans font-bold text-gray-700 whitespace-nowrap">Available Warehouse Stock Units:</label>
+                            <input type="number" min="1" name="size_stock[Free Size]" x-model="freeSizeQty"
+                                   :disabled="sizeMode !== 'freesize'"
+                                   class="w-32 bg-[var(--color-offwhite)] border border-[var(--color-bisque)] rounded-lg py-2 px-3 text-center text-sm font-bold font-mono focus:outline-none focus:border-amber-400" />
+                            <span class="text-xs text-gray-500 font-sans">pieces ready for dispatch</span>
+                        </div>
+                    </div>
+
+                    {{-- 2. Standard Apparel Sizes (XS, S, M, L, XL, XXL) --}}
+                    <div x-show="sizeMode === 'apparel'" x-transition class="space-y-2">
+                        <p class="text-[11px] text-gray-500 font-sans">Set exact physical warehouse units for each individual garment size:</p>
+                        <div class="grid grid-cols-3 sm:grid-cols-6 gap-3 pt-1">
+                            <template x-for="sz in ['XS', 'S', 'M', 'L', 'XL', 'XXL']" :key="sz">
+                                <div class="bg-white p-2.5 rounded-xl border border-[var(--color-bisque)] text-center space-y-1 shadow-xs">
+                                    <span class="block text-xs font-bold font-mono text-[var(--color-ebony)]" x-text="sz"></span>
+                                    <input type="number" min="0" :name="'size_stock[' + sz + ']'" x-model="product.size_stock[sz]"
+                                           :disabled="sizeMode !== 'apparel'"
+                                           class="w-full bg-[var(--color-offwhite)] border border-gray-200 rounded-lg py-1.5 text-center text-xs font-bold font-mono focus:outline-none focus:border-[var(--color-rose-antique)]" />
+                                </div>
+                            </template>
+                        </div>
                     </div>
                 </div>
 
