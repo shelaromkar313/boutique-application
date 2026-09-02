@@ -47,7 +47,7 @@ class AuthController extends Controller
                 return back()->withErrors(['phone' => 'Please enter a valid 10-digit mobile number.'])->withInput();
             }
 
-            // Validate OTP against DB (falls back to demo code '1234')
+            // Validate OTP against DB
             $otpRecord = DB::table('otp_codes')
                 ->where('phone', $phone)
                 ->where('is_used', false)
@@ -55,7 +55,7 @@ class AuthController extends Controller
                 ->latest()
                 ->first();
 
-            $validOtp = ($otpRecord && $otpRecord->code === $otp) || $otp === '1234';
+            $validOtp = ($otpRecord && $otpRecord->code === $otp);
 
             if (!$validOtp) {
                 return back()->withErrors(['otp' => 'Invalid or expired OTP. Please try again.'])->withInput();
@@ -97,26 +97,7 @@ class AuthController extends Controller
             : User::where('phone', $phone)->first();
 
         if (!$user || !Hash::check($password, $user->password)) {
-            // Demo shortcut
-            if ($email === 'admin@estilo.com' && in_array($password, ['Admin@123', 'password123'])) {
-                $user = User::firstOrCreate(['email' => 'admin@estilo.com'], [
-                    'name' => 'Admin', 'role' => 'admin',
-                    'password' => Hash::make('Admin@123'), 'phone' => '9000000001',
-                ]);
-            } elseif ($email === 'associate@estilo.com' && in_array($password, ['Partner@123', 'password123'])) {
-                $user = User::firstOrCreate(['email' => 'associate@estilo.com'], [
-                    'name' => 'Pooja Verma', 'role' => 'sales_associate',
-                    'referral_code' => 'ESTILO-SA01',
-                    'password' => Hash::make('Partner@123'), 'phone' => '9876543211',
-                ]);
-            } elseif ($email === 'test@example.com' && in_array($password, ['Customer@123', 'password123'])) {
-                $user = User::firstOrCreate(['email' => 'test@example.com'], [
-                    'name' => 'Test Customer', 'role' => 'customer',
-                    'password' => Hash::make('Customer@123'), 'phone' => '9876543212',
-                ]);
-            } else {
-                return back()->withErrors(['email' => 'These credentials do not match our records.'])->withInput();
-            }
+            return back()->withErrors(['email' => 'These credentials do not match our records.'])->withInput();
         }
 
         Auth::login($user, $request->has('remember'));
@@ -420,16 +401,7 @@ class AuthController extends Controller
         $user = User::where('email', $request->email)->first();
 
         if (!$user || !Hash::check($request->password, $user->password)) {
-            if ($request->email === 'admin@estilo.com' && in_array($request->password, ['Admin@123', 'password123'])) {
-                $user = User::updateOrCreate(['email' => 'admin@estilo.com'], [
-                    'name'     => 'Administrator',
-                    'role'     => 'admin',
-                    'password' => Hash::make('Admin@123'),
-                    'phone'    => '9000000001',
-                ]);
-            } else {
-                return back()->withErrors(['email' => 'Invalid administrative credentials provided.'])->withInput();
-            }
+            return back()->withErrors(['email' => 'Invalid administrative credentials provided.'])->withInput();
         }
 
         if (!$user->isAdmin()) {

@@ -67,7 +67,7 @@ Route::post('/api/virtual-tryon/process', [TryOnController::class, 'tryOn']);
 // Multi-Role Authentication & Registration (Customer, Sales Associate, Admin)
 // ─────────────────────────────────────────────────────────────────────────────
 Route::get('/login', [AuthController::class, 'showLogin'])->name('login');
-Route::post('/login', [AuthController::class, 'login']);
+Route::post('/login', [AuthController::class, 'login'])->middleware('throttle:10,1');
 Route::get('/register', function () { return view('register'); });
 Route::post('/register', [AuthController::class, 'registerCustomer']);
 Route::get('/sales/register', function () { return view('sales.register'); });
@@ -96,7 +96,7 @@ Route::prefix('sales')->group(function () {
 // 4. Secret Admin Authentication & Management Suite
 // ─────────────────────────────────────────────────────────────────────────────
 Route::get('/estilo-hq-console/login', [AuthController::class, 'showAdminLogin'])->name('admin.login');
-Route::post('/estilo-hq-console/login', [AuthController::class, 'adminLogin']);
+Route::post('/estilo-hq-console/login', [AuthController::class, 'adminLogin'])->middleware('throttle:10,1');
 Route::match(['get', 'post'], '/estilo-hq-console/logout', [AuthController::class, 'adminLogout'])->name('admin.logout');
 
 $adminRoutes = function () {
