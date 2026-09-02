@@ -463,17 +463,28 @@
                 </a>
             </div>
 
-            <!-- Real Instagram Reels Grid (Elfsight Widget) -->
-            <div class="mt-8">
-                <!-- Instruction for admin (invisible to normal users unless they inspect code) -->
-                <!-- 
-                  TODO: Replace the data-elfsight-app-id below with your real Elfsight Widget ID!
-                  1. Go to elfsight.com and create a free "Instagram Feed" widget.
-                  2. Connect it to @estilo_wear_studio.
-                  3. Copy your unique widget ID and paste it in the class below!
-                -->
-                <script src="https://static.elfsight.com/platform/platform.js" data-use-service-core defer></script>
-                <div class="elfsight-app-52c3f4d8-9174-4bb8-9cdd-4c789a3a9256"></div>
+            <!-- Manual Instagram Reels Grid (100% Free) -->
+            <div class="mt-8 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-5">
+                <!-- Reel 1 -->
+                <div class="rounded-2xl overflow-hidden bg-white shadow-md border border-[var(--color-bisque)]/40 h-[450px] relative">
+                    <!-- TODO: To change this reel, replace the link inside src="..." below with your own reel link + /embed -->
+                    <iframe src="https://www.instagram.com/p/DAWJ0E0tFp3/embed" class="absolute inset-0 w-full h-full" frameborder="0" scrolling="no" allowtransparency="true"></iframe>
+                </div>
+                
+                <!-- Reel 2 -->
+                <div class="rounded-2xl overflow-hidden bg-white shadow-md border border-[var(--color-bisque)]/40 h-[450px] relative">
+                    <iframe src="https://www.instagram.com/p/DAWJ0E0tFp3/embed" class="absolute inset-0 w-full h-full" frameborder="0" scrolling="no" allowtransparency="true"></iframe>
+                </div>
+
+                <!-- Reel 3 -->
+                <div class="rounded-2xl overflow-hidden bg-white shadow-md border border-[var(--color-bisque)]/40 h-[450px] relative">
+                    <iframe src="https://www.instagram.com/p/DAWJ0E0tFp3/embed" class="absolute inset-0 w-full h-full" frameborder="0" scrolling="no" allowtransparency="true"></iframe>
+                </div>
+
+                <!-- Reel 4 -->
+                <div class="rounded-2xl overflow-hidden bg-white shadow-md border border-[var(--color-bisque)]/40 h-[450px] relative">
+                    <iframe src="https://www.instagram.com/p/DAWJ0E0tFp3/embed" class="absolute inset-0 w-full h-full" frameborder="0" scrolling="no" allowtransparency="true"></iframe>
+                </div>
             </div>
         </section>
 
