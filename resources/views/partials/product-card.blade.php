@@ -64,7 +64,7 @@
     $savings      = isset($p['oldPrice']) && isset($p['price']) ? ($p['oldPrice'] - $p['price']) : 0;
 @endphp
 
-<div class="group relative bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-[var(--shadow-floating)] transition-all duration-500 border border-[var(--color-bisque)]/30 flex flex-col" x-data="{ wishlisted: false }">
+<div class="group relative bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-[var(--shadow-floating)] transition-all duration-500 border border-[var(--color-bisque)]/30 flex flex-col">
     <!-- Image Display Container -->
     <div class="relative aspect-[3/4] w-full overflow-hidden bg-[var(--color-champagne-light)]/30">
         
