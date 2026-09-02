@@ -467,23 +467,22 @@
             <div class="mt-8 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-5">
                 <!-- Reel 1 -->
                 <div class="rounded-2xl overflow-hidden bg-white shadow-md border border-[var(--color-bisque)]/40 h-[450px] relative">
-                    <!-- TODO: To change this reel, replace the link inside src="..." below with your own reel link + /embed -->
-                    <iframe src="https://www.instagram.com/p/DAWJ0E0tFp3/embed" class="absolute inset-0 w-full h-full" frameborder="0" scrolling="no" allowtransparency="true"></iframe>
+                    <iframe src="https://www.instagram.com/p/Dcfo7E_BVdZ/embed" class="absolute inset-0 w-full h-full" frameborder="0" scrolling="no" allowtransparency="true"></iframe>
                 </div>
                 
                 <!-- Reel 2 -->
                 <div class="rounded-2xl overflow-hidden bg-white shadow-md border border-[var(--color-bisque)]/40 h-[450px] relative">
-                    <iframe src="https://www.instagram.com/p/DAWJ0E0tFp3/embed" class="absolute inset-0 w-full h-full" frameborder="0" scrolling="no" allowtransparency="true"></iframe>
+                    <iframe src="https://www.instagram.com/p/DbGEGV2T0Bh/embed" class="absolute inset-0 w-full h-full" frameborder="0" scrolling="no" allowtransparency="true"></iframe>
                 </div>
 
                 <!-- Reel 3 -->
                 <div class="rounded-2xl overflow-hidden bg-white shadow-md border border-[var(--color-bisque)]/40 h-[450px] relative">
-                    <iframe src="https://www.instagram.com/p/DAWJ0E0tFp3/embed" class="absolute inset-0 w-full h-full" frameborder="0" scrolling="no" allowtransparency="true"></iframe>
+                    <iframe src="https://www.instagram.com/p/DcBuuWDE0PA/embed" class="absolute inset-0 w-full h-full" frameborder="0" scrolling="no" allowtransparency="true"></iframe>
                 </div>
 
                 <!-- Reel 4 -->
                 <div class="rounded-2xl overflow-hidden bg-white shadow-md border border-[var(--color-bisque)]/40 h-[450px] relative">
-                    <iframe src="https://www.instagram.com/p/DAWJ0E0tFp3/embed" class="absolute inset-0 w-full h-full" frameborder="0" scrolling="no" allowtransparency="true"></iframe>
+                    <iframe src="https://www.instagram.com/p/DYwMGN2Ttf6/embed" class="absolute inset-0 w-full h-full" frameborder="0" scrolling="no" allowtransparency="true"></iframe>
                 </div>
             </div>
         </section>
