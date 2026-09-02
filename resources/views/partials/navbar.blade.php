@@ -17,17 +17,14 @@
             ->get();
     @endphp
 
-    <!-- 1. Continuous Right-to-Left Announcement Ticker -->
+    <!-- 1. Continuous Right-to-Left Announcement Ticker (Customer pages only) -->
     <div class="bg-white text-[var(--color-ebony)] text-[11px] font-sans tracking-[0.22em] uppercase py-2 border-b border-[var(--color-bisque)]/40 overflow-hidden relative select-none z-40 group/ticker">
         <div class="flex whitespace-nowrap gap-12 items-center w-max group-hover/ticker:[animation-play-state:paused]" style="animation: marquee 75s linear infinite;">
             <style>
                 @keyframes marquee { 0% { transform: translateX(0%); } 100% { transform: translateX(-50%); } }
             </style>
-
-            {{-- Render twice for seamless loop --}}
             @foreach([1,2] as $loop)
             <div class="flex items-center gap-8 shrink-0">
-                {{-- Static base announcements --}}
                 <span class="flex items-center gap-2">
                     <span class="text-[var(--color-rose-antique)] text-xs animate-pulse">✦</span>
                     <span>COMPLIMENTARY EXPRESS SHIPPING ON ORDERS OVER ₹1,499 WITH LUXURY DUST BAG PACKAGING.</span>
@@ -40,10 +37,8 @@
                 <span class="text-[var(--color-bisque)] font-bold mx-3">♦</span>
                 <span class="flex items-center gap-2">
                     <span class="text-[var(--color-rose-antique)] text-xs">✦</span>
-                    <span>XPRESS DELIVERY: FREE EXPRESS DOORSTEP SHIPPING ON ALL ORDERS ABOVE ₹1,499 WITH LUXURY DUST BAG PACKAGING.</span>
+                    <span>XPRESS DELIVERY: FREE EXPRESS DOORSTEP SHIPPING ON ALL ORDERS ABOVE ₹1,499.</span>
                 </span>
-
-                {{-- Live DB Coupon Ticker Items --}}
                 @foreach($tickerCoupons as $coup)
                 <span class="text-[var(--color-bisque)] font-bold mx-3">♦</span>
                 <span class="flex items-center gap-2">
@@ -51,8 +46,6 @@
                     <span>USE CODE <strong class="text-[var(--color-rose-antique)] font-bold">{{ $coup->code }}</strong> — {{ $coup->discount_type === 'percent' ? $coup->discount_value . '% OFF' : '₹' . $coup->discount_value . ' OFF' }}{{ $coup->min_order_amount ? ' ON ORDERS ABOVE ₹' . number_format($coup->min_order_amount) : '' }}</span>
                 </span>
                 @endforeach
-
-                {{-- Live DB Announcement Ticker Items --}}
                 @foreach($tickerAnnouncements as $ann)
                 <span class="text-[var(--color-bisque)] font-bold mx-3">♦</span>
                 <span class="flex items-center gap-2">
@@ -64,12 +57,101 @@
             @endforeach
         </div>
     </div>
+    @endif
 
     <!-- 2. Premium Fixed Header -->
     <header :class="isScrolled ? 'bg-[#181818]/98 backdrop-blur-md shadow-2xl py-2.5 border-b border-white/10' : 'bg-[#1a1a1a] py-3.5 border-b border-white/5'" class="w-full transition-all duration-500 text-white">
-        <div class="max-w-[1480px] mx-auto pl-3 pr-4 sm:px-6 lg:px-8">
+        <div class="max-w-[1520px] mx-auto pl-3 pr-4 sm:px-6 lg:px-8">
             <div class="flex items-center justify-between gap-2 lg:gap-4">
-                
+
+                @if(Auth::check() && Auth::user()->isAdmin() && request()->is('estilo-hq-console*'))
+                {{-- ══════════════════════════════════════════════════════════════════ --}}
+                {{-- ADMIN PORTAL NAVIGATION HEADER                                    --}}
+                {{-- ══════════════════════════════════════════════════════════════════ --}}
+
+                <!-- Left: Admin Brand Lockup -->
+                <div class="flex items-center gap-1.5 shrink-0">
+                    <button @click="mobileMenuOpen = true" class="lg:hidden p-1.5 text-white hover:text-[#FBEAD6] transition-colors rounded-full focus:outline-none shrink-0" aria-label="Open Menu">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 6h16M4 12h16M4 18h16"></path></svg>
+                    </button>
+
+                    <a href="/estilo-hq-console" class="flex items-center gap-1.5 group shrink-0">
+                        <div class="w-7 h-7 overflow-hidden shrink-0 flex items-center justify-center bg-transparent rounded-full border-[0.5px] border-white/30 group-hover:border-[#FBEAD6]/50 transition-colors">
+                            <img src="/storage/logo.jpg" alt="Estilo Wear" class="w-[160%] max-w-none mix-blend-screen -mt-[25%]" />
+                        </div>
+                        <div class="flex flex-col justify-center">
+                            <span class="text-[11px] font-serif font-bold tracking-[0.18em] text-[#FBEAD6] leading-none uppercase">Estilo</span>
+                            <span class="text-[7px] font-sans tracking-[0.20em] text-emerald-400 mt-0.5 uppercase font-bold">Admin</span>
+                        </div>
+                    </a>
+                </div>
+
+                <!-- Center: Admin Navigation Tabs -->
+                @php $curTab = request('tab', 'overview'); @endphp
+                <nav class="hidden lg:flex flex-1 justify-center items-center gap-0.5 px-1 min-w-0 overflow-x-auto scrollbar-none">
+                    <a href="/estilo-hq-console?tab=overview"
+                       class="px-2.5 py-1.5 rounded-full text-[9.5px] font-sans font-semibold uppercase tracking-wide transition-all whitespace-nowrap {{ $curTab === 'overview' ? 'bg-[#FBEAD6] text-[#1A1818] font-bold shadow-md' : 'text-white/75 hover:text-white hover:bg-white/10' }}">
+                        Overview
+                    </a>
+                    <a href="/estilo-hq-console?tab=inventory"
+                       class="px-2.5 py-1.5 rounded-full text-[9.5px] font-sans font-semibold uppercase tracking-wide transition-all whitespace-nowrap {{ $curTab === 'inventory' ? 'bg-[#FBEAD6] text-[#1A1818] font-bold shadow-md' : 'text-white/75 hover:text-white hover:bg-white/10' }}">
+                        Inventory
+                    </a>
+                    <a href="/estilo-hq-console?tab=orders"
+                       class="px-2.5 py-1.5 rounded-full text-[9.5px] font-sans font-semibold uppercase tracking-wide transition-all whitespace-nowrap {{ $curTab === 'orders' ? 'bg-[#FBEAD6] text-[#1A1818] font-bold shadow-md' : 'text-white/75 hover:text-white hover:bg-white/10' }}">
+                        Orders
+                    </a>
+                    <a href="/estilo-hq-console?tab=customers"
+                       class="px-2.5 py-1.5 rounded-full text-[9.5px] font-sans font-semibold uppercase tracking-wide transition-all whitespace-nowrap {{ $curTab === 'customers' ? 'bg-[#FBEAD6] text-[#1A1818] font-bold shadow-md' : 'text-white/75 hover:text-white hover:bg-white/10' }}">
+                        Customers
+                    </a>
+                    <a href="/estilo-hq-console?tab=reports"
+                       class="px-2.5 py-1.5 rounded-full text-[9.5px] font-sans font-semibold uppercase tracking-wide transition-all whitespace-nowrap {{ $curTab === 'reports' ? 'bg-[#FBEAD6] text-[#1A1818] font-bold shadow-md' : 'text-white/75 hover:text-white hover:bg-white/10' }}">
+                        Reports
+                    </a>
+                    <a href="/estilo-hq-console?tab=offers"
+                       class="px-2.5 py-1.5 rounded-full text-[9.5px] font-sans font-semibold uppercase tracking-wide transition-all whitespace-nowrap {{ $curTab === 'offers' ? 'bg-[#FBEAD6] text-[#1A1818] font-bold shadow-md' : 'text-white/75 hover:text-white hover:bg-white/10' }}">
+                        Coupons
+                    </a>
+                    <a href="/estilo-hq-console?tab=announcements"
+                       class="px-2.5 py-1.5 rounded-full text-[9.5px] font-sans font-semibold uppercase tracking-wide transition-all whitespace-nowrap flex items-center gap-1 {{ $curTab === 'announcements' ? 'bg-[#FBEAD6] text-[#1A1818] font-bold shadow-md' : 'text-white/75 hover:text-white hover:bg-white/10' }}">
+                        <span>📢 Announcements</span>
+                    </a>
+                    <a href="/estilo-hq-console?tab=reviews"
+                       class="px-2.5 py-1.5 rounded-full text-[9.5px] font-sans font-semibold uppercase tracking-wide transition-all whitespace-nowrap {{ $curTab === 'reviews' ? 'bg-[#FBEAD6] text-[#1A1818] font-bold shadow-md' : 'text-white/75 hover:text-white hover:bg-white/10' }}">
+                        Reviews
+                    </a>
+                    <a href="/estilo-hq-console/profile"
+                       class="px-2.5 py-1.5 rounded-full text-[9.5px] font-sans font-semibold uppercase tracking-wide transition-all whitespace-nowrap {{ request()->is('estilo-hq-console/profile*') || $curTab === 'profile' ? 'bg-[#FBEAD6] text-[#1A1818] font-bold shadow-md' : 'text-white/75 hover:text-white hover:bg-white/10' }}">
+                        Profile
+                    </a>
+                </nav>
+
+                <!-- Right: Admin Actions -->
+                <div class="flex items-center gap-2 sm:gap-3 shrink-0">
+                    <a href="/estilo-hq-console/profile" 
+                       class="hidden sm:flex items-center gap-2 bg-white/10 hover:bg-white/20 border border-white/15 rounded-full px-3 py-1 text-xs transition-all hover:scale-105 active:scale-95 cursor-pointer" title="Admin Profile & Security">
+                        <span class="w-6 h-6 rounded-full bg-[var(--color-ebony)] text-amber-200 flex items-center justify-center font-bold text-[11px]">A</span>
+                        <span class="font-bold text-[11px] text-[#FBEAD6] hidden xl:inline">Admin</span>
+                    </a>
+                    <form action="{{ route('admin.logout') }}" method="POST" class="inline-flex">
+                        @csrf
+                        <button type="submit"
+                                class="inline-flex items-center gap-1.5 rounded-full border border-rose-300/40 bg-rose-500/10 hover:bg-rose-500/20 text-rose-100 text-[10px] sm:text-[11px] font-sans font-bold uppercase tracking-wider px-2.5 sm:px-3 py-1.5 transition-all hover:scale-105 active:scale-95"
+                                title="Sign Out of Admin Console">
+                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a2 2 0 01-2 2H5a2 2 0 01-2-2V7a2 2 0 012-2h6a2 2 0 012 2v1"/>
+                            </svg>
+                            <span>Sign Out</span>
+                        </button>
+                    </form>
+                </div>
+
+                @else
+                {{-- ══════════════════════════════════════════════════════════════════ --}}
+                {{-- CUSTOMER STOREFRONT NAVIGATION HEADER (Arpita's simple clean nav) --}}
+                {{-- ══════════════════════════════════════════════════════════════════ --}}
+
                 <!-- Left: Logo Lockup + Mobile Menu -->
                 <div class="flex items-center gap-2 sm:gap-3 shrink-0">
                     <button @click="mobileMenuOpen = true" class="lg:hidden p-1.5 text-white hover:text-[#FBEAD6] transition-colors rounded-full focus:outline-none shrink-0" aria-label="Open Menu">
@@ -77,11 +159,9 @@
                     </button>
                     
                     <a href="/" class="flex items-center gap-2 group shrink-0">
-                        <!-- Icon Circle -->
                         <div class="w-8 h-8 sm:w-10 sm:h-10 overflow-hidden shrink-0 flex items-center justify-center bg-transparent rounded-full border-[0.5px] border-white/30 group-hover:border-[#FBEAD6]/50 transition-colors">
                             <img src="/storage/logo.jpg" alt="Estilo Wear" class="w-[160%] max-w-none mix-blend-screen -mt-[25%]" />
                         </div>
-                        <!-- Typography -->
                         <div class="flex flex-col justify-center">
                             <span class="text-sm sm:text-lg lg:text-xl font-serif font-bold tracking-[0.24em] text-[#FBEAD6] leading-none uppercase" style="text-shadow: 0 0 1px rgba(251,234,214,0.3);">Estilo Wear</span>
                             <span class="text-[6px] sm:text-[8px] font-sans tracking-[0.26em] text-white/80 mt-1 uppercase pl-0.5">Slay Every Look</span>
@@ -89,25 +169,20 @@
                     </a>
                 </div>
 
-                <!-- Center: Navigation Links (Arpita's clean simple nav) -->
+                <!-- Center: Customer Navigation (Arpita's simple clean links) -->
                 <nav class="hidden lg:flex flex-1 justify-center items-center gap-3 xl:gap-5 2xl:gap-6 px-2 min-w-0">
                     <a href="/" class="text-[11px] font-sans font-bold tracking-[0.12em] text-white hover:text-[#FBEAD6] uppercase transition-colors whitespace-nowrap">Home</a>
-                    
                     <a href="/shop" class="text-[11px] font-sans font-bold tracking-[0.12em] text-white hover:text-[#FBEAD6] uppercase transition-colors whitespace-nowrap">New</a>
-                    
                     <a href="/shop" class="text-[11px] font-sans font-bold tracking-[0.12em] text-white hover:text-[#FBEAD6] uppercase transition-colors whitespace-nowrap">Shop</a>
-                    
                     <a href="/shop?occasion=Festive" class="text-[11px] font-sans font-bold tracking-[0.12em] text-white hover:text-[#FBEAD6] uppercase transition-colors whitespace-nowrap">Festive</a>
-                    
                     <a href="/shop?sale=true" class="text-[11px] font-sans font-bold tracking-[0.12em] text-[#E5BCA9] hover:text-white uppercase transition-colors flex items-center gap-0.5 whitespace-nowrap">
                         <span class="text-[#E5BCA9] opacity-80">%</span> Sale
                     </a>
-                    
                     <a href="/about" class="text-[11px] font-sans font-bold tracking-[0.12em] text-white hover:text-[#FBEAD6] uppercase transition-colors whitespace-nowrap">About</a>
                     <a href="/contact" class="text-[11px] font-sans font-bold tracking-[0.12em] text-white hover:text-[#FBEAD6] uppercase transition-colors whitespace-nowrap">Contact</a>
                 </nav>
 
-                {{-- Right action icons for Customer Storefront --}}
+                <!-- Right: Customer Action Icons -->
                 <div class="flex items-center gap-1 sm:gap-2 lg:gap-3 shrink-0 mr-1">
 
                     <!-- Search -->
@@ -174,6 +249,8 @@
                     </button>
 
                 </div>
+                @endif
+
             </div>
         </div>
     </header>
@@ -208,43 +285,20 @@
                             Admin Navigation Suite
                         </span>
                     </div>
-
-                    <a href="/estilo-hq-console?tab=overview" class="block text-sm font-sans font-semibold text-[var(--color-ebony)] uppercase tracking-wider hover:text-[var(--color-rose-antique)]">
-                        📊 Dashboard Overview
-                    </a>
-                    <a href="/estilo-hq-console?tab=inventory" class="block text-sm font-sans font-semibold text-[var(--color-ebony)] uppercase tracking-wider hover:text-[var(--color-rose-antique)]">
-                        👗 Inventory & Products
-                    </a>
-                    <a href="/estilo-hq-console?tab=orders" class="block text-sm font-sans font-semibold text-[var(--color-ebony)] uppercase tracking-wider hover:text-[var(--color-rose-antique)]">
-                        📦 Orders & Fulfillment
-                    </a>
-                    <a href="/estilo-hq-console?tab=customers" class="block text-sm font-sans font-semibold text-[var(--color-ebony)] uppercase tracking-wider hover:text-[var(--color-rose-antique)]">
-                        👥 Customers
-                    </a>
-                    <a href="/estilo-hq-console?tab=reports" class="block text-sm font-sans font-semibold text-[var(--color-ebony)] uppercase tracking-wider hover:text-[var(--color-rose-antique)]">
-                        📈 Monthly Reports & Billing
-                    </a>
-                    <a href="/estilo-hq-console?tab=offers" class="block text-sm font-sans font-semibold text-[var(--color-ebony)] uppercase tracking-wider hover:text-[var(--color-rose-antique)]">
-                        🎟️ Offers & Coupons
-                    </a>
-                    <a href="/estilo-hq-console?tab=announcements" class="block text-sm font-sans font-semibold text-[var(--color-ebony)] uppercase tracking-wider hover:text-[var(--color-rose-antique)]">
-                        📢 Storefront Announcements
-                    </a>
-                    <a href="/estilo-hq-console?tab=reviews" class="block text-sm font-sans font-semibold text-[var(--color-ebony)] uppercase tracking-wider hover:text-[var(--color-rose-antique)]">
-                        ⭐ Ratings & Reviews
-                    </a>
-                    <a href="/estilo-hq-console/profile" class="block text-sm font-sans font-semibold text-[var(--color-ebony)] uppercase tracking-wider hover:text-[var(--color-rose-antique)]">
-                        🛡️ Admin Profile & Security
-                    </a>
+                    <a href="/estilo-hq-console?tab=overview" class="block text-sm font-sans font-semibold text-[var(--color-ebony)] uppercase tracking-wider hover:text-[var(--color-rose-antique)]">📊 Dashboard Overview</a>
+                    <a href="/estilo-hq-console?tab=inventory" class="block text-sm font-sans font-semibold text-[var(--color-ebony)] uppercase tracking-wider hover:text-[var(--color-rose-antique)]">👗 Inventory & Products</a>
+                    <a href="/estilo-hq-console?tab=orders" class="block text-sm font-sans font-semibold text-[var(--color-ebony)] uppercase tracking-wider hover:text-[var(--color-rose-antique)]">📦 Orders & Fulfillment</a>
+                    <a href="/estilo-hq-console?tab=customers" class="block text-sm font-sans font-semibold text-[var(--color-ebony)] uppercase tracking-wider hover:text-[var(--color-rose-antique)]">👥 Customers</a>
+                    <a href="/estilo-hq-console?tab=reports" class="block text-sm font-sans font-semibold text-[var(--color-ebony)] uppercase tracking-wider hover:text-[var(--color-rose-antique)]">📈 Monthly Reports & Billing</a>
+                    <a href="/estilo-hq-console?tab=offers" class="block text-sm font-sans font-semibold text-[var(--color-ebony)] uppercase tracking-wider hover:text-[var(--color-rose-antique)]">🎟️ Offers & Coupons</a>
+                    <a href="/estilo-hq-console?tab=announcements" class="block text-sm font-sans font-semibold text-[var(--color-ebony)] uppercase tracking-wider hover:text-[var(--color-rose-antique)]">📢 Storefront Announcements</a>
+                    <a href="/estilo-hq-console?tab=reviews" class="block text-sm font-sans font-semibold text-[var(--color-ebony)] uppercase tracking-wider hover:text-[var(--color-rose-antique)]">⭐ Ratings & Reviews</a>
+                    <a href="/estilo-hq-console/profile" class="block text-sm font-sans font-semibold text-[var(--color-ebony)] uppercase tracking-wider hover:text-[var(--color-rose-antique)]">🛡️ Admin Profile & Security</a>
                     <div class="pt-3 border-t border-[var(--color-bisque)]/40 mt-3 space-y-2">
-                        <a href="/shop" target="_blank" class="block text-xs font-sans font-bold text-gray-600 hover:text-black">
-                            Storefront ↗
-                        </a>
+                        <a href="/shop" target="_blank" class="block text-xs font-sans font-bold text-gray-600 hover:text-black">Storefront ↗</a>
                         <form action="{{ route('admin.logout') }}" method="POST">
                             @csrf
-                            <button type="submit" class="w-full text-left text-xs font-bold text-rose-600 hover:underline">
-                                Sign Out
-                            </button>
+                            <button type="submit" class="w-full text-left text-xs font-bold text-rose-600 hover:underline">Sign Out</button>
                         </form>
                     </div>
                     @else
@@ -311,5 +365,4 @@
         </aside>
     </div>
 
-    @endif
 </div>
