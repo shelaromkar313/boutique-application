@@ -463,52 +463,17 @@
                 </a>
             </div>
 
-            <!-- Continuous Playing Video Reels Grid -->
-            @php
-                $videoUrls = [
-                    'https://assets.mixkit.co/videos/preview/mixkit-fashion-model-in-a-red-dress-41584-large.mp4',
-                    'https://assets.mixkit.co/videos/preview/mixkit-woman-in-a-traditional-dress-walking-slowly-41586-large.mp4',
-                    'https://assets.mixkit.co/videos/preview/mixkit-young-woman-wearing-a-beautiful-traditional-dress-41587-large.mp4',
-                    'https://assets.mixkit.co/videos/preview/mixkit-model-posing-in-a-studio-setting-41585-large.mp4',
-                ];
-            @endphp
-            <div class="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-5">
-                @foreach($instagramPosts->take(4) as $index => $post)
-                <div class="group relative rounded-2xl overflow-hidden aspect-[4/5] bg-black shadow-md border border-[var(--color-bisque)]/40"
-                     x-data="{ isMuted: true }">
-
-                    {{-- HTML5 Video Element playing continuously --}}
-                    <video autoplay loop muted playsinline
-                           poster="{{ $post['image'] }}"
-                           class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105">
-                        <source src="{{ $videoUrls[$index % count($videoUrls)] }}" type="video/mp4">
-                        <img src="{{ $post['image'] }}" alt="Fashion Reel" class="w-full h-full object-cover" />
-                    </video>
-
-                    {{-- Live REEL Badge Overlay --}}
-                    <div class="absolute top-3 left-3 z-10 flex items-center gap-1.5 bg-black/60 backdrop-blur-md px-2.5 py-1 rounded-full text-white text-[10px] font-sans font-bold tracking-wider uppercase border border-white/20">
-                        <span class="w-2 h-2 rounded-full bg-red-500 animate-ping"></span>
-                        <span>REEL</span>
-                    </div>
-
-                    {{-- Sound Toggle Button --}}
-                    <button @click="$el.closest('div').querySelector('video').muted = !$el.closest('div').querySelector('video').muted; isMuted = !isMuted"
-                            class="absolute top-3 right-3 z-10 w-7 h-7 rounded-full bg-black/50 backdrop-blur-md text-white flex items-center justify-center text-xs hover:bg-[var(--color-rose-antique)] transition-colors border border-white/20"
-                            aria-label="Toggle Sound">
-                        <span x-text="isMuted ? '🔇' : '🔊'"></span>
-                    </button>
-
-                    {{-- Bottom Caption Overlay --}}
-                    <div class="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/90 via-black/40 to-transparent p-3.5 sm:p-4 text-white flex flex-col justify-end space-y-1">
-                        <div class="flex items-center justify-between text-xs font-sans font-bold">
-                            <span class="text-[var(--color-blush)] truncate">{{ $post['tag'] }}</span>
-                            <span class="text-[10px] text-white/80 font-normal">❤️ {{ $post['likes'] }}</span>
-                        </div>
-                        <p class="text-[10px] font-sans text-white/70 truncate">Estilo Atelier Handloom Collection ✦</p>
-                    </div>
-
-                </div>
-                @endforeach
+            <!-- Real Instagram Reels Grid (Elfsight Widget) -->
+            <div class="mt-8">
+                <!-- Instruction for admin (invisible to normal users unless they inspect code) -->
+                <!-- 
+                  TODO: Replace the data-elfsight-app-id below with your real Elfsight Widget ID!
+                  1. Go to elfsight.com and create a free "Instagram Feed" widget.
+                  2. Connect it to @estilo_wear_studio.
+                  3. Copy your unique widget ID and paste it in the class below!
+                -->
+                <script src="https://static.elfsight.com/platform/platform.js" data-use-service-core defer></script>
+                <div class="elfsight-app-REPLACE-THIS-WITH-YOUR-WIDGET-ID"></div>
             </div>
         </section>
 
