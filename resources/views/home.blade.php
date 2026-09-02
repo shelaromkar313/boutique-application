@@ -473,7 +473,7 @@
                   3. Copy your unique widget ID and paste it in the class below!
                 -->
                 <script src="https://static.elfsight.com/platform/platform.js" data-use-service-core defer></script>
-                <div class="elfsight-app-REPLACE-THIS-WITH-YOUR-WIDGET-ID"></div>
+                <div class="elfsight-app-52c3f4d8-9174-4bb8-9cdd-4c789a3a9256"></div>
             </div>
         </section>
 
