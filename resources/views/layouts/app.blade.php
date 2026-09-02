@@ -275,7 +275,7 @@
 
 
         {{-- WhatsApp Quick Chat Floating Button --}}
-        <a href="https://wa.me/919876543210?text={{ urlencode('Hello Estilo Wear, I want to connect for a boutique order.') }}"
+        <a href="https://wa.me/919895037106?text={{ urlencode('Hello, I want to connect for a boutique order.') }}"
            target="_blank"
            rel="noreferrer"
            aria-label="Chat on WhatsApp"
