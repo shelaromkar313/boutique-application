@@ -56,7 +56,7 @@ $allProducts = [
                     Search: "<span x-text="searchQuery"></span>"
                     <button @click="searchQuery = ''; clearFilters()" class="text-[var(--color-rose-antique)] font-bold hover:scale-110">✕</button>
                 </span>
-                <button x-show="searchQuery || selectedCategory || selectedFabric || selectedOccasion || selectedSizes.length > 0" style="display:none;" @click="clearFilters()" class="text-[var(--color-rose-antique)] hover:underline font-bold flex items-center gap-1 ml-2">
+                <button x-show="searchQuery || selectedCategories.length > 0 || selectedFabrics.length > 0 || selectedOccasions.length > 0 || selectedSizes.length > 0" style="display:none;" @click="clearFilters()" class="text-[var(--color-rose-antique)] hover:underline font-bold flex items-center gap-1 ml-2">
                     <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
                     Reset Filters
                 </button>
@@ -94,12 +94,9 @@ $allProducts = [
                 <div class="space-y-3">
                     <h3 class="font-serif text-base font-bold text-[var(--color-ebony)] border-b border-[var(--color-bisque)] pb-2 uppercase tracking-wider">Categories</h3>
                     <div class="space-y-2 max-h-56 overflow-y-auto pr-2">
-                        <label class="flex items-center gap-2.5 text-xs font-sans text-[var(--color-ebony)] cursor-pointer hover:text-[var(--color-rose-antique)]">
-                            <input type="radio" name="cat" value="" x-model="selectedCategory" class="accent-[#C87D87]" /><span>All Categories</span>
-                        </label>
                         @foreach($categories as $cat)
                         <label class="flex items-center gap-2.5 text-xs font-sans text-[var(--color-ebony)]/80 cursor-pointer hover:text-[var(--color-rose-antique)]">
-                            <input type="radio" name="cat" value="{{ $cat }}" x-model="selectedCategory" class="accent-[#C87D87]" /><span>{{ $cat }}</span>
+                            <input type="checkbox" value="{{ $cat }}" x-model="selectedCategories" class="accent-[#C87D87] rounded" /><span>{{ $cat }}</span>
                         </label>
                         @endforeach
                     </div>
@@ -108,10 +105,10 @@ $allProducts = [
                 {{-- Fabric --}}
                 <div class="space-y-3">
                     <h3 class="font-serif text-base font-bold text-[var(--color-ebony)] border-b border-[var(--color-bisque)] pb-2 uppercase tracking-wider">Fabric</h3>
-                    <div class="space-y-2">
+                    <div class="space-y-2 max-h-48 overflow-y-auto pr-2">
                         @foreach($fabrics as $fab)
                         <label class="flex items-center gap-2.5 text-xs font-sans text-[var(--color-ebony)]/80 cursor-pointer hover:text-[var(--color-rose-antique)]">
-                            <input type="checkbox" value="{{ $fab }}" @change="selectedFabric = $event.target.checked ? '{{ $fab }}' : (selectedFabric === '{{ $fab }}' ? '' : selectedFabric)" :checked="selectedFabric === '{{ $fab }}'" class="accent-[#C87D87] rounded" /><span>{{ $fab }}</span>
+                            <input type="checkbox" value="{{ $fab }}" x-model="selectedFabrics" class="accent-[#C87D87] rounded" /><span>{{ $fab }}</span>
                         </label>
                         @endforeach
                     </div>
@@ -120,10 +117,10 @@ $allProducts = [
                 {{-- Occasion --}}
                 <div class="space-y-3">
                     <h3 class="font-serif text-base font-bold text-[var(--color-ebony)] border-b border-[var(--color-bisque)] pb-2 uppercase tracking-wider">Occasion</h3>
-                    <div class="space-y-2">
+                    <div class="space-y-2 max-h-48 overflow-y-auto pr-2">
                         @foreach($occasions as $occ)
                         <label class="flex items-center gap-2.5 text-xs font-sans text-[var(--color-ebony)]/80 cursor-pointer hover:text-[var(--color-rose-antique)]">
-                            <input type="checkbox" value="{{ $occ }}" @change="selectedOccasion = $event.target.checked ? '{{ $occ }}' : (selectedOccasion === '{{ $occ }}' ? '' : selectedOccasion)" :checked="selectedOccasion === '{{ $occ }}'" class="accent-[#C87D87] rounded" /><span>{{ $occ }}</span>
+                            <input type="checkbox" value="{{ $occ }}" x-model="selectedOccasions" class="accent-[#C87D87] rounded" /><span>{{ $occ }}</span>
                         </label>
                         @endforeach
                     </div>
@@ -245,9 +242,8 @@ $allProducts = [
             <div class="space-y-3">
                 <h3 class="font-serif text-sm font-bold text-[var(--color-ebony)] uppercase tracking-wider">Categories</h3>
                 <div class="space-y-2 max-h-40 overflow-y-auto">
-                    <label class="flex items-center gap-2 text-xs font-sans cursor-pointer"><input type="radio" name="mcat" value="" x-model="selectedCategory" class="accent-[#C87D87]" /><span>All</span></label>
                     @foreach($categories as $cat)
-                    <label class="flex items-center gap-2 text-xs font-sans cursor-pointer"><input type="radio" name="mcat" value="{{ $cat }}" x-model="selectedCategory" class="accent-[#C87D87]" /><span>{{ $cat }}</span></label>
+                    <label class="flex items-center gap-2 text-xs font-sans cursor-pointer"><input type="checkbox" value="{{ $cat }}" x-model="selectedCategories" class="accent-[#C87D87] rounded" /><span>{{ $cat }}</span></label>
                     @endforeach
                 </div>
             </div>
@@ -266,11 +262,11 @@ function shopPage(products, meta) {
     return {
         products,
         meta,
-        searchQuery:      new URLSearchParams(window.location.search).get('search') || '',
-        selectedCategory: new URLSearchParams(window.location.search).get('category') || '',
-        selectedFabric:   new URLSearchParams(window.location.search).get('fabric') || '',
-        selectedOccasion: new URLSearchParams(window.location.search).get('occasion') || '',
-        selectedSizes:    [],
+        searchQuery:        new URLSearchParams(window.location.search).get('search') || '',
+        selectedCategories: new URLSearchParams(window.location.search).get('category') ? [new URLSearchParams(window.location.search).get('category')] : [],
+        selectedFabrics:    new URLSearchParams(window.location.search).get('fabric') ? [new URLSearchParams(window.location.search).get('fabric')] : [],
+        selectedOccasions:  new URLSearchParams(window.location.search).get('occasion') ? [new URLSearchParams(window.location.search).get('occasion')] : [],
+        selectedSizes:      [],
         priceRange:       25000,
         sortBy:           new URLSearchParams(window.location.search).get('filter') === 'new' ? 'newest' : 'featured',
         mobileFilterOpen: false,
@@ -285,12 +281,12 @@ function shopPage(products, meta) {
         },
 
         clearFilters() {
-            this.searchQuery      = '';
-            this.selectedCategory = '';
-            this.selectedFabric   = '';
-            this.selectedOccasion = '';
-            this.selectedSizes    = [];
-            this.priceRange       = 25000;
+            this.searchQuery        = '';
+            this.selectedCategories = [];
+            this.selectedFabrics    = [];
+            this.selectedOccasions  = [];
+            this.selectedSizes      = [];
+            this.priceRange         = 25000;
             // Clear URL search param if present without full reload
             if (window.history.pushState) {
                 const newurl = window.location.protocol + "//" + window.location.host + window.location.pathname;
@@ -314,9 +310,9 @@ function shopPage(products, meta) {
                     }
                 }
 
-                if (this.selectedCategory && !p.category.toLowerCase().includes(this.selectedCategory.toLowerCase())) return false;
-                if (this.selectedFabric   && p.fabric   !== this.selectedFabric)   return false;
-                if (this.selectedOccasion && p.occasion !== this.selectedOccasion) return false;
+                if (this.selectedCategories.length && !this.selectedCategories.some(c => p.category.toLowerCase().includes(c.toLowerCase()))) return false;
+                if (this.selectedFabrics.length && !this.selectedFabrics.includes(p.fabric)) return false;
+                if (this.selectedOccasions.length && !this.selectedOccasions.includes(p.occasion)) return false;
                 if (this.selectedSizes.length && !p.sizes.some(s => this.selectedSizes.includes(s))) return false;
                 if (p.price > this.priceRange) return false;
                 return true;
