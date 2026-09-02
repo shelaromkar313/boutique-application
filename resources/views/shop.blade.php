@@ -154,7 +154,7 @@ $allProducts = [
             <main class="lg:col-span-3">
                 <div x-show="filteredProducts.length > 0" :class="gridColumns === 4 ? 'grid-cols-2 lg:grid-cols-3 xl:grid-cols-3' : 'grid-cols-2 lg:grid-cols-2'" class="grid gap-3 sm:gap-6">
                     <template x-for="product in filteredProducts" :key="product.id">
-                        <div class="group relative bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-[0_20px_60px_rgba(200,125,135,0.2)] transition-all duration-500 border border-[rgba(229,188,169,0.3)] flex flex-col" x-data="{ wishlisted: false }">
+                        <div class="group relative bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-[0_20px_60px_rgba(200,125,135,0.2)] transition-all duration-500 border border-[rgba(229,188,169,0.3)] flex flex-col">
                             <div class="relative overflow-hidden bg-[rgba(251,234,214,0.3)]" style="aspect-ratio:3/4;">
                                 <a :href="'/product/' + product.id" class="block w-full h-full">
                                     <img :src="product.images[0]" :alt="product.name" class="w-full h-full object-cover object-top transition-transform duration-700 ease-out group-hover:scale-105" loading="lazy" />
@@ -166,8 +166,8 @@ $allProducts = [
                                     <span x-show="product.isBestSeller && !product.isNewArrival" class="bg-[#6B7556] text-white font-sans text-[8px] sm:text-[10px] uppercase font-bold tracking-widest px-1.5 sm:px-2.5 py-0.5 sm:py-1 rounded-full shadow-md">Best Seller</span>
                                 </div>
                                 {{-- Wishlist --}}
-                                <button @click.prevent="wishlisted = !wishlisted" class="absolute top-2 sm:top-3 right-2 sm:right-3 z-10 w-7 h-7 sm:w-9 sm:h-9 rounded-full bg-white/90 backdrop-blur-md shadow-md flex items-center justify-center text-[#1A1818] hover:text-[#C87D87] hover:scale-110 transition-all duration-300">
-                                    <svg :class="wishlisted ? 'fill-[#C87D87] text-[#C87D87]' : 'fill-none'" class="w-3 h-3 sm:w-4 sm:h-4" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/></svg>
+                                <button @click.prevent="$store.shop.toggleWishlist({ id: product.id, name: product.name, price: product.price, image: product.images[0], category: product.category })" class="absolute top-2 sm:top-3 right-2 sm:right-3 z-10 w-7 h-7 sm:w-9 sm:h-9 rounded-full bg-white/90 backdrop-blur-md shadow-md flex items-center justify-center text-[#1A1818] hover:text-[#C87D87] hover:scale-110 transition-all duration-300">
+                                    <svg :class="$store.shop.isInWishlist(product.id) ? 'fill-[#C87D87] text-[#C87D87]' : 'fill-none'" class="w-3 h-3 sm:w-4 sm:h-4" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/></svg>
                                 </button>
                             </div>
                             {{-- Info --}}
