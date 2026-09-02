@@ -28,7 +28,7 @@
                             <div>
                                 <span class="text-[10px] uppercase font-bold text-[var(--color-rose-antique)]" x-text="item.category"></span>
                                 <h4 class="font-serif text-sm font-bold text-[var(--color-ebony)] truncate" x-text="item.name"></h4>
-                                <span class="font-serif text-base font-bold text-[var(--color-ebony)] mt-1 block" x-text="'₹' + item.price.toLocaleString('en-IN')"></span>
+                                <span class="font-serif text-base font-bold text-[var(--color-ebony)] mt-1 block" x-text="'₹' + Number(item.price).toLocaleString('en-IN')"></span>
                             </div>
 
                             <button @click="$store.shop.addToCart({ id: item.id, name: item.name, price: item.price, image: item.image, color: 'Standard', size: 'Free Size' }); $store.shop.toggleWishlist(item)" class="w-full bg-[var(--color-ebony)] hover:bg-[var(--color-rose-deep)] text-white text-xs font-sans font-bold uppercase tracking-wider py-2.5 rounded-full transition-colors flex items-center justify-center gap-1.5 shadow-sm">

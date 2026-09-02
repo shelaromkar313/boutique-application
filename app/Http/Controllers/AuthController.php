@@ -326,16 +326,22 @@ class AuthController extends Controller
                     'password' => Hash::make($request->password),
                     'role'     => 'customer',
                 ]);
-            }
 
-            Auth::login($user);
-            if ($request->hasSession()) {
-                $request->session()->regenerate();
+                // ── Link any existing guest orders to this newly created account ──
+                \App\Models\Order::where(function ($q) use ($email, $phone) {
+                    $q->where('email', $email);
+                    if (!empty($phone)) {
+                        $q->orWhere('phone', $phone);
+                    }
+                })
+                ->whereNull('user_id')
+                ->update(['user_id' => $user->id]);
             }
 
             $this->logLogin($user, 'registration', $request);
 
-            return redirect('/profile')->with('success', '✨ Welcome to Estilo Wear, ' . $user->name . '! Your customer account is active.');
+            // Show success message and redirect to login for confirmation flow
+            return redirect('/login')->with('success', '✨ Account created successfully! Your details have been saved. Please log in to continue.');
 
         } catch (\Throwable $e) {
             \Illuminate\Support\Facades\Log::error('Registration exception: ' . $e->getMessage());

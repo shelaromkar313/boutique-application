@@ -19,8 +19,13 @@ Route::get('/about', function () { return view('about'); });
 Route::get('/contact', function () { return view('contact'); });
 Route::get('/wishlist', function () { return view('wishlist'); });
 Route::get('/cart', function () { return view('cart'); });
-Route::get('/checkout', function () { return view('checkout'); });
-Route::post('/checkout/place-order', [PaymentController::class, 'placeOrder']);
+
+// ── Checkout - Allow both authenticated and guest customers ──
+Route::get('/checkout', function () { 
+    return view('checkout'); 
+})->middleware('web'); // Allow guest checkout
+Route::post('/checkout/place-order', [PaymentController::class, 'placeOrder'])->middleware('web'); // Allow guest orders
+
 Route::post('/api/payments/create-order', [PaymentController::class, 'createOrder']);
 Route::post('/api/payments/verify', [PaymentController::class, 'verify']);
 
@@ -62,8 +67,13 @@ Route::get('/register', function () { return view('register'); });
 Route::post('/register', [AuthController::class, 'registerCustomer']);
 Route::get('/sales/register', function () { return view('sales.register'); });
 Route::post('/sales/register', [AuthController::class, 'registerSales']);
-Route::get('/profile', [AuthController::class, 'showProfile'])->name('profile');
-Route::post('/profile', [AuthController::class, 'updateCustomerProfile']);
+
+// ── Protected Routes (Require Authentication + Cache Control) ──
+Route::middleware(['auth', 'SecurePageCacheControl'])->group(function () {
+    Route::get('/profile', [AuthController::class, 'showProfile'])->name('profile');
+    Route::post('/profile', [AuthController::class, 'updateCustomerProfile']);
+});
+
 Route::match(['get', 'post'], '/logout', [AuthController::class, 'logout'])->name('logout');
 
 // ─────────────────────────────────────────────────────────────────────────────

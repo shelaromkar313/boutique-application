@@ -11,55 +11,14 @@
 
 
     {{-- ══ 2. CIRCULAR CATEGORY SECTION (CONTINUOUS AUTO-SLIDING MARQUEE) ══ --}}
-    <section class="bg-white border-b border-[var(--color-bisque)]/30 py-5 sm:py-7 relative group"
-             x-data="{
-                 timer: null,
-                 singleSetWidth: 0,
-                 init() {
-                     this.$nextTick(() => {
-                         const el = this.$refs.circleSlider;
-                         if (!el) return;
-                         this.singleSetWidth = el.scrollWidth / 2;
-                     });
-                     this.startAutoScroll();
-                 },
-                 startAutoScroll() {
-                     this.timer = setInterval(() => {
-                         const el = this.$refs.circleSlider;
-                         if (!el) return;
-                         if (el.scrollLeft >= this.singleSetWidth) {
-                             el.scrollLeft = 0;
-                         } else {
-                             el.scrollLeft += 1.5;
-                         }
-                     }, 20);
-                 },
-                 stopAutoScroll() {
-                     if (this.timer) clearInterval(this.timer);
-                 },
-                 scroll(dir) {
-                     const el = this.$refs.circleSlider;
-                     const amt = el.clientWidth * 0.6;
-                     el.scrollBy({ left: dir === 'left' ? -amt : amt, behavior: 'smooth' });
-                 }
-             }"
-             @mouseenter="stopAutoScroll()"
-             @mouseleave="startAutoScroll()">
+    <section class="bg-white border-b border-[var(--color-bisque)]/30 py-5 sm:py-7 relative group">
         <div class="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 relative">
-            <!-- Left Arrow -->
-            <button @click="scroll('left')"
-                    class="hidden md:flex absolute -left-2 lg:-left-3 top-1/2 -translate-y-1/2 z-20 w-8 h-8 rounded-full bg-white/95 text-[var(--color-ebony)] shadow-md border border-[var(--color-bisque)]/60 items-center justify-center hover:bg-[var(--color-rose-antique)] hover:text-white transition-all duration-200 opacity-0 group-hover:opacity-100 hover:scale-110 cursor-pointer"
-                    aria-label="Previous categories">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
-            </button>
-
-            <!-- Slider Container -->
-            <div x-ref="circleSlider" class="flex gap-4 sm:gap-7 overflow-x-auto pb-2 pt-1" style="scrollbar-width:none;-ms-overflow-style:none;">
+            <!-- Static Container -->
+            <div class="flex gap-4 sm:gap-7 overflow-x-auto pb-2 pt-1" style="scrollbar-width:none;-ms-overflow-style:none;">
                 @php
                     $circleList = is_object($circleCategories) && method_exists($circleCategories, 'all') ? $circleCategories->all() : (array) $circleCategories;
-                    $infiniteCircles = array_merge($circleList, $circleList, $circleList);
                 @endphp
-                @foreach($infiniteCircles as $cat)
+                @foreach($circleList as $cat)
                 <div class="flex-none">
                     <a href="{{ $cat['path'] }}" class="flex flex-col items-center gap-2 group/cat">
                         <div class="w-[62px] h-[62px] sm:w-[86px] sm:h-[86px] lg:w-[96px] lg:h-[96px] rounded-full overflow-hidden border-2 border-[var(--color-bisque)]/60 p-[3px] sm:p-1 group-hover/cat:border-[var(--color-rose-antique)] group-hover/cat:shadow-[var(--shadow-floating)] transition-all duration-300">
@@ -72,13 +31,6 @@
                 </div>
                 @endforeach
             </div>
-
-            <!-- Right Arrow -->
-            <button @click="scroll('right')"
-                    class="hidden md:flex absolute -right-2 lg:-right-3 top-1/2 -translate-y-1/2 z-20 w-8 h-8 rounded-full bg-white/95 text-[var(--color-ebony)] shadow-md border border-[var(--color-bisque)]/60 items-center justify-center hover:bg-[var(--color-rose-antique)] hover:text-white transition-all duration-200 opacity-0 group-hover:opacity-100 hover:scale-110 cursor-pointer"
-                    aria-label="Next categories">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
-            </button>
         </div>
     </section>
 
