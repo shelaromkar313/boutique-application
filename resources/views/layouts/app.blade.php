@@ -20,10 +20,14 @@
     
     <!-- AlpineJS Global Store Definition -->
     <script>
+        const storeUserId = '{{ Auth::check() ? Auth::id() : "guest" }}';
+        const cartKey = 'estilo_cart_' + storeUserId;
+        const wishlistKey = 'estilo_wishlist_' + storeUserId;
+
         document.addEventListener('alpine:init', () => {
             Alpine.store('shop', {
-                cart: JSON.parse(localStorage.getItem('estilo_cart') || '[]'),
-                wishlist: JSON.parse(localStorage.getItem('estilo_wishlist') || '[]'),
+                cart: JSON.parse(localStorage.getItem(cartKey) || '[]'),
+                wishlist: JSON.parse(localStorage.getItem(wishlistKey) || '[]'),
                 isCartOpen: false,
                 isSearchOpen: false,
                 isSizeGuideOpen: false,
@@ -42,11 +46,10 @@
                 },
 
                 get discountAmount() {
-                    if (this.fixedDiscount > 0) {
-                        return Math.min(this.cartSubtotal, Math.round(this.fixedDiscount));
-                    }
                     if (this.discountPercent > 0) {
-                        return Math.round(this.cartSubtotal * (this.discountPercent / 100));
+                        return Math.round((this.cartSubtotal * this.discountPercent) / 100);
+                    } else if (this.fixedDiscount > 0) {
+                        return Math.min(this.cartSubtotal, this.fixedDiscount);
                     }
                     return 0;
                 },
@@ -68,11 +71,11 @@
                 },
 
                 saveCart() {
-                    localStorage.setItem('estilo_cart', JSON.stringify(this.cart));
+                    localStorage.setItem(cartKey, JSON.stringify(this.cart));
                 },
 
                 saveWishlist() {
-                    localStorage.setItem('estilo_wishlist', JSON.stringify(this.wishlist));
+                    localStorage.setItem(wishlistKey, JSON.stringify(this.wishlist));
                 },
 
                 showToast(msg) {
