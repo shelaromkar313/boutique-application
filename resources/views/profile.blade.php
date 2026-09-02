@@ -263,7 +263,7 @@
                     <div>
                         <span class="text-[10px] font-sans font-bold uppercase tracking-wider text-gray-500">Order Number</span>
                         <h3 class="font-mono text-base font-bold text-[var(--color-ebony)]">{{ $ord->order_no }}</h3>
-                        <span class="text-xs text-gray-500">Placed on {{ $ord->created_at ? $ord->created_at->format('d M Y, h:i A') : 'Recently' }}</span>
+                        <span class="text-xs text-gray-500">Placed on {{ $ord->created_at ? $ord->created_at->timezone('Asia/Kolkata')->format('d M Y, h:i A') : 'Recently' }}</span>
                     </div>
 
                     <div class="flex items-center gap-4">
