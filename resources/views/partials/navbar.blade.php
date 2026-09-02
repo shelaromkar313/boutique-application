@@ -27,158 +27,48 @@
             {{-- Render twice for seamless loop --}}
             @foreach([1,2] as $loop)
             <div class="flex items-center gap-8 shrink-0">
-
-                {{-- Dynamic Custom Announcements --}}
-                @if($tickerAnnouncements->isNotEmpty())
-                    @foreach($tickerAnnouncements as $tAnn)
-                        <span class="flex items-center gap-2">
-                            <span class="text-amber-500 text-xs animate-pulse">{{ $tAnn->icon ?? '📢' }}</span>
-                            <span class="font-bold text-amber-900">{{ strtoupper($tAnn->title) }}:</span>
-                            <span>{{ strtoupper($tAnn->message) }}</span>
-                        </span>
-                        <span class="text-[var(--color-bisque)] font-bold">|</span>
-                    @endforeach
-                @endif
-
-                {{-- Dynamic DB-driven coupon announcements --}}
-                @if($tickerCoupons->isNotEmpty())
-                    @foreach($tickerCoupons as $tc)
-                        <span class="flex items-center gap-2">
-                            <span class="text-amber-500 text-xs animate-pulse">🎟️</span>
-                            <span>{{ strtoupper($tc->announcement_text ?? ('USE CODE ' . $tc->code . ' FOR ' . $tc->discount_value . '% OFF')) }}</span>
-                        </span>
-                        <span class="text-[var(--color-bisque)] font-bold">|</span>
-                    @endforeach
-                @endif
-
-                {{-- Fallback messages only if database has no active announcements --}}
-                @if($tickerAnnouncements->isEmpty() && $tickerCoupons->isEmpty())
+                {{-- Static base announcements --}}
                 <span class="flex items-center gap-2">
-                    <span class="text-[var(--color-rose-antique)] text-xs animate-pulse">✨</span>
-                    <span>COMPLIMENTARY EXPRESS SHIPPING ON ORDERS OVER ₹1,499</span>
+                    <span class="text-[var(--color-rose-antique)] text-xs animate-pulse">✦</span>
+                    <span>COMPLIMENTARY EXPRESS SHIPPING ON ORDERS OVER ₹1,499 WITH LUXURY DUST BAG PACKAGING.</span>
                 </span>
-                <span class="text-[var(--color-bisque)] font-bold">|</span>
+                <span class="text-[var(--color-bisque)] font-bold mx-3">♦</span>
                 <span class="flex items-center gap-2">
-                    <span class="text-[var(--color-thyme)] text-xs animate-pulse">✨</span>
-                    <span>AUTHENTIC HANDLOOM BOUTIQUE COUTURE</span>
+                    <span class="text-[var(--color-rose-antique)] text-xs">✦</span>
+                    <span>AUTHENTIC HANDLOOM COUTURE: CERTIFIED GI HANDWOVEN SILK DIRECTLY FROM MASTER WEAVERS.</span>
                 </span>
-                <span class="text-[var(--color-bisque)] font-bold">|</span>
+                <span class="text-[var(--color-bisque)] font-bold mx-3">♦</span>
                 <span class="flex items-center gap-2">
-                    <span class="text-[var(--color-rose-antique)] text-xs animate-pulse">✨</span>
-                    <span>EASY RETURNS · SECURE PAYMENTS · COD AVAILABLE</span>
+                    <span class="text-[var(--color-rose-antique)] text-xs">✦</span>
+                    <span>XPRESS DELIVERY: FREE EXPRESS DOORSTEP SHIPPING ON ALL ORDERS ABOVE ₹1,499 WITH LUXURY DUST BAG PACKAGING.</span>
                 </span>
-                <span class="text-[var(--color-bisque)] font-bold">|</span>
-                @endif
+
+                {{-- Live DB Coupon Ticker Items --}}
+                @foreach($tickerCoupons as $coup)
+                <span class="text-[var(--color-bisque)] font-bold mx-3">♦</span>
+                <span class="flex items-center gap-2">
+                    <span class="text-amber-500 text-xs animate-pulse">🏷</span>
+                    <span>USE CODE <strong class="text-[var(--color-rose-antique)] font-bold">{{ $coup->code }}</strong> — {{ $coup->discount_type === 'percent' ? $coup->discount_value . '% OFF' : '₹' . $coup->discount_value . ' OFF' }}{{ $coup->min_order_amount ? ' ON ORDERS ABOVE ₹' . number_format($coup->min_order_amount) : '' }}</span>
+                </span>
+                @endforeach
+
+                {{-- Live DB Announcement Ticker Items --}}
+                @foreach($tickerAnnouncements as $ann)
+                <span class="text-[var(--color-bisque)] font-bold mx-3">♦</span>
+                <span class="flex items-center gap-2">
+                    <span class="text-[var(--color-rose-antique)] text-xs animate-pulse">✦</span>
+                    <span>{{ strtoupper($ann->message) }}</span>
+                </span>
+                @endforeach
             </div>
             @endforeach
         </div>
     </div>
-    @endif
 
-    <!-- 3. Premium Fixed Header -->
+    <!-- 2. Premium Fixed Header -->
     <header :class="isScrolled ? 'bg-[#181818]/98 backdrop-blur-md shadow-2xl py-2.5 border-b border-white/10' : 'bg-[#1a1a1a] py-3.5 border-b border-white/5'" class="w-full transition-all duration-500 text-white">
-        <div class="max-w-[1520px] mx-auto pl-3 pr-4 sm:px-6 lg:px-8">
+        <div class="max-w-[1480px] mx-auto pl-3 pr-4 sm:px-6 lg:px-8">
             <div class="flex items-center justify-between gap-2 lg:gap-4">
-                
-                @if(Auth::check() && Auth::user()->isAdmin() && request()->is('estilo-hq-console*'))
-                {{-- ══════════════════════════════════════════════════════════════════ --}}
-                {{-- ADMIN PORTAL NAVIGATION HEADER                                    --}}
-                {{-- ══════════════════════════════════════════════════════════════════ --}}
-                
-                <!-- Left: Admin Brand Lockup -->
-                <div class="flex items-center gap-1.5 shrink-0">
-                    <button @click="mobileMenuOpen = true" class="lg:hidden p-1.5 text-white hover:text-[#FBEAD6] transition-colors rounded-full focus:outline-none shrink-0" aria-label="Open Menu">
-                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 6h16M4 12h16M4 18h16"></path></svg>
-                    </button>
-
-                    <a href="/estilo-hq-console" class="flex items-center gap-1.5 group shrink-0">
-                        <div class="w-7 h-7 overflow-hidden shrink-0 flex items-center justify-center bg-transparent rounded-full border-[0.5px] border-white/30 group-hover:border-[#FBEAD6]/50 transition-colors">
-                            <img src="/storage/logo.jpg" alt="Estilo Wear" class="w-[160%] max-w-none mix-blend-screen -mt-[25%]" />
-                        </div>
-                        <div class="flex flex-col justify-center">
-                            <span class="text-[11px] font-serif font-bold tracking-[0.18em] text-[#FBEAD6] leading-none uppercase">Estilo</span>
-                            <span class="text-[7px] font-sans tracking-[0.20em] text-emerald-400 mt-0.5 uppercase font-bold">Admin</span>
-                        </div>
-                    </a>
-                </div>
-
-                <!-- Center: Admin Features Navigation Tabs -->
-                @php $curTab = request('tab', 'overview'); @endphp
-                <nav class="hidden lg:flex flex-1 justify-center items-center gap-0.5 px-1 min-w-0 overflow-x-auto scrollbar-none">
-                    <a href="/estilo-hq-console?tab=overview"
-                       class="px-2.5 py-1.5 rounded-full text-[9.5px] font-sans font-semibold uppercase tracking-wide transition-all whitespace-nowrap {{ $curTab === 'overview' ? 'bg-[#FBEAD6] text-[#1A1818] font-bold shadow-md' : 'text-white/75 hover:text-white hover:bg-white/10' }}">
-                        Overview
-                    </a>
-
-                    <a href="/estilo-hq-console?tab=inventory"
-                       class="px-2.5 py-1.5 rounded-full text-[9.5px] font-sans font-semibold uppercase tracking-wide transition-all whitespace-nowrap {{ $curTab === 'inventory' ? 'bg-[#FBEAD6] text-[#1A1818] font-bold shadow-md' : 'text-white/75 hover:text-white hover:bg-white/10' }}">
-                        Inventory
-                    </a>
-
-                    <a href="/estilo-hq-console?tab=orders"
-                       class="px-2.5 py-1.5 rounded-full text-[9.5px] font-sans font-semibold uppercase tracking-wide transition-all whitespace-nowrap {{ $curTab === 'orders' ? 'bg-[#FBEAD6] text-[#1A1818] font-bold shadow-md' : 'text-white/75 hover:text-white hover:bg-white/10' }}">
-                        Orders
-                    </a>
-
-                    <a href="/estilo-hq-console?tab=customers"
-                       class="px-2.5 py-1.5 rounded-full text-[9.5px] font-sans font-semibold uppercase tracking-wide transition-all whitespace-nowrap {{ $curTab === 'customers' ? 'bg-[#FBEAD6] text-[#1A1818] font-bold shadow-md' : 'text-white/75 hover:text-white hover:bg-white/10' }}">
-                        Customers
-                    </a>
-
-                    <a href="/estilo-hq-console?tab=reports"
-                       class="px-2.5 py-1.5 rounded-full text-[9.5px] font-sans font-semibold uppercase tracking-wide transition-all whitespace-nowrap {{ $curTab === 'reports' ? 'bg-[#FBEAD6] text-[#1A1818] font-bold shadow-md' : 'text-white/75 hover:text-white hover:bg-white/10' }}">
-                        Reports
-                    </a>
-
-                    <a href="/estilo-hq-console?tab=offers"
-                       class="px-2.5 py-1.5 rounded-full text-[9.5px] font-sans font-semibold uppercase tracking-wide transition-all whitespace-nowrap {{ $curTab === 'offers' ? 'bg-[#FBEAD6] text-[#1A1818] font-bold shadow-md' : 'text-white/75 hover:text-white hover:bg-white/10' }}">
-                        Coupons
-                    </a>
-
-                    <a href="/estilo-hq-console?tab=announcements"
-                       class="px-2.5 py-1.5 rounded-full text-[9.5px] font-sans font-semibold uppercase tracking-wide transition-all whitespace-nowrap flex items-center gap-1 {{ $curTab === 'announcements' ? 'bg-[#FBEAD6] text-[#1A1818] font-bold shadow-md' : 'text-white/75 hover:text-white hover:bg-white/10' }}">
-                        <span>📢 Announcements</span>
-                    </a>
-
-                    <a href="/estilo-hq-console?tab=reviews"
-                       class="px-2.5 py-1.5 rounded-full text-[9.5px] font-sans font-semibold uppercase tracking-wide transition-all whitespace-nowrap {{ $curTab === 'reviews' ? 'bg-[#FBEAD6] text-[#1A1818] font-bold shadow-md' : 'text-white/75 hover:text-white hover:bg-white/10' }}">
-                        Reviews
-                    </a>
-
-                    <a href="/estilo-hq-console/profile"
-                       class="px-2.5 py-1.5 rounded-full text-[9.5px] font-sans font-semibold uppercase tracking-wide transition-all whitespace-nowrap {{ request()->is('estilo-hq-console/profile*') || $curTab === 'profile' ? 'bg-[#FBEAD6] text-[#1A1818] font-bold shadow-md' : 'text-white/75 hover:text-white hover:bg-white/10' }}">
-                        Profile
-                    </a>
-                </nav>
-
-
-                <!-- Right: Admin Actions -->
-                <div class="flex items-center gap-2 sm:gap-3 shrink-0">
-                    <a href="/estilo-hq-console/profile" 
-                       class="hidden sm:flex items-center gap-2 bg-white/10 hover:bg-white/20 border border-white/15 rounded-full px-3 py-1 text-xs transition-all hover:scale-105 active:scale-95 cursor-pointer" title="Admin Profile & Security">
-                        <span class="w-6 h-6 rounded-full bg-[var(--color-ebony)] text-amber-200 flex items-center justify-center font-bold text-[11px]">
-                            A
-                        </span>
-                        <span class="font-bold text-[11px] text-[#FBEAD6] hidden xl:inline">Admin</span>
-                    </a>
-
-                    <form action="{{ route('admin.logout') }}" method="POST" class="inline-flex">
-                        @csrf
-                        <button type="submit"
-                                class="inline-flex items-center gap-1.5 rounded-full border border-rose-300/40 bg-rose-500/10 hover:bg-rose-500/20 text-rose-100 text-[10px] sm:text-[11px] font-sans font-bold uppercase tracking-wider px-2.5 sm:px-3 py-1.5 transition-all hover:scale-105 active:scale-95"
-                                title="Sign Out of Admin Console">
-                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
-                                <path stroke-linecap="round" stroke-linejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a2 2 0 01-2 2H5a2 2 0 01-2-2V7a2 2 0 012-2h6a2 2 0 012 2v1"/>
-                            </svg>
-                            <span>Sign Out</span>
-                        </button>
-                    </form>
-                </div>
-
-                @elseif(!request()->is('estilo-hq-console*') || (request()->is('estilo-hq-console*') && Auth::check() && !Auth::user()->isAdmin()))
-                {{-- ══════════════════════════════════════════════════════════════════ --}}
-                {{-- CUSTOMER STOREFRONT NAVIGATION HEADER                             --}}
-                {{-- ══════════════════════════════════════════════════════════════════ --}}
                 
                 <!-- Left: Logo Lockup + Mobile Menu -->
                 <div class="flex items-center gap-2 sm:gap-3 shrink-0">
@@ -187,9 +77,11 @@
                     </button>
                     
                     <a href="/" class="flex items-center gap-2 group shrink-0">
+                        <!-- Icon Circle -->
                         <div class="w-8 h-8 sm:w-10 sm:h-10 overflow-hidden shrink-0 flex items-center justify-center bg-transparent rounded-full border-[0.5px] border-white/30 group-hover:border-[#FBEAD6]/50 transition-colors">
                             <img src="/storage/logo.jpg" alt="Estilo Wear" class="w-[160%] max-w-none mix-blend-screen -mt-[25%]" />
                         </div>
+                        <!-- Typography -->
                         <div class="flex flex-col justify-center">
                             <span class="text-sm sm:text-lg lg:text-xl font-serif font-bold tracking-[0.24em] text-[#FBEAD6] leading-none uppercase" style="text-shadow: 0 0 1px rgba(251,234,214,0.3);">Estilo Wear</span>
                             <span class="text-[6px] sm:text-[8px] font-sans tracking-[0.26em] text-white/80 mt-1 uppercase pl-0.5">Slay Every Look</span>
@@ -197,173 +89,13 @@
                     </a>
                 </div>
 
-                <!-- Center: Customer Storefront Navigation Links -->
+                <!-- Center: Navigation Links (Arpita's clean simple nav) -->
                 <nav class="hidden lg:flex flex-1 justify-center items-center gap-3 xl:gap-5 2xl:gap-6 px-2 min-w-0">
                     <a href="/" class="text-[11px] font-sans font-bold tracking-[0.12em] text-white hover:text-[#FBEAD6] uppercase transition-colors whitespace-nowrap">Home</a>
                     
                     <a href="/shop" class="text-[11px] font-sans font-bold tracking-[0.12em] text-white hover:text-[#FBEAD6] uppercase transition-colors whitespace-nowrap">New</a>
                     
                     <a href="/shop" class="text-[11px] font-sans font-bold tracking-[0.12em] text-white hover:text-[#FBEAD6] uppercase transition-colors whitespace-nowrap">Shop</a>
-                    
-                    {{-- 1. Kurtis Hover Dropdown --}}
-                    <div class="relative group cursor-pointer py-2 flex items-center">
-                        <a href="/shop?category=Kurtis" class="text-[11px] font-sans font-bold tracking-[0.12em] text-white group-hover:text-[#FBEAD6] uppercase transition-colors flex items-center gap-1 whitespace-nowrap">
-                            Kurtis <svg class="w-3 h-3 text-white/50 group-hover:text-[#FBEAD6] transition-transform duration-200 group-hover:rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
-                        </a>
-
-                        {{-- Mega Dropdown Menu --}}
-                        <div class="absolute top-full left-1/2 -translate-x-1/2 pt-2 w-[480px] hidden group-hover:block transition-all duration-300 z-50">
-                            <div class="bg-[#1C1A1A] border border-white/10 rounded-2xl p-5 shadow-2xl backdrop-blur-xl text-left grid grid-cols-5 gap-4 ring-1 ring-white/5">
-                                
-                                {{-- Subcategories list --}}
-                                <div class="col-span-3 space-y-1">
-                                    <span class="text-[9px] font-sans font-bold tracking-[0.25em] text-[#FBEAD6] uppercase block mb-2 pb-1.5 border-b border-white/10">Kurtis & Suits Types</span>
-                                    
-                                    <a href="/shop?category=Chikankari+Kurtis" class="group/item flex items-center justify-between px-2.5 py-1.5 rounded-lg hover:bg-white/5 transition-all">
-                                        <div>
-                                            <span class="text-xs font-serif font-bold text-white group-hover/item:text-[#FBEAD6] block">Chikankari Kurtis</span>
-                                            <span class="text-[9px] font-sans text-white/50">Lucknowi shadow handwork</span>
-                                        </div>
-                                        <span class="text-[#FBEAD6] text-xs opacity-0 group-hover/item:opacity-100 transition-opacity">→</span>
-                                    </a>
-
-                                    <a href="/shop?category=Designer+Kurtis" class="group/item flex items-center justify-between px-2.5 py-1.5 rounded-lg hover:bg-white/5 transition-all">
-                                        <div>
-                                            <span class="text-xs font-serif font-bold text-white group-hover/item:text-[#FBEAD6] block">Designer Kurtis</span>
-                                            <span class="text-[9px] font-sans text-white/50">Contemporary party cuts</span>
-                                        </div>
-                                        <span class="text-[#FBEAD6] text-xs opacity-0 group-hover/item:opacity-100 transition-opacity">→</span>
-                                    </a>
-
-                                    <a href="/shop?category=Anarkali+Suits" class="group/item flex items-center justify-between px-2.5 py-1.5 rounded-lg hover:bg-white/5 transition-all">
-                                        <div>
-                                            <span class="text-xs font-serif font-bold text-white group-hover/item:text-[#FBEAD6] block">Anarkali Suits & Sets</span>
-                                            <span class="text-[9px] font-sans text-white/50">Royal flared silhouette</span>
-                                        </div>
-                                        <span class="text-[#FBEAD6] text-xs opacity-0 group-hover/item:opacity-100 transition-opacity">→</span>
-                                    </a>
-
-                                    <a href="/shop?category=Cotton+Kurtis" class="group/item flex items-center justify-between px-2.5 py-1.5 rounded-lg hover:bg-white/5 transition-all">
-                                        <div>
-                                            <span class="text-xs font-serif font-bold text-white group-hover/item:text-[#FBEAD6] block">Cotton Mulmul Kurtis</span>
-                                            <span class="text-[9px] font-sans text-white/50">Everyday breathable comfort</span>
-                                        </div>
-                                        <span class="text-[#FBEAD6] text-xs opacity-0 group-hover/item:opacity-100 transition-opacity">→</span>
-                                    </a>
-
-                                    <a href="/shop?category=Straight+Kurtis" class="group/item flex items-center justify-between px-2.5 py-1.5 rounded-lg hover:bg-white/5 transition-all">
-                                        <div>
-                                            <span class="text-xs font-serif font-bold text-white group-hover/item:text-[#FBEAD6] block">Straight Cut Kurtis</span>
-                                            <span class="text-[9px] font-sans text-white/50">Office & smart casual</span>
-                                        </div>
-                                        <span class="text-[#FBEAD6] text-xs opacity-0 group-hover/item:opacity-100 transition-opacity">→</span>
-                                    </a>
-
-                                    <div class="pt-2 border-t border-white/10 mt-1">
-                                        <a href="/shop?category=Kurtis" class="text-[10px] font-sans font-bold text-[#FBEAD6] hover:underline uppercase tracking-wider flex items-center gap-1">
-                                            View All Kurtis Collection <span>✦</span>
-                                        </a>
-                                    </div>
-                                </div>
-
-                                {{-- Featured Visual Card --}}
-                                <div class="col-span-2 bg-[#252222] rounded-xl p-3 flex flex-col justify-between border border-white/5">
-                                    <div>
-                                        <span class="text-[9px] font-sans font-bold uppercase tracking-wider text-[#E5BCA9] bg-[#E5BCA9]/10 px-2 py-0.5 rounded-full inline-block mb-2">Artisan Pick</span>
-                                        <h4 class="font-serif text-sm font-bold text-[#FBEAD6] leading-tight">Chikankari & Silk Kurtis</h4>
-                                        <p class="text-[10px] font-sans text-white/60 mt-1">Hand-embroidered by master craftswomen.</p>
-                                    </div>
-                                    <div class="pt-3">
-                                        <a href="/shop?category=Chikankari+Kurtis" class="inline-block w-full text-center bg-[#FBEAD6] hover:bg-white text-[#1A1818] font-sans font-bold text-[10px] uppercase tracking-wider py-2 rounded-lg transition-colors">
-                                            Explore
-                                        </a>
-                                    </div>
-                                </div>
-
-                            </div>
-                        </div>
-                    </div>
-
-                    {{-- 2. Sarees Hover Dropdown --}}
-                    <div class="relative group cursor-pointer py-2 flex items-center">
-                        <a href="/shop?category=Sarees" class="text-[11px] font-sans font-bold tracking-[0.12em] text-white group-hover:text-[#FBEAD6] uppercase transition-colors flex items-center gap-1 whitespace-nowrap">
-                            Sarees <svg class="w-3 h-3 text-white/50 group-hover:text-[#FBEAD6] transition-transform duration-200 group-hover:rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
-                        </a>
-
-                        {{-- Mega Dropdown Menu --}}
-                        <div class="absolute top-full left-1/2 -translate-x-1/2 pt-2 w-[480px] hidden group-hover:block transition-all duration-300 z-50">
-                            <div class="bg-[#1C1A1A] border border-white/10 rounded-2xl p-5 shadow-2xl backdrop-blur-xl text-left grid grid-cols-5 gap-4 ring-1 ring-white/5">
-                                
-                                {{-- Subcategories list --}}
-                                <div class="col-span-3 space-y-1">
-                                    <span class="text-[9px] font-sans font-bold tracking-[0.25em] text-[#FBEAD6] uppercase block mb-2 pb-1.5 border-b border-white/10">Luxury Saree Drapes</span>
-                                    
-                                    <a href="/shop?category=Banarasi+Sarees" class="group/item flex items-center justify-between px-2.5 py-1.5 rounded-lg hover:bg-white/5 transition-all">
-                                        <div>
-                                            <span class="text-xs font-serif font-bold text-white group-hover/item:text-[#FBEAD6] block">Banarasi Silk Sarees</span>
-                                            <span class="text-[9px] font-sans text-white/50">Varanasi royal zari weave</span>
-                                        </div>
-                                        <span class="text-[#FBEAD6] text-xs opacity-0 group-hover/item:opacity-100 transition-opacity">→</span>
-                                    </a>
-
-                                    <a href="/shop?category=Silk+Sarees" class="group/item flex items-center justify-between px-2.5 py-1.5 rounded-lg hover:bg-white/5 transition-all">
-                                        <div>
-                                            <span class="text-xs font-serif font-bold text-white group-hover/item:text-[#FBEAD6] block">Pure Kanjivaram Silk</span>
-                                            <span class="text-[9px] font-sans text-white/50">Golden zari border heritage</span>
-                                        </div>
-                                        <span class="text-[#FBEAD6] text-xs opacity-0 group-hover/item:opacity-100 transition-opacity">→</span>
-                                    </a>
-
-                                    <a href="/shop?category=Organza+Sarees" class="group/item flex items-center justify-between px-2.5 py-1.5 rounded-lg hover:bg-white/5 transition-all">
-                                        <div>
-                                            <span class="text-xs font-serif font-bold text-white group-hover/item:text-[#FBEAD6] block">Organza Floral Sarees</span>
-                                            <span class="text-[9px] font-sans text-white/50">Hand-painted sheer elegance</span>
-                                        </div>
-                                        <span class="text-[#FBEAD6] text-xs opacity-0 group-hover/item:opacity-100 transition-opacity">→</span>
-                                    </a>
-
-                                    <a href="/shop?category=Linen+Sarees" class="group/item flex items-center justify-between px-2.5 py-1.5 rounded-lg hover:bg-white/5 transition-all">
-                                        <div>
-                                            <span class="text-xs font-serif font-bold text-white group-hover/item:text-[#FBEAD6] block">Organic Linen Sarees</span>
-                                            <span class="text-[9px] font-sans text-white/50">Modern artisanal drape</span>
-                                        </div>
-                                        <span class="text-[#FBEAD6] text-xs opacity-0 group-hover/item:opacity-100 transition-opacity">→</span>
-                                    </a>
-
-                                    <a href="/shop?category=Cotton+Sarees" class="group/item flex items-center justify-between px-2.5 py-1.5 rounded-lg hover:bg-white/5 transition-all">
-                                        <div>
-                                            <span class="text-xs font-serif font-bold text-white group-hover/item:text-[#FBEAD6] block">Handloom Jamdani Cotton</span>
-                                            <span class="text-[9px] font-sans text-white/50">Airy traditional motifs</span>
-                                        </div>
-                                        <span class="text-[#FBEAD6] text-xs opacity-0 group-hover/item:opacity-100 transition-opacity">→</span>
-                                    </a>
-
-                                    <div class="pt-2 border-t border-white/10 mt-1">
-                                        <a href="/shop?category=Sarees" class="text-[10px] font-sans font-bold text-[#FBEAD6] hover:underline uppercase tracking-wider flex items-center gap-1">
-                                            View All 6-Yard Drapes <span>✦</span>
-                                        </a>
-                                    </div>
-                                </div>
-
-                                {{-- Featured Visual Card --}}
-                                <div class="col-span-2 bg-[#252222] rounded-xl p-3 flex flex-col justify-between border border-white/5">
-                                    <div>
-                                        <span class="text-[9px] font-sans font-bold uppercase tracking-wider text-[#F0C4CB] bg-[#F0C4CB]/10 px-2 py-0.5 rounded-full inline-block mb-2">Royal Heritage</span>
-                                        <h4 class="font-serif text-sm font-bold text-[#FBEAD6] leading-tight">Banarasi & Kanjivaram</h4>
-                                        <p class="text-[10px] font-sans text-white/60 mt-1">Woven with real golden zari threads.</p>
-                                    </div>
-                                    <div class="pt-3">
-                                        <a href="/shop?category=Banarasi+Sarees" class="inline-block w-full text-center bg-[#FBEAD6] hover:bg-white text-[#1A1818] font-sans font-bold text-[10px] uppercase tracking-wider py-2 rounded-lg transition-colors">
-                                            Shop Sarees
-                                        </a>
-                                    </div>
-                                </div>
-
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <a href="/shop" class="text-[11px] font-sans font-bold tracking-[0.12em] text-white hover:text-[#FBEAD6] uppercase transition-colors whitespace-nowrap">Collections</a>
                     
                     <a href="/shop?occasion=Festive" class="text-[11px] font-sans font-bold tracking-[0.12em] text-white hover:text-[#FBEAD6] uppercase transition-colors whitespace-nowrap">Festive</a>
                     
@@ -377,15 +109,6 @@
 
                 {{-- Right action icons for Customer Storefront --}}
                 <div class="flex items-center gap-1 sm:gap-2 lg:gap-3 shrink-0 mr-1">
-
-                    <!-- AI Try-On (desktop only) -->
-                    <button type="button"
-                            @click="$dispatch('open-tryon', { id: 'est-001', name: 'Gulzar Chikankari Anarkali Set', price: 1899, image: '/storage/products/est-001-chikankari-anarkali.jpg', category: 'dresses' })"
-                            class="hidden md:flex items-center gap-1.5 bg-gradient-to-r from-[var(--color-rose-antique)]/25 to-[var(--color-rose-deep)]/25 hover:from-[var(--color-rose-antique)]/40 hover:to-[var(--color-rose-deep)]/40 border border-[var(--color-rose-antique)]/50 text-[#FBEAD6] text-[10px] font-sans font-bold uppercase tracking-wider px-2.5 sm:px-3 py-1.5 rounded-full transition-all hover:scale-105 shadow-sm whitespace-nowrap">
-                        <span class="text-amber-300 animate-pulse">✨</span>
-                        <span class="hidden xl:inline">AI Fitting Room</span>
-                        <span class="xl:hidden">Try-On</span>
-                    </button>
 
                     <!-- Search -->
                     <button @click="$store.shop.isSearchOpen = true"
@@ -451,7 +174,6 @@
                     </button>
 
                 </div>
-                @endif
             </div>
         </div>
     </header>
@@ -588,4 +310,6 @@
             </div>
         </aside>
     </div>
+
+    @endif
 </div>
