@@ -94,22 +94,6 @@
                     </button>
                 </form>
 
-                {{-- 1-Click Fast Fill for Testing --}}
-                <div class="border-t border-[var(--color-bisque)]/60 pt-4">
-                    <div class="bg-amber-50/80 border border-amber-200 rounded-2xl p-3.5 space-y-2">
-                        <div class="flex items-start justify-between">
-                            <div>
-                                <span class="text-[11px] font-sans font-bold text-amber-950 block">⚡ Quick Master Admin Access</span>
-                                <span class="text-[10px] font-sans text-amber-800">Email: <b class="font-mono">admin@estilo.com</b> • Pass: <b class="font-mono">Admin@123</b></span>
-                            </div>
-                        </div>
-                        <button type="button"
-                                onclick="document.getElementById('adminEmailInput').value='admin@estilo.com'; document.getElementById('adminPasswordInput').value='Admin@123'; document.getElementById('adminLoginForm').submit();"
-                                class="w-full bg-amber-600 hover:bg-amber-700 text-white text-[10px] font-sans font-bold uppercase tracking-wider py-2 rounded-xl transition-all shadow-xs flex items-center justify-center gap-1.5 cursor-pointer">
-                            <span>👑 1-Click Master Admin Login</span>
-                        </button>
-                    </div>
-                </div>
 
                 {{-- Return to Storefront --}}
                 <div class="text-center pt-2">
