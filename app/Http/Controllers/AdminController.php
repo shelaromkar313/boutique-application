@@ -224,8 +224,16 @@ class AdminController extends Controller
         $salesPrice = round($request->price * 1.05 + 50, -1);
         $fabric = trim($request->input('fabric', 'Handloom Artisanal')) ?: 'Handloom Artisanal';
         // New Category/Fabric typed by admin is saved as-is -> auto-appears in shop filters
-        if ($request->filled('category') && !Category::where('name', $request->category)->exists()) {
-            Category::create(['name' => $request->category, 'slug' => Str::slug($request->category), 'subcategories' => []]);
+        if ($request->filled('category')) {
+            try {
+                Category::firstOrCreate(
+                    ['slug' => Str::slug($request->category)],
+                    ['name' => $request->category, 'subcategories' => []]
+                );
+            } catch (\Throwable $e) {
+                // Never block product creation on category slug clash
+                \Illuminate\Support\Facades\Log::warning('Category auto-create skipped: ' . $e->getMessage());
+            }
         }
         // % SALE toggle: checked + discount>0 = visible in SALE menu, else discount 0
         $onSale = $request->has('is_sale') || $request->has('is_featured');
@@ -313,8 +321,15 @@ class AdminController extends Controller
         // If discount field present use it, else keep existing only when still on sale
         $discount = $request->has('discount') ? ($onSale ? max(0, min(90, (int) $request->input('discount', 0))) : 0) : ($onSale ? (int) $product->discount : 0);
         $oldPrice = $discount > 0 ? round($newPrice / (1 - $discount / 100)) : $newPrice;
-        if ($request->filled('category') && !Category::where('name', $request->category)->exists()) {
-            Category::create(['name' => $request->category, 'slug' => Str::slug($request->category), 'subcategories' => []]);
+        if ($request->filled('category')) {
+            try {
+                Category::firstOrCreate(
+                    ['slug' => Str::slug($request->category)],
+                    ['name' => $request->category, 'subcategories' => []]
+                );
+            } catch (\Throwable $e) {
+                \Illuminate\Support\Facades\Log::warning('Category auto-create skipped: ' . $e->getMessage());
+            }
         }
 
         $data = [
