@@ -506,8 +506,8 @@ document.addEventListener('alpine:init', function() {
                                         {{ $ord->status === 'confirmed' || $ord->status === 'paid' ? 'bg-amber-100 text-amber-800' : '' }}
                                         {{ $ord->status === 'cancelled' ? 'bg-rose-100 text-rose-800' : '' }}
                                         {{ $ord->status === 'pending' ? 'bg-gray-100 text-gray-800' : '' }}
-                                        {{ in_array($ord->status, ['return_requested', 'exchange_requested']) ? 'bg-orange-100 text-orange-800' : '' }}
-                                        {{ in_array($ord->status, ['returned', 'exchanged']) ? 'bg-purple-100 text-purple-800' : '' }}
+                                        {{ $ord->status === 'exchange_requested' ? 'bg-orange-100 text-orange-800' : '' }}
+                                        {{ $ord->status === 'exchanged' ? 'bg-purple-100 text-purple-800' : '' }}
                                     ">
                                         {{ str_replace('_', ' ', $ord->status) }}
                                     </span>
@@ -527,10 +527,6 @@ document.addEventListener('alpine:init', function() {
                                                 <option value="dispatched" {{ $ord->status === 'dispatched' ? 'selected' : '' }}>Dispatched</option>
                                                 <option value="delivered" {{ $ord->status === 'delivered' ? 'selected' : '' }}>Delivered</option>
                                                 <option value="cancelled" {{ $ord->status === 'cancelled' ? 'selected' : '' }}>Cancelled</option>
-                                                <option value="return_requested" {{ $ord->status === 'return_requested' ? 'selected' : '' }}>Return Requested</option>
-                                                <option value="exchange_requested" {{ $ord->status === 'exchange_requested' ? 'selected' : '' }}>Exchange Requested</option>
-                                                <option value="returned" {{ $ord->status === 'returned' ? 'selected' : '' }}>Returned ✓</option>
-                                                <option value="exchanged" {{ $ord->status === 'exchanged' ? 'selected' : '' }}>Exchanged ✓</option>
                                             </select>
                                             <button type="submit" class="bg-[var(--color-ebony)] hover:bg-[var(--color-rose-deep)] text-white text-[10px] font-bold px-2.5 py-1 rounded-lg transition-colors">
                                                 Save
