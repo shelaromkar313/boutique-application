@@ -222,7 +222,15 @@ class AdminController extends Controller
         $totalUnits = array_sum($sizeStock);
         $inStock = $totalUnits > 0;
         $salesPrice = round($request->price * 1.05 + 50, -1);
-        $fabric = $request->input('fabric', 'Handloom Artisanal');
+        $fabric = trim($request->input('fabric', 'Handloom Artisanal')) ?: 'Handloom Artisanal';
+        // New Category/Fabric typed by admin is saved as-is -> auto-appears in shop filters
+        if ($request->filled('category') && !Category::where('name', $request->category)->exists()) {
+            Category::create(['name' => $request->category, 'slug' => Str::slug($request->category), 'subcategories' => []]);
+        }
+        // % SALE toggle: checked + discount>0 = visible in SALE menu, else discount 0
+        $onSale = $request->has('is_sale') || $request->has('is_featured');
+        $discount = $onSale ? max(0, min(90, (int) $request->input('discount', 20))) : 0;
+        $oldPrice = $discount > 0 ? round($request->price / (1 - $discount / 100)) : $request->price;
 
         Product::create([
             'est_id'         => $estId,
@@ -235,8 +243,8 @@ class AdminController extends Controller
             'occasion'       => $request->input('occasion', 'Festive / Wedding'),
             'price'          => $request->price,
             'sales_price'    => $salesPrice,
-            'old_price'      => $request->price * 1.25,
-            'discount'       => 20,
+            'old_price'      => $oldPrice,
+            'discount'       => $discount,
             'rating'         => 5.0,
             'review_count'   => 1,
             'in_stock'       => $inStock,
@@ -300,11 +308,24 @@ class AdminController extends Controller
         $inStock = $totalUnits > 0;
         $sizes = count($sizeStock) > 0 ? array_keys($sizeStock) : $product->sizes;
 
+        $newPrice = (float) $request->input('price', $product->price);
+        $onSale = $request->has('is_sale') || $request->has('is_featured');
+        // If discount field present use it, else keep existing only when still on sale
+        $discount = $request->has('discount') ? ($onSale ? max(0, min(90, (int) $request->input('discount', 0))) : 0) : ($onSale ? (int) $product->discount : 0);
+        $oldPrice = $discount > 0 ? round($newPrice / (1 - $discount / 100)) : $newPrice;
+        if ($request->filled('category') && !Category::where('name', $request->category)->exists()) {
+            Category::create(['name' => $request->category, 'slug' => Str::slug($request->category), 'subcategories' => []]);
+        }
+
         $data = [
             'name'        => $request->input('name', $product->name),
             'category'    => $request->input('category', $product->category),
-            'price'       => $request->input('price', $product->price),
-            'sales_price' => round($request->input('price', $product->price) * 1.05 + 50, -1),
+            'fabric'      => trim($request->input('fabric', $product->fabric)) ?: $product->fabric,
+            'occasion'    => $request->input('occasion', $product->occasion),
+            'price'       => $newPrice,
+            'sales_price' => round($newPrice * 1.05 + 50, -1),
+            'old_price'   => $oldPrice,
+            'discount'    => $discount,
             'in_stock'       => $inStock,
             'is_featured'    => $request->has('is_featured'),
             'is_trending'    => $request->has('is_trending'),
@@ -357,6 +378,16 @@ class AdminController extends Controller
         $cat = Category::findOrFail($id);
         $cat->delete();
         return redirect($this->adminBaseUrl('inventory'))->with('success', 'Category removed.');
+    }
+
+    /**
+     * Delete Fabric type: resets all products using it to default weave
+     */
+    public function deleteFabric(Request $request)
+    {
+        $request->validate(['fabric' => 'required|string']);
+        $count = Product::where('fabric', $request->fabric)->update(['fabric' => 'Handloom Artisanal']);
+        return redirect($this->adminBaseUrl('inventory'))->with('success', "Fabric '{$request->fabric}' removed from {$count} product(s).");
     }
 
     /**

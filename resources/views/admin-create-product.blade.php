@@ -84,10 +84,28 @@
                                class="w-full bg-[var(--color-offwhite)] border border-[var(--color-bisque)] rounded-xl px-4 py-3 text-sm font-bold font-serif focus:outline-none focus:border-amber-400 focus:bg-white transition-all shadow-inner" />
                     </div>
                     <div>
-                        <label class="block text-xs font-sans font-bold uppercase tracking-wider mb-1.5 text-[var(--color-ebony)]">Fabric & Weave Type</label>
-                        <input type="text" name="fabric" placeholder="e.g. Pure Mulberry Silk, Mulmul Cotton" value="Handloom Pure Silk"
+                        <label class="block text-xs font-sans font-bold uppercase tracking-wider mb-1.5 text-[var(--color-ebony)]">Fabric & Weave Type (new names auto-appear in shop filter)</label>
+                        <input type="text" name="fabric" list="fabric_list" placeholder="e.g. Pure Mulberry Silk, Mulmul Cotton" value="Handloom Pure Silk"
                                class="w-full bg-[var(--color-offwhite)] border border-[var(--color-bisque)] rounded-xl px-4 py-3 text-sm font-sans focus:outline-none focus:border-amber-400 focus:bg-white transition-all shadow-inner" />
+                        <datalist id="fabric_list">
+                            @foreach(\App\Models\Product::select('fabric')->distinct()->pluck('fabric') as $fab)
+                                <option value="{{ $fab }}"></option>
+                            @endforeach
+                        </datalist>
                     </div>
+                </div>
+
+                {{-- Sale Pricing --}}
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 p-4 bg-rose-50/60 rounded-2xl border border-rose-200">
+                    <div>
+                        <label class="block text-xs font-sans font-bold uppercase tracking-wider mb-1.5 text-[var(--color-ebony)]">Discount % (0 = no sale)</label>
+                        <input type="number" name="discount" min="0" max="90" value="20"
+                               class="w-full bg-white border border-[var(--color-bisque)] rounded-xl px-4 py-3 text-sm font-bold font-sans focus:outline-none focus:border-rose-400" />
+                    </div>
+                    <label class="flex items-center gap-2.5 p-3 bg-white rounded-xl border border-rose-300 cursor-pointer self-end">
+                        <input type="checkbox" name="is_sale" checked value="1" class="w-4 h-4 rounded accent-rose-600 cursor-pointer" />
+                        <span class="text-xs font-bold text-gray-900">🏷️ Show in % SALE menu <span class="block text-[10px] font-normal text-gray-500">Uncheck = hidden from Sale section</span></span>
+                    </label>
                 </div>
 
                 {{-- Size Selection Mode & Stock Quantity (Free Size for Sarees vs Standard Apparel Sizes) --}}
@@ -157,13 +175,29 @@
                 {{-- Color Palette & Photo --}}
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
-                        <label class="block text-xs font-sans font-bold uppercase tracking-wider mb-1.5 text-[var(--color-ebony)]">Color Palette (Comma Separated)</label>
-                        <input type="text" name="colors" value="Royal Emerald, Rose Gold, Ivory White"
-                               class="w-full bg-[var(--color-offwhite)] border border-[var(--color-bisque)] rounded-xl px-4 py-3 text-xs font-sans focus:outline-none focus:border-amber-400" />
+                        <label class="block text-xs font-sans font-bold uppercase tracking-wider mb-1.5 text-[var(--color-ebony)]">Occasion / Festive Section *</label>
+                        <select name="occasion" required
+                               class="w-full bg-[var(--color-offwhite)] border border-[var(--color-bisque)] rounded-xl px-4 py-3 text-sm font-sans focus:outline-none focus:border-amber-400 bg-white">
+                            <option value="Festive Wear" selected>🎉 Festive Wear (shows in FESTIVE menu)</option>
+                            <option value="Wedding Collection">💒 Wedding Collection</option>
+                            <option value="Party Wear">🥂 Party Wear</option>
+                            <option value="Office Wear">💼 Office Wear</option>
+                            <option value="Casual Wear">🌿 Casual Wear</option>
+                            <option value="Festive / Wedding">🎉 Festive / Wedding</option>
+                        </select>
                     </div>
                     <div>
                         <label class="block text-xs font-sans font-bold uppercase tracking-wider mb-1.5 text-[var(--color-ebony)]">Upload Garment Image</label>
                         <input type="file" name="image" accept="image/*" class="w-full text-xs font-sans file:mr-4 file:py-2.5 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-bold file:bg-[var(--color-ebony)] file:text-white hover:file:bg-[var(--color-rose-deep)] transition-colors" />
+                    </div>
+                </div>
+
+                {{-- Color Palette --}}
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-xs font-sans font-bold uppercase tracking-wider mb-1.5 text-[var(--color-ebony)]">Color Palette (Comma Separated)</label>
+                        <input type="text" name="colors" value="Royal Emerald, Rose Gold, Ivory White"
+                               class="w-full bg-[var(--color-offwhite)] border border-[var(--color-bisque)] rounded-xl px-4 py-3 text-xs font-sans focus:outline-none focus:border-amber-400" />
                     </div>
                 </div>
 

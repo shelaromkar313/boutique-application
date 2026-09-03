@@ -104,6 +104,7 @@ $adminRoutes = function () {
     Route::delete('/products/{id}', [AdminController::class, 'deleteProduct']);
     Route::post('/categories', [AdminController::class, 'storeCategory']);
     Route::delete('/categories/{id}', [AdminController::class, 'deleteCategory']);
+    Route::delete('/fabrics', [AdminController::class, 'deleteFabric']);
 
     Route::match(['get', 'post'], '/reviews/{id}/boost', [AdminController::class, 'boostReview']);
     Route::match(['get', 'post'], '/reviews/{id}/toggle', [AdminController::class, 'toggleReview']);

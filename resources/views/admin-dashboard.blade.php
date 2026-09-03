@@ -61,7 +61,7 @@ document.addEventListener('alpine:init', function() {
 
             openEditProduct(p) {
                 this.selectedProduct = Object.assign({}, p);
-                this.selectedProduct.colors_str = Array.isArray(p.colors) ? p.colors.join(', ') : (p.colors || '');
+                this.selectedProduct.colors_str = Array.isArray(p.colors) ? p.colors.map(c => (c && typeof c === 'object' ? (c.name || '') : c)).filter(Boolean).join(', ') : (p.colors || '');
                 let stock = p.size_stock || {};
                 if (typeof stock === 'string') { try { stock = JSON.parse(stock); } catch(e) { stock = {}; } }
                 if (!stock || !Object.keys(stock).length) { ['XS','S','M','L','XL','XXL'].forEach(sz => { stock[sz] = 2; }); }
@@ -229,12 +229,28 @@ document.addEventListener('alpine:init', function() {
                     <span class="text-[10px] font-sans font-bold uppercase tracking-wider text-[var(--color-ebony)]/50 mr-1">Categories:</span>
                     <button @click="search = ''" :class="search === '' ? 'bg-[var(--color-ebony)] text-white' : 'bg-gray-100 text-[var(--color-ebony)]'" class="text-[10px] font-sans font-bold px-3 py-1 rounded-full transition-colors">All</button>
                     @foreach($categories as $cat)
-                    <div class="inline-flex items-center gap-1 bg-[var(--color-offwhite)] border border-[var(--color-bisque)] rounded-full px-2.5 py-0.5">
+                    <div class="inline-flex items-center gap-1 bg-[var(--color-offwhite)] border border-[var(--color-bisque)] rounded-full pl-2.5 pr-1 py-0.5">
                         <button @click="search = '{{ $cat->name }}'" class="text-[10px] font-bold text-[var(--color-ebony)] hover:text-[var(--color-rose-antique)]">{{ $cat->name }}</button>
                         <form action="/estilo-hq-console/categories/{{ $cat->id }}" method="POST" class="inline" onsubmit="return confirm('Remove category {{ $cat->name }}?');">
                             @csrf
                             @method('DELETE')
-                            <button type="submit" class="text-[9px] text-gray-400 hover:text-rose-600 font-bold ml-1">✕</button>
+                            <button type="submit" title="Delete {{ $cat->name }}" class="text-xs font-black text-white bg-rose-500 hover:bg-rose-700 rounded-full w-5 h-5 leading-none ml-1">×</button>
+                        </form>
+                    </div>
+                    @endforeach
+                </div>
+
+                {{-- Fabrics Quick Pills (auto from products, ✕ resets to default weave) --}}
+                <div class="flex items-center gap-2 flex-wrap pb-2">
+                    <span class="text-[10px] font-sans font-bold uppercase tracking-wider text-[var(--color-ebony)]/50 mr-1">Fabrics:</span>
+                    @foreach(\App\Models\Product::select('fabric')->distinct()->pluck('fabric')->filter() as $fab)
+                    <div class="inline-flex items-center gap-1 bg-white border border-[var(--color-bisque)] rounded-full pl-2.5 pr-1 py-0.5">
+                        <button @click="search = '{{ $fab }}'" class="text-[10px] font-bold text-[var(--color-ebony)] hover:text-[var(--color-rose-antique)]">{{ $fab }}</button>
+                        <form action="/estilo-hq-console/fabrics" method="POST" class="inline" onsubmit="return confirm('Remove fabric {{ $fab }} from all products?');">
+                            @csrf
+                            @method('DELETE')
+                            <input type="hidden" name="fabric" value="{{ $fab }}" />
+                            <button type="submit" title="Delete {{ $fab }}" class="text-xs font-black text-white bg-rose-500 hover:bg-rose-700 rounded-full w-5 h-5 leading-none ml-1">×</button>
                         </form>
                     </div>
                     @endforeach
@@ -305,8 +321,8 @@ document.addEventListener('alpine:init', function() {
                                     <form action="/estilo-hq-console/products/{{ $prod->id }}" method="POST" class="inline" onsubmit="return confirm('Are you sure you want to delete this product?');">
                                         @csrf
                                         @method('DELETE')
-                                        <button type="submit" class="px-2 py-1 bg-rose-50 text-rose-700 hover:bg-rose-100 rounded-lg text-xs font-bold transition-colors" title="Delete">
-                                            🗑️
+                                        <button type="submit" class="px-2.5 py-1 bg-rose-600 text-white hover:bg-rose-700 rounded-lg text-xs font-bold transition-colors" title="Delete product">
+                                            🗑 Delete
                                         </button>
                                     </form>
                                 </td>

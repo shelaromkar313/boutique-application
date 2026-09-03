@@ -5,9 +5,15 @@
 @section('content')
 
 @php
-$categories = ['Designer Kurtis','Cotton Kurtis','Chikankari Kurtis','Straight Kurtis','Anarkali Suits','Banarasi Sarees','Silk Sarees','Organza Sarees','Linen Sarees','Cotton Sarees','Co-Ord Sets','Boutique Dresses','Ethnic Dresses'];
-$fabrics    = ['Pure Silk','Chikankari Cotton','Mulmul Cotton','Organza','Banarasi Brocade','Organic Linen'];
-$occasions  = ['Wedding Collection','Festive Wear','Office Wear','Casual Wear','Party Wear'];
+// Dynamic filters: new Category/Fabric/Occasion typed by admin appears automatically
+$catNames = \App\Models\Category::orderBy('name')->pluck('name')->toArray();
+$prodCats = \App\Models\Product::select('category')->distinct()->pluck('category')->toArray();
+$categories = array_values(array_unique(array_merge($catNames, array_filter($prodCats))));
+if (empty($categories)) $categories = ['Designer Kurtis','Cotton Kurtis','Chikankari Kurtis','Straight Kurtis','Anarkali Suits','Banarasi Sarees','Silk Sarees','Organza Sarees','Linen Sarees','Cotton Sarees','Co-Ord Sets','Boutique Dresses','Ethnic Dresses'];
+$fabrics = array_values(array_unique(array_filter(\App\Models\Product::select('fabric')->distinct()->pluck('fabric')->toArray())));
+if (empty($fabrics)) $fabrics = ['Pure Silk','Chikankari Cotton','Mulmul Cotton','Organza','Banarasi Brocade','Organic Linen'];
+$occasions = array_values(array_unique(array_filter(\App\Models\Product::select('occasion')->distinct()->pluck('occasion')->toArray())));
+if (empty($occasions)) $occasions = ['Wedding Collection','Festive Wear','Office Wear','Casual Wear','Party Wear'];
 $sizes      = ['XS','S','M','L','XL','XXL','Free Size'];
 
 // Live DB catalog (was hardcoded est-001..est-012, so admin-created products never appeared in search)
@@ -60,7 +66,10 @@ $allProducts = $dbProducts->map(function($p) {
                     Search: "<span x-text="searchQuery"></span>"
                     <button @click="searchQuery = ''; clearFilters()" class="text-[var(--color-rose-antique)] font-bold hover:scale-110">✕</button>
                 </span>
-                <button x-show="searchQuery || selectedCategories.length > 0 || selectedFabrics.length > 0 || selectedOccasions.length > 0 || selectedSizes.length > 0" style="display:none;" @click="clearFilters()" class="text-[var(--color-rose-antique)] hover:underline font-bold flex items-center gap-1 ml-2">
+                <span x-show="saleOnly" class="inline-flex items-center gap-1.5 px-3 py-1 bg-rose-100 border border-rose-300 rounded-full text-xs font-bold text-rose-800">
+                    % SALE <button @click="saleOnly = false" class="font-bold hover:scale-110">✕</button>
+                </span>
+                <button x-show="searchQuery || saleOnly || selectedCategories.length > 0 || selectedFabrics.length > 0 || selectedOccasions.length > 0 || selectedSizes.length > 0" style="display:none;" @click="clearFilters()" class="text-[var(--color-rose-antique)] hover:underline font-bold flex items-center gap-1 ml-2">
                     <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
                     Reset Filters
                 </button>
@@ -273,6 +282,7 @@ function shopPage(products, meta) {
         selectedSizes:      [],
         priceRange:       25000,
         sortBy:           new URLSearchParams(window.location.search).get('filter') === 'new' ? 'newest' : 'featured',
+        saleOnly: new URLSearchParams(window.location.search).get('sale') === 'true',
         mobileFilterOpen: false,
         gridColumns:      3,
 
@@ -290,6 +300,7 @@ function shopPage(products, meta) {
             this.selectedFabrics    = [];
             this.selectedOccasions  = [];
             this.selectedSizes      = [];
+            this.saleOnly           = false;
             this.priceRange         = 25000;
             // Clear URL search param if present without full reload
             if (window.history.pushState) {
@@ -316,9 +327,16 @@ function shopPage(products, meta) {
 
                 if (this.selectedCategories.length && !this.selectedCategories.some(c => p.category.toLowerCase().includes(c.toLowerCase()))) return false;
                 if (this.selectedFabrics.length && !this.selectedFabrics.includes(p.fabric)) return false;
-                if (this.selectedOccasions.length && !this.selectedOccasions.includes(p.occasion)) return false;
+                // Festive fix: /shop?occasion=Festive must match 'Festive Wear' + 'Festive / Wedding'
+                if (this.selectedOccasions.length && !this.selectedOccasions.some(o => {
+                    const oo = (o || '').toLowerCase().trim();
+                    const po = (p.occasion || '').toLowerCase().trim();
+                    return po.includes(oo) || oo.includes(po) || (oo.includes('festive') && po.includes('festive'));
+                })) return false;
                 if (this.selectedSizes.length && !p.sizes.some(s => this.selectedSizes.includes(s))) return false;
                 if (p.price > this.priceRange) return false;
+                // % SALE menu: /shop?sale=true shows only discounted products
+                if (this.saleOnly && !(Number(p.discount) > 0)) return false;
                 return true;
             }).sort((a, b) => {
                 if (this.sortBy === 'price-low')  return a.price - b.price;
