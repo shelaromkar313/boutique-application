@@ -11,6 +11,16 @@ class Product extends Model
     /** @use HasFactory<ProductFactory> */
     use HasFactory;
 
+    protected static function booted(): void
+    {
+        // Keep visible stock_count always in sync with size_stock on every save
+        static::saving(function (Product $product) {
+            if (is_array($product->size_stock) && count($product->size_stock) > 0) {
+                $product->stock_count = (int) array_sum($product->size_stock);
+            }
+        });
+    }
+
     /**
      * The attributes that are mass assignable.
      *
@@ -39,6 +49,7 @@ class Product extends Model
         'colors',
         'sizes',
         'size_stock',
+        'stock_count',
         'description',
         'details',
         'care',
@@ -67,6 +78,7 @@ class Product extends Model
             'colors' => 'array',
             'sizes' => 'array',
             'size_stock' => 'array',
+            'stock_count' => 'integer',
             'details' => 'array',
             'images' => 'array',
         ];

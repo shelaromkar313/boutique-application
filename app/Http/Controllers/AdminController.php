@@ -263,6 +263,7 @@ class AdminController extends Controller
             'colors'         => $colors,
             'sizes'          => $sizes,
             'size_stock'     => $sizeStock,
+            'stock_count'    => $totalUnits,
             'description'    => $request->description,
             'details'        => ['Craft' => 'Handloom Artisanal', 'Origin' => 'Lucknow / Varanasi'],
             'care'           => 'Dry Clean Only. Steam iron on reverse.',
@@ -348,6 +349,7 @@ class AdminController extends Controller
             'description'    => $request->input('description', $product->description),
             'sizes'          => $sizes,
             'size_stock'     => $sizeStock,
+            'stock_count'    => $totalUnits,
         ];
 
         if ($request->hasFile('image')) {

@@ -111,8 +111,18 @@ class PaymentController extends Controller
         ]);
 
         $referralCode = session('referral_code') ?? $request->input('referral_code');
+        $paidItems = $request->input('items', []);
+        if (is_string($paidItems)) {
+            $decoded = json_decode($paidItems, true);
+            $paidItems = is_array($decoded) ? $decoded : [];
+        }
+        try {
+            $this->decrementStock($paidItems);
+        } catch (\Throwable $e) {
+            \Illuminate\Support\Facades\Log::error('Stock decrement error: ' . $e->getMessage());
+        }
         if (!empty($referralCode)) {
-            $this->creditReferralAssociate($order->order_no, $request->input('items', []), $referralCode, $order->full_name);
+            $this->creditReferralAssociate($order->order_no, $paidItems, $referralCode, $order->full_name);
             session()->forget('referral_code');
         }
 
@@ -191,6 +201,13 @@ class PaymentController extends Controller
             'note'        => 'Payment Mode: ' . strtoupper($request->payment_method) . ($referralCode ? ' • Referred by: ' . $referralCode : ''),
         ]);
 
+        // Decrement stock so admin inventory drops by ordered qty (never blocks order)
+        try {
+            $this->decrementStock($itemsForReferral);
+        } catch (\Throwable $e) {
+            \Illuminate\Support\Facades\Log::error('Stock decrement error: ' . $e->getMessage());
+        }
+
         // Credit referral earnings to the sales associate (wrapped in try-catch so order is never blocked)
         if (!empty($referralCode)) {
             try {
@@ -207,6 +224,53 @@ class PaymentController extends Controller
             'order_id' => $orderNo,
             'message'  => 'Order placed and confirmed successfully!',
         ], 201);
+    }
+
+    /**
+     * Decrement product size_stock by ordered quantity so admin sees stock drop.
+     */
+    private function decrementStock(array $items): void
+    {
+        foreach ($items as $item) {
+            if (!is_array($item)) continue;
+            $estId = $item['id'] ?? ($item['est_id'] ?? '');
+            if (empty($estId)) continue;
+            $qty = max(1, (int) ($item['qty'] ?? ($item['quantity'] ?? 1)));
+            $size = trim((string) ($item['size'] ?? ''));
+
+            $product = \App\Models\Product::where('est_id', $estId)->orWhere('id', $estId)->first();
+            if (!$product) continue;
+
+            $stock = is_array($product->size_stock) ? $product->size_stock : [];
+            if (empty($stock)) continue;
+
+            // Match ordered size to a stock key (case-insensitive); else use first available
+            $targetKey = null;
+            if ($size !== '' && strtolower($size) !== 'standard') {
+                foreach ($stock as $k => $v) {
+                    if (strtolower(trim((string) $k)) === strtolower($size)) {
+                        $targetKey = $k;
+                        break;
+                    }
+                }
+            }
+            if ($targetKey === null) {
+                foreach ($stock as $k => $v) {
+                    if ((int) $v > 0) {
+                        $targetKey = $k;
+                        break;
+                    }
+                }
+                if ($targetKey === null) continue;
+            }
+
+            $stock[$targetKey] = max(0, (int) $stock[$targetKey] - $qty);
+            $total = array_sum($stock);
+            $product->size_stock = $stock;
+            $product->sizes = array_keys($stock);
+            $product->in_stock = $total > 0;
+            $product->save();
+        }
     }
 
     /**

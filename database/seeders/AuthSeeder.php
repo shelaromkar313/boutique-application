@@ -35,12 +35,14 @@ class AuthSeeder extends Seeder
             'email_verified_at' => now(),
         ]);
 
+        // NOTE: admin@estilo.com is the ONLY admin allowed on the HQ portal.
+        // superadmin is kept as a plain customer so reseeds never create a 2nd admin.
         $this->upsertUser([
             'name'            => 'Super Admin',
             'email'           => 'superadmin@estilo.com',
             'phone'           => '9000000002',
             'password'        => Hash::make('SuperAdmin@123'),
-            'role'            => 'admin',
+            'role'            => 'customer',
             'email_verified_at' => now(),
         ]);
 
