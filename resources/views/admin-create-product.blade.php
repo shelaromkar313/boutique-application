@@ -138,21 +138,23 @@
                         </button>
                     </div>
 
-                    {{-- 1. Free Size Input Card --}}
-                    <div x-show="sizeMode === 'freesize'" x-transition class="bg-white p-4 rounded-xl border border-amber-300/80 space-y-2.5">
-                        <div class="flex items-center justify-between">
-                            <div>
+                    {{-- 1. Free Size Input Card — mobile: no horizontal overflow --}}
+                    <div x-show="sizeMode === 'freesize'" x-transition class="bg-white p-3 sm:p-4 rounded-xl border border-amber-300/80 space-y-2.5 overflow-hidden">
+                        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                            <div class="flex-1 min-w-0">
                                 <span class="text-xs font-bold text-[var(--color-ebony)] block">✨ Free Size / Universal Dimensions</span>
-                                <span class="text-[11px] text-gray-500">Universal standard fit for handloom sarees (5.5m + 0.8m blouse), shawls, stoles, and unstitched dress materials.</span>
+                                <span class="text-[11px] text-gray-500 leading-snug">Universal standard fit for handloom sarees (5.5m + 0.8m blouse), shawls, stoles, and unstitched dress materials.</span>
                             </div>
-                            <span class="text-[10px] font-bold uppercase tracking-wider text-amber-800 bg-amber-100 px-2.5 py-0.5 rounded-full">One Size</span>
+                            <span class="text-[10px] font-bold uppercase tracking-wider text-amber-800 bg-amber-100 px-2.5 py-0.5 rounded-full self-start sm:self-auto shrink-0">One Size</span>
                         </div>
-                        <div class="flex items-center gap-3 pt-1">
-                            <label class="text-xs font-sans font-bold text-gray-700 whitespace-nowrap">Available Warehouse Stock Units:</label>
-                            <input type="number" min="1" name="size_stock[Free Size]" x-model="freeSizeQty"
-                                   :disabled="sizeMode !== 'freesize'"
-                                   class="w-32 bg-[var(--color-offwhite)] border border-[var(--color-bisque)] rounded-lg py-2 px-3 text-center text-sm font-bold font-mono focus:outline-none focus:border-amber-400" />
-                            <span class="text-xs text-gray-500 font-sans">pieces ready for dispatch</span>
+                        <div class="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3 pt-1">
+                            <label class="text-xs font-sans font-bold text-gray-700 shrink-0">Available Warehouse Stock Units:</label>
+                            <div class="flex items-center gap-2 w-full sm:w-auto">
+                                <input type="number" min="1" name="size_stock[Free Size]" x-model="freeSizeQty"
+                                       :disabled="sizeMode !== 'freesize'"
+                                       class="flex-1 sm:flex-none sm:w-28 w-full max-w-[120px] bg-[var(--color-offwhite)] border border-[var(--color-bisque)] rounded-lg py-2 px-3 text-center text-sm font-bold font-mono focus:outline-none focus:border-amber-400" />
+                                <span class="text-xs text-gray-500 font-sans whitespace-nowrap">pieces ready for dispatch</span>
+                            </div>
                         </div>
                     </div>
 
@@ -253,14 +255,14 @@
                     </div>
                 </div>
 
-                {{-- Action Buttons --}}
-                <div class="flex items-center gap-4 pt-4 border-t border-[var(--color-bisque)]/60">
+                {{-- Action Buttons — stacked on mobile to avoid overflow --}}
+                <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 pt-4 border-t border-[var(--color-bisque)]/60">
                     <a href="/estilo-hq-console?tab=inventory"
-                       class="flex-1 text-center bg-gray-100 hover:bg-gray-200 text-gray-700 text-xs font-bold py-3.5 rounded-xl transition-colors">
+                       class="sm:flex-1 text-center bg-gray-100 hover:bg-gray-200 text-gray-700 text-xs font-bold py-3 sm:py-3.5 rounded-xl transition-colors order-2 sm:order-1">
                         Cancel & Return
                     </a>
                     <button type="submit"
-                            class="flex-2 bg-[var(--color-ebony)] hover:bg-[var(--color-rose-deep)] text-white text-xs font-sans font-bold uppercase tracking-widest py-3.5 px-8 rounded-xl shadow-lg transition-all hover:scale-[1.02] active:scale-[0.98]">
+                            class="flex-1 sm:flex-[2] bg-[var(--color-ebony)] hover:bg-[var(--color-rose-deep)] text-white text-[11px] sm:text-xs font-sans font-bold uppercase tracking-widest py-3 sm:py-3.5 px-4 sm:px-8 rounded-xl shadow-lg transition-all hover:scale-[1.02] active:scale-[0.98] leading-tight">
                         ✨ Publish Outfit to Catalog
                     </button>
                 </div>

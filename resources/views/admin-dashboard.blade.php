@@ -177,8 +177,8 @@ document.addEventListener('alpine:init', function() {
         </div>
         @endif
 
-        {{-- Admin Master Header --}}
-        <div class="bg-white rounded-3xl border border-[var(--color-bisque)] shadow-sm p-6 sm:p-8 flex flex-col lg:flex-row items-start lg:items-center justify-between gap-6">
+        {{-- Admin Master Header — mobile stack --}}
+        <div class="bg-white rounded-3xl border border-[var(--color-bisque)] shadow-sm p-4 sm:p-8 flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4 sm:gap-6 overflow-hidden">
             <div class="space-y-1.5">
                 <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-slate-900 text-amber-200 text-[10px] font-sans font-bold uppercase tracking-widest">
                     <span>Executive Administration Suite</span>
@@ -187,8 +187,8 @@ document.addEventListener('alpine:init', function() {
                 <p class="text-xs font-sans text-[var(--color-ebony)]/60">Live session-authenticated portal for luxury handloom inventory, customer orders, partner earnings, billing audits, and festive discounts.</p>
             </div>
 
-            {{-- Right: Profile & Action Buttons --}}
-            <div class="flex items-center gap-3 flex-wrap">
+            {{-- Right: Profile & Action Buttons — wrap on iPhone SE --}}
+            <div class="flex items-center gap-2 sm:gap-3 flex-wrap w-full lg:w-auto">
                 {{-- Admin Profile Badge --}}
                 <div class="flex items-center gap-2.5 bg-[var(--color-offwhite)] border border-[var(--color-bisque)] rounded-full pl-2.5 pr-3 py-1.5 shadow-sm">
                     <div class="w-7 h-7 rounded-full bg-[var(--color-ebony)] text-amber-200 flex items-center justify-center font-bold text-xs shadow-inner">
@@ -218,27 +218,27 @@ document.addEventListener('alpine:init', function() {
 
         {{-- TAB 1: OVERVIEW --}}
         <div x-show="activeTab === 'overview'" class="space-y-6">
-            {{-- KPI Metric Cards --}}
-            <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
-                <div class="bg-white p-5 rounded-2xl border border-[var(--color-bisque)] shadow-sm space-y-1">
-                    <span class="text-[10px] font-sans font-bold uppercase tracking-wider text-[var(--color-ebony)]/60">Gross Revenue</span>
-                    <h3 class="font-serif text-2xl font-bold text-[var(--color-ebony)]">₹{{ number_format($totalRevenue, 0) }}</h3>
-                    <span class="text-[10px] font-sans text-emerald-600 font-semibold">↑ Verified orders</span>
+            {{-- KPI Metric Cards — 2-col on iPhone SE, tight padding --}}
+            <div class="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+                <div class="bg-white p-3 sm:p-5 rounded-2xl border border-[var(--color-bisque)] shadow-sm space-y-1">
+                    <span class="text-[9px] sm:text-[10px] font-sans font-bold uppercase tracking-wider text-[var(--color-ebony)]/60">Gross Revenue</span>
+                    <h3 class="font-serif text-lg sm:text-2xl font-bold text-[var(--color-ebony)]">₹{{ number_format($totalRevenue, 0) }}</h3>
+                    <span class="text-[9px] sm:text-[10px] font-sans text-emerald-600 font-semibold">↑ Verified orders</span>
                 </div>
-                <div class="bg-white p-5 rounded-2xl border border-[var(--color-bisque)] shadow-sm space-y-1">
-                    <span class="text-[10px] font-sans font-bold uppercase tracking-wider text-[var(--color-ebony)]/60">Total Orders</span>
-                    <h3 class="font-serif text-2xl font-bold text-[var(--color-ebony)]">{{ $totalOrdersCount }}</h3>
-                    <span class="text-[10px] font-sans text-[var(--color-ebony)]/50">Processed across India</span>
+                <div class="bg-white p-3 sm:p-5 rounded-2xl border border-[var(--color-bisque)] shadow-sm space-y-1">
+                    <span class="text-[9px] sm:text-[10px] font-sans font-bold uppercase tracking-wider text-[var(--color-ebony)]/60">Total Orders</span>
+                    <h3 class="font-serif text-lg sm:text-2xl font-bold text-[var(--color-ebony)]">{{ $totalOrdersCount }}</h3>
+                    <span class="text-[9px] sm:text-[10px] font-sans text-[var(--color-ebony)]/50">Processed across India</span>
                 </div>
-                <div class="bg-white p-5 rounded-2xl border border-[var(--color-bisque)] shadow-sm space-y-1">
-                    <span class="text-[10px] font-sans font-bold uppercase tracking-wider text-[var(--color-thyme)]">In Stock Catalog</span>
-                    <h3 class="font-serif text-2xl font-bold text-[var(--color-thyme)]">{{ $inStockCount }} / {{ $totalProductsCount }}</h3>
-                    <span class="text-[10px] font-sans text-[var(--color-thyme)]">Ready for Virtual Try-On</span>
+                <div class="bg-white p-3 sm:p-5 rounded-2xl border border-[var(--color-bisque)] shadow-sm space-y-1">
+                    <span class="text-[9px] sm:text-[10px] font-sans font-bold uppercase tracking-wider text-[var(--color-thyme)]">In Stock Catalog</span>
+                    <h3 class="font-serif text-lg sm:text-2xl font-bold text-[var(--color-thyme)]">{{ $inStockCount }} / {{ $totalProductsCount }}</h3>
+                    <span class="text-[9px] sm:text-[10px] font-sans text-[var(--color-thyme)]">Ready for Virtual Try-On</span>
                 </div>
-                <div class="bg-white p-5 rounded-2xl border border-[var(--color-bisque)] shadow-sm space-y-1">
-                    <span class="text-[10px] font-sans font-bold uppercase tracking-wider text-[var(--color-ebony)]/60">Customer Reach</span>
-                    <h3 class="font-serif text-2xl font-bold text-[var(--color-ebony)]">{{ $customers->count() }}</h3>
-                    <span class="text-[10px] font-sans text-[var(--color-ebony)]/50">Registered shoppers</span>
+                <div class="bg-white p-3 sm:p-5 rounded-2xl border border-[var(--color-bisque)] shadow-sm space-y-1">
+                    <span class="text-[9px] sm:text-[10px] font-sans font-bold uppercase tracking-wider text-[var(--color-ebony)]/60">Customer Reach</span>
+                    <h3 class="font-serif text-lg sm:text-2xl font-bold text-[var(--color-ebony)]">{{ $customers->count() }}</h3>
+                    <span class="text-[9px] sm:text-[10px] font-sans text-[var(--color-ebony)]/50">Registered shoppers</span>
                 </div>
             </div>
 
@@ -322,16 +322,16 @@ document.addEventListener('alpine:init', function() {
                     @endforeach
                 </div>
 
-                <div class="overflow-x-auto">
-                    <table class="w-full text-left text-xs font-sans">
+                <div class="overflow-x-auto -mx-4 sm:mx-0 px-4 sm:px-0 scrollbar-thin">
+                    <table class="w-full min-w-[680px] text-left text-xs font-sans">
                         <thead>
                             <tr class="bg-[var(--color-champagne-light)] text-[var(--color-ebony)] font-serif uppercase tracking-wider border-b border-[var(--color-bisque)]">
-                                <th class="p-3">Outfit</th>
-                                <th class="p-3">Category</th>
-                                <th class="p-3">Price</th>
-                                <th class="p-3">Stock Quantity Per Size</th>
-                                <th class="p-3">Total Quantity & Status</th>
-                                <th class="p-3 text-right">Actions</th>
+                                <th class="p-2 sm:p-3">Outfit</th>
+                                <th class="p-2 sm:p-3">Category</th>
+                                <th class="p-2 sm:p-3">Price</th>
+                                <th class="p-2 sm:p-3">Stock Quantity Per Size</th>
+                                <th class="p-2 sm:p-3">Total Quantity & Status</th>
+                                <th class="p-2 sm:p-3 text-right">Actions</th>
                             </tr>
                         </thead>
                         <tbody class="divide-y divide-[var(--color-bisque)]/40">
@@ -426,17 +426,17 @@ document.addEventListener('alpine:init', function() {
                     <span class="text-[10px] font-bold bg-emerald-50 border border-emerald-200 text-emerald-800 px-3 py-1 rounded-full">{{ $activeOrders->count() }} Active</span>
                 </div>
 
-                <div class="overflow-x-auto">
-                    <table class="w-full text-left text-xs font-sans">
+                <div class="overflow-x-auto -mx-4 sm:mx-0 px-4 sm:px-0">
+                    <table class="w-full min-w-[760px] text-left text-xs font-sans">
                         <thead>
                             <tr class="bg-[var(--color-champagne-light)] text-[var(--color-ebony)] font-serif uppercase tracking-wider border-b border-[var(--color-bisque)]">
-                                <th class="p-3">Order No</th>
-                                <th class="p-3">Customer Name & Contact</th>
-                                <th class="p-3">Destination</th>
-                                <th class="p-3">Payment Mode & Type</th>
-                                <th class="p-3">Order Total</th>
-                                <th class="p-3">Status</th>
-                                <th class="p-3 text-right">Fulfillment Action</th>
+                                <th class="p-2 sm:p-3">Order No</th>
+                                <th class="p-2 sm:p-3">Customer Name & Contact</th>
+                                <th class="p-2 sm:p-3">Destination</th>
+                                <th class="p-2 sm:p-3">Payment Mode & Type</th>
+                                <th class="p-2 sm:p-3">Order Total</th>
+                                <th class="p-2 sm:p-3">Status</th>
+                                <th class="p-2 sm:p-3 text-right">Fulfillment Action</th>
                             </tr>
                         </thead>
                         <tbody class="divide-y divide-[var(--color-bisque)]/40">
@@ -555,7 +555,7 @@ document.addEventListener('alpine:init', function() {
                     <span class="text-[10px] font-bold bg-orange-100 border border-orange-300 text-orange-900 px-3 py-1 rounded-full">{{ $returnOrders->count() }} Requests</span>
                 </div>
 
-                <div class="overflow-x-auto">
+                <div class="overflow-x-auto -mx-4 sm:mx-0 px-4 sm:px-0">
                     <table class="w-full text-left text-xs font-sans">
                         <thead>
                             <tr class="bg-orange-50 text-orange-950 font-serif uppercase tracking-wider border-b border-orange-200">
@@ -628,7 +628,7 @@ document.addEventListener('alpine:init', function() {
                     <p class="text-xs font-sans text-[var(--color-ebony)]/60">Directory of registered clientele, authentication logs, contact records, and lifetime orders.</p>
                 </div>
 
-                <div class="overflow-x-auto">
+                <div class="overflow-x-auto -mx-4 sm:mx-0 px-4 sm:px-0">
                     <table class="w-full text-left text-xs font-sans">
                         <thead>
                             <tr class="bg-[var(--color-champagne-light)] text-[var(--color-ebony)] font-serif uppercase tracking-wider border-b border-[var(--color-bisque)]">
@@ -677,7 +677,7 @@ document.addEventListener('alpine:init', function() {
                     </button>
                 </div>
 
-                <div class="overflow-x-auto">
+                <div class="overflow-x-auto -mx-4 sm:mx-0 px-4 sm:px-0">
                     <table class="w-full text-left text-xs font-sans">
                         <thead>
                             <tr class="bg-[var(--color-champagne-light)] text-[var(--color-ebony)] font-serif uppercase tracking-wider border-b border-[var(--color-bisque)]">
