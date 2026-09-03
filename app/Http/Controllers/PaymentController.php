@@ -274,6 +274,98 @@ class PaymentController extends Controller
     }
 
     /**
+     * Customer requests Exchange for a delivered order (7-day window).
+     * Sets status to exchange_requested for admin approval. (Return disabled)
+     */
+    public function requestReturn(Request $request, $id)
+    {
+        $request->validate([
+            'type'   => 'required|string|in:exchange',
+            'reason' => 'required|string|max:50',
+            'notes'  => 'nullable|string|max:500',
+        ]);
+
+        $order = Order::findOrFail($id);
+        $user = $request->user();
+
+        $owns = $user && (
+            ($order->user_id && (int) $order->user_id === (int) $user->id) ||
+            ($user->email && strtolower(trim((string) $order->email)) === strtolower(trim((string) $user->email))) ||
+            ($user->phone && trim((string) $order->phone) === trim((string) $user->phone))
+        );
+        if (!$owns) {
+            return back()->withErrors(['order' => 'This order does not belong to your account.']);
+        }
+
+        if (in_array($order->status, ['exchange_requested', 'exchanged', 'cancelled'])) {
+            return back()->withErrors(['order' => 'This order has already been requested for exchange or cancelled.']);
+        }
+
+        if (!in_array($order->status, ['delivered', 'confirmed', 'shipped', 'paid', 'processing', 'dispatched'])) {
+            return back()->withErrors(['order' => 'Exchange can be requested for confirmed, shipped or delivered orders (7-day window).']);
+        }
+
+        if ($order->created_at && $order->created_at->lt(now()->subDays(7))) {
+            return back()->withErrors(['order' => '7-day exchange window has expired for this order.']);
+        }
+
+        $typeLabel = 'Exchange';
+        $order->status = 'exchange_requested';
+        $note = trim($request->input('notes', ''));
+        $order->note = trim(($order->note ? $order->note . ' • ' : '') . "{$typeLabel} requested: {$request->reason}" . ($note ? " ({$note})" : ''));
+        $order->save();
+
+        return redirect('/profile')->with('success', "🔄 {$typeLabel} request submitted for Order #{$order->order_no}! Doorstep pickup will be scheduled within 24-48 hours.");
+    }
+
+    /**
+     * Restore product size_stock when an order is returned / exchanged.
+     */
+    public static function restoreStockForOrder(Order $order): void
+    {
+        $items = $order->items;
+        for ($i = 0; $i < 3 && is_string($items); $i++) {
+            $decoded = json_decode($items, true);
+            if (json_last_error() !== JSON_ERROR_NONE) break;
+            $items = $decoded;
+        }
+        if (!is_array($items)) return;
+
+        foreach ($items as $item) {
+            if (!is_array($item)) continue;
+            $estId = $item['id'] ?? ($item['est_id'] ?? '');
+            if (empty($estId)) continue;
+            $qty = max(1, (int) ($item['qty'] ?? ($item['quantity'] ?? 1)));
+            $size = trim((string) ($item['selectedSize'] ?? ($item['size'] ?? '')));
+
+            $product = \App\Models\Product::where('est_id', $estId)->orWhere('id', $estId)->first();
+            if (!$product) continue;
+
+            $stock = is_array($product->size_stock) ? $product->size_stock : [];
+            if (empty($stock)) continue;
+
+            $targetKey = null;
+            if ($size !== '' && strtolower($size) !== 'standard') {
+                foreach ($stock as $k => $v) {
+                    if (strtolower(trim((string) $k)) === strtolower($size)) {
+                        $targetKey = $k;
+                        break;
+                    }
+                }
+            }
+            if ($targetKey === null) {
+                $targetKey = array_key_first($stock);
+            }
+
+            $stock[$targetKey] = (int) $stock[$targetKey] + $qty;
+            $product->size_stock = $stock;
+            $product->sizes = array_keys($stock);
+            $product->in_stock = true;
+            $product->save();
+        }
+    }
+
+    /**
      * Credit associate with referral profit/commission
      */
     private function creditReferralAssociate(string $orderNo, array $items, string $referralCode, string $customerName): void

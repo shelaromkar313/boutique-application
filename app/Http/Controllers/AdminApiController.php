@@ -73,7 +73,7 @@ class AdminApiController extends Controller
     public function updateOrderStatus(Request $request, $id)
     {
         $validator = Validator::make($request->all(), [
-            'status' => 'required|string|in:pending,confirmed,processing,shipped,delivered,cancelled',
+            'status' => 'required|string|in:pending,confirmed,processing,shipped,dispatched,delivered,cancelled,exchange_requested,exchanged',
         ]);
 
         if ($validator->fails()) {
@@ -81,7 +81,16 @@ class AdminApiController extends Controller
         }
 
         $order = Order::findOrFail($id);
+        $oldStatus = $order->status;
         $order->update(['status' => $request->status]);
+
+        if ($request->status === 'exchanged' && $oldStatus !== 'exchanged') {
+            try {
+                PaymentController::restoreStockForOrder($order->fresh());
+            } catch (\Throwable $e) {
+                \Illuminate\Support\Facades\Log::error('Stock restore error: ' . $e->getMessage());
+            }
+        }
 
         return response()->json([
             'message' => 'Order status updated successfully',

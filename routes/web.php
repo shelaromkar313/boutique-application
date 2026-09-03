@@ -71,6 +71,7 @@ Route::middleware(['auth', 'SecurePageCacheControl'])->group(function () {
     Route::post('/checkout/place-order', [PaymentController::class, 'placeOrder']);
     Route::get('/profile', [AuthController::class, 'showProfile'])->name('profile');
     Route::post('/profile', [AuthController::class, 'updateCustomerProfile']);
+    Route::post('/orders/{id}/return-request', [PaymentController::class, 'requestReturn'])->name('orders.return');
 });
 
 Route::match(['get', 'post'], '/logout', [AuthController::class, 'logout'])->name('logout');

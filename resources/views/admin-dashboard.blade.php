@@ -19,6 +19,66 @@ function adminHideModal(id) {
     if (el) { el.style.display = 'none'; document.body.style.overflow = ''; }
 }
 
+// All orders payload for the vanilla popup (no Alpine dependency — click always works)
+window.ADMIN_ORDERS = @json($orders->values());
+function escHtml(s) {
+    return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) {
+        return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];
+    });
+}
+// Open order detail popup by id — plain JS so EST-xxxxxx always opens
+function openOrderPopup(id) {
+    var ord = null, list = window.ADMIN_ORDERS || [];
+    for (var i = 0; i < list.length; i++) {
+        if (String(list[i].id) === String(id)) { ord = list[i]; break; }
+    }
+    if (!ord) return;
+    var items = ord.items || [];
+    for (var k = 0; k < 3 && typeof items === 'string'; k++) {
+        try { items = JSON.parse(items || '[]'); } catch (e) { items = []; break; }
+    }
+    if (!Array.isArray(items)) items = [];
+    var set = function (elid, val) { var el = document.getElementById(elid); if (el) el.textContent = val; };
+    set('mo-orderno', 'Order #' + (ord.order_no || ''));
+    set('mo-status', 'Status: ' + String(ord.status || '').toUpperCase());
+    set('mo-payline', ord.payment_id ? ('Payment: ' + ord.payment_id) : 'Payment: Verified');
+    set('mo-name', ord.full_name || '');
+    set('mo-addr', ord.address || '');
+    set('mo-city', (ord.city || '') + ', ' + (ord.state || '') + ' - ' + (ord.pincode || ''));
+    set('mo-contact', 'Phone: ' + (ord.phone || '') + ' | Email: ' + (ord.email || ''));
+    var box = document.getElementById('mo-items');
+    if (box) {
+        if (!items.length) {
+            box.innerHTML = '<div class="text-center text-xs text-gray-500 py-4">No items recorded for this order.</div>';
+        } else {
+            var html = '';
+            for (var j = 0; j < items.length; j++) {
+                var it = items[j] || {};
+                html += '<div class="flex items-center justify-between p-2.5 bg-gray-50 rounded-xl border border-gray-100">'
+                    + '<div><span class="font-bold text-gray-900 block">' + escHtml(it.name || it.est_id || 'Item') + '</span>'
+                    + '<span class="text-[10px] text-gray-500">Qty: ' + escHtml(it.quantity || it.qty || 1) + ' • Size: ' + escHtml(it.selectedSize || it.size || 'Standard') + ' • Color: ' + escHtml(it.selectedColor || it.color || 'Standard') + '</span></div>'
+                    + '<span class="font-serif font-bold text-xs text-gray-900">₹' + Number(it.price || 0).toLocaleString('en-IN') + '</span></div>';
+            }
+            box.innerHTML = html;
+        }
+    }
+    var nw = document.getElementById('mo-notewrap');
+    if (nw) { if (ord.note) { nw.style.display = ''; set('mo-note', ord.note); } else { nw.style.display = 'none'; } }
+    var badge = document.getElementById('mo-badge');
+    if (badge) {
+        var pid = String(ord.payment_id || '');
+        badge.textContent = pid.indexOf('COD') !== -1 ? '💵 Cash on Delivery (COD)' : (pid.indexOf('UPI') !== -1 ? '⚡ UPI Instant (Verified)' : '💳 Prepaid Online (Verified)');
+        badge.className = 'text-[10.5px] font-bold px-2.5 py-0.5 rounded-full border ' + (pid.indexOf('COD') !== -1 ? 'bg-amber-100 text-amber-950 border-amber-300' : 'bg-purple-100 text-purple-950 border-purple-300');
+        set('mo-payref', pid || 'RAZORPAY-CONFIRMED');
+    }
+    set('mo-sub', '₹' + Number(ord.subtotal || ord.total || 0).toLocaleString('en-IN'));
+    var dw = document.getElementById('mo-discwrap');
+    if (dw) { if (Number(ord.discount) > 0) { dw.style.display = ''; set('mo-disc', '-₹' + Number(ord.discount).toLocaleString('en-IN')); } else { dw.style.display = 'none'; } }
+    set('mo-ship', Number(ord.shipping) > 0 ? ('₹' + ord.shipping) : 'FREE (Complimentary)');
+    set('mo-total', '₹' + Number(ord.total || 0).toLocaleString('en-IN'));
+    adminShowModal('modal-view-order');
+}
+
 // Alpine component for form data binding (x-model, live preview etc.)
 document.addEventListener('alpine:init', function() {
     Alpine.data('adminDashboard', function() {
@@ -71,7 +131,13 @@ document.addEventListener('alpine:init', function() {
 
             openViewOrder(ord) {
                 this.selectedOrder = Object.assign({}, ord);
-                try { this.selectedOrder.parsedItems = typeof ord.items === 'string' ? JSON.parse(ord.items||'[]') : (ord.items||[]); } catch(e) { this.selectedOrder.parsedItems = []; }
+                // Items may be array, JSON string, or double-encoded string (old orders) — normalize to array
+                let items = ord.items || [];
+                for (let i = 0; i < 3 && typeof items === 'string'; i++) {
+                    try { items = JSON.parse(items || '[]'); } catch(e) { items = []; break; }
+                }
+                this.selectedOrder.parsedItems = Array.isArray(items) ? items : [];
+                this.selectedOrder.size_stock = undefined;
                 adminShowModal('modal-view-order');
             },
 
@@ -182,13 +248,13 @@ document.addEventListener('alpine:init', function() {
                 <div class="bg-white rounded-3xl border border-[var(--color-bisque)] p-6 shadow-sm space-y-4">
                     <div class="flex items-center justify-between border-b border-[var(--color-bisque)]/60 pb-3">
                         <h3 class="font-serif text-lg font-bold text-[var(--color-ebony)]">Recent Customer Orders</h3>
-                        <button @click="activeTab = 'orders'" class="text-xs font-sans font-bold text-[var(--color-rose-antique)] hover:underline">View All →</button>
+                        <a href="/estilo-hq-console?tab=orders" class="text-xs font-sans font-bold text-[var(--color-rose-antique)] hover:underline">View All →</a>
                     </div>
                     <div class="space-y-3">
                         @forelse($orders->take(4) as $ord)
                         <div class="flex items-center justify-between p-3 rounded-xl bg-[var(--color-offwhite)] hover:bg-[var(--color-champagne-light)] transition-colors">
                             <div>
-                                <span class="font-mono text-xs font-bold text-[var(--color-ebony)]">{{ $ord->order_no }}</span>
+                                <button onclick="openOrderPopup({{ $ord->id }})" class="font-mono text-xs font-bold text-blue-700 hover:underline block text-left">{{ $ord->order_no }}</button>
                                 <p class="text-xs font-serif font-semibold text-[var(--color-ebony)]">{{ $ord->full_name }} ({{ $ord->city }})</p>
                             </div>
                             <div class="text-right">
@@ -345,13 +411,19 @@ document.addEventListener('alpine:init', function() {
         </div>
 
         {{-- TAB 3: 4.4 ORDERS & PROCESSING --}}
-        <div x-show="activeTab === 'orders'" class="space-y-6">
+        <div x-show="activeTab === 'orders'" class="space-y-8">
+            @php
+                $activeOrders = $orders->whereNotIn('status', ['exchange_requested','exchanged']);
+                $returnOrders = $orders->whereIn('status', ['exchange_requested','exchanged']);
+            @endphp
+            {{-- 3A: Active Customer Orders --}}
             <div class="bg-white rounded-3xl border border-[var(--color-bisque)] p-6 sm:p-8 shadow-sm space-y-6">
                 <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 border-b border-[var(--color-bisque)]/60 pb-3">
                     <div>
-                        <h2 class="font-serif text-xl sm:text-2xl font-bold text-[var(--color-ebony)]">Customer Orders & Processing</h2>
-                        <p class="text-xs font-sans text-[var(--color-ebony)]/60">View real-time customer orders, update shipping fulfillment status, and inspect garment delivery specifications.</p>
+                        <h2 class="font-serif text-xl sm:text-2xl font-bold text-[var(--color-ebony)]">📦 Customer Orders & Processing</h2>
+                        <p class="text-xs font-sans text-[var(--color-ebony)]/60">Active orders — update shipping fulfillment ({{ $activeOrders->count() }} total)</p>
                     </div>
+                    <span class="text-[10px] font-bold bg-emerald-50 border border-emerald-200 text-emerald-800 px-3 py-1 rounded-full">{{ $activeOrders->count() }} Active</span>
                 </div>
 
                 <div class="overflow-x-auto">
@@ -368,7 +440,7 @@ document.addEventListener('alpine:init', function() {
                             </tr>
                         </thead>
                         <tbody class="divide-y divide-[var(--color-bisque)]/40">
-                            @forelse($orders as $ord)
+                            @forelse($activeOrders as $ord)
                             @php
                                 $pid = strtoupper($ord->payment_id ?? '');
                                 $note = strtoupper($ord->note ?? '');
@@ -402,7 +474,7 @@ document.addEventListener('alpine:init', function() {
                             @endphp
                             <tr class="hover:bg-[var(--color-offwhite)] transition-colors">
                                 <td class="p-3">
-                                    <button @click="openViewOrder(@js($ord))" class="font-mono font-bold text-blue-700 hover:underline block text-left">
+                                    <button onclick="openOrderPopup({{ $ord->id }})" class="font-mono font-bold text-blue-700 hover:underline block text-left">
                                         {{ $ord->order_no }}
                                     </button>
                                     <span class="text-[10px] text-gray-500">{{ $ord->created_at ? $ord->created_at->format('d M Y, h:i A') : 'Recent' }}</span>
@@ -430,17 +502,19 @@ document.addEventListener('alpine:init', function() {
                                 <td class="p-3">
                                     <span class="px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider
                                         {{ $ord->status === 'delivered' ? 'bg-emerald-100 text-emerald-800' : '' }}
-                                        {{ $ord->status === 'shipped' ? 'bg-blue-100 text-blue-800' : '' }}
+                                        {{ in_array($ord->status,['shipped','dispatched']) ? 'bg-blue-100 text-blue-800' : '' }}
                                         {{ $ord->status === 'confirmed' || $ord->status === 'paid' ? 'bg-amber-100 text-amber-800' : '' }}
                                         {{ $ord->status === 'cancelled' ? 'bg-rose-100 text-rose-800' : '' }}
                                         {{ $ord->status === 'pending' ? 'bg-gray-100 text-gray-800' : '' }}
+                                        {{ in_array($ord->status, ['return_requested', 'exchange_requested']) ? 'bg-orange-100 text-orange-800' : '' }}
+                                        {{ in_array($ord->status, ['returned', 'exchanged']) ? 'bg-purple-100 text-purple-800' : '' }}
                                     ">
-                                        {{ $ord->status }}
+                                        {{ str_replace('_', ' ', $ord->status) }}
                                     </span>
                                 </td>
                                 <td class="p-3 text-right">
                                     <div class="inline-flex items-center gap-2">
-                                        <button @click="openViewOrder(@js($ord))" class="text-[10px] bg-gray-100 hover:bg-gray-200 px-2.5 py-1 rounded-lg font-bold">
+                                        <button onclick="openOrderPopup({{ $ord->id }})" class="text-[10px] bg-gray-100 hover:bg-gray-200 px-2.5 py-1 rounded-lg font-bold">
                                             🔍 Items
                                         </button>
                                         <form action="/estilo-hq-console/orders/{{ $ord->id }}/status" method="POST" class="inline-flex items-center gap-1">
@@ -450,8 +524,13 @@ document.addEventListener('alpine:init', function() {
                                                 <option value="confirmed" {{ $ord->status === 'confirmed' ? 'selected' : '' }}>Confirmed</option>
                                                 <option value="processing" {{ $ord->status === 'processing' ? 'selected' : '' }}>Processing</option>
                                                 <option value="shipped" {{ $ord->status === 'shipped' ? 'selected' : '' }}>Shipped</option>
+                                                <option value="dispatched" {{ $ord->status === 'dispatched' ? 'selected' : '' }}>Dispatched</option>
                                                 <option value="delivered" {{ $ord->status === 'delivered' ? 'selected' : '' }}>Delivered</option>
                                                 <option value="cancelled" {{ $ord->status === 'cancelled' ? 'selected' : '' }}>Cancelled</option>
+                                                <option value="return_requested" {{ $ord->status === 'return_requested' ? 'selected' : '' }}>Return Requested</option>
+                                                <option value="exchange_requested" {{ $ord->status === 'exchange_requested' ? 'selected' : '' }}>Exchange Requested</option>
+                                                <option value="returned" {{ $ord->status === 'returned' ? 'selected' : '' }}>Returned ✓</option>
+                                                <option value="exchanged" {{ $ord->status === 'exchanged' ? 'selected' : '' }}>Exchanged ✓</option>
                                             </select>
                                             <button type="submit" class="bg-[var(--color-ebony)] hover:bg-[var(--color-rose-deep)] text-white text-[10px] font-bold px-2.5 py-1 rounded-lg transition-colors">
                                                 Save
@@ -462,12 +541,86 @@ document.addEventListener('alpine:init', function() {
                             </tr>
                             @empty
                             <tr>
-                                <td colspan="7" class="p-6 text-center text-xs text-[var(--color-ebony)]/60">No orders recorded in system.</td>
+                                <td colspan="7" class="p-6 text-center text-xs text-[var(--color-ebony)]/60">No active orders. New orders will appear here.</td>
                             </tr>
                             @endforelse
                         </tbody>
                     </table>
                 </div>
+            </div>
+
+            {{-- 3B: Exchanges — separate lifecycle (return removed) --}}
+            <div class="bg-white rounded-3xl border border-orange-200 p-6 sm:p-8 shadow-sm space-y-6">
+                <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 border-b border-orange-100 pb-3">
+                    <div>
+                        <h2 class="font-serif text-xl sm:text-2xl font-bold text-orange-950">🔄 Exchanges</h2>
+                        <p class="text-xs font-sans text-orange-900/70">Size/color exchange requests — collect old item, then track re-shipment (Shipped → Delivered).</p>
+                    </div>
+                    <span class="text-[10px] font-bold bg-orange-100 border border-orange-300 text-orange-900 px-3 py-1 rounded-full">{{ $returnOrders->count() }} Requests</span>
+                </div>
+
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left text-xs font-sans">
+                        <thead>
+                            <tr class="bg-orange-50 text-orange-950 font-serif uppercase tracking-wider border-b border-orange-200">
+                                <th class="p-3">Order No</th>
+                                <th class="p-3">Customer</th>
+                                <th class="p-3">Request</th>
+                                <th class="p-3">Order Total</th>
+                                <th class="p-3">Status</th>
+                                <th class="p-3 text-right">Process Exchange</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-orange-100">
+                            @forelse($returnOrders as $ord)
+                            <tr class="hover:bg-orange-50/60 transition-colors">
+                                <td class="p-3">
+                                    <button onclick="openOrderPopup({{ $ord->id }})" class="font-mono font-bold text-blue-700 hover:underline block text-left">{{ $ord->order_no }}</button>
+                                    <span class="text-[10px] text-gray-500">{{ $ord->created_at ? $ord->created_at->format('d M Y, h:i A') : 'Recent' }}</span>
+                                    @if($ord->note)<span class="block text-[10px] text-amber-800 bg-amber-50 border border-amber-200 rounded-lg px-2 py-1 mt-1 max-w-[220px] truncate" title="{{ $ord->note }}">{{ Str::limit($ord->note, 60) }}</span>@endif
+                                </td>
+                                <td class="p-3"><span class="font-bold text-[var(--color-ebony)] block">{{ $ord->full_name }}</span><span class="text-[10px] text-gray-500">{{ $ord->phone }}</span></td>
+                                <td class="p-3">
+                                    <span class="px-2 py-1 rounded-full text-[10px] font-bold {{ $ord->status==='exchange_requested' ? 'bg-amber-100 text-amber-900 border border-amber-300' : 'bg-rose-100 text-rose-900 border border-rose-300' }}">
+                                        🔄 Exchange Requested
+                                    </span>
+                                    <span class="block text-[10px] text-gray-500 mt-1">{{ $ord->status==='exchanged' ? 'Approved' : 'Awaiting approval' }}</span>
+                                </td>
+                                <td class="p-3 font-serif font-bold">₹{{ number_format($ord->total,0) }}</td>
+                                <td class="p-3"><span class="px-2.5 py-1 rounded-full text-[10px] font-bold uppercase {{ $ord->status==='exchange_requested' ? 'bg-orange-100 text-orange-800' : 'bg-purple-100 text-purple-800' }}">{{ str_replace('_',' ',$ord->status) }}</span></td>
+                                <td class="p-3 text-right">
+                                    <div class="inline-flex items-center gap-1 flex-wrap justify-end">
+                                        <button onclick="openOrderPopup({{ $ord->id }})" class="text-[10px] bg-gray-100 hover:bg-gray-200 px-2.5 py-1 rounded-lg font-bold">🔍 Items</button>
+                                        @if($ord->status==='exchange_requested')
+                                            <form action="/estilo-hq-console/orders/{{ $ord->id }}/status" method="POST" class="inline">
+                                                @csrf
+                                                <input type="hidden" name="status" value="exchanged">
+                                                <button type="submit" class="bg-amber-600 hover:bg-amber-700 text-white text-[10px] font-bold px-3 py-1 rounded-lg" title="Collect old item for exchange & restore stock">🔄 Collect for Exchange</button>
+                                            </form>
+                                        @else
+                                            <form action="/estilo-hq-console/orders/{{ $ord->id }}/status" method="POST" class="inline-flex items-center gap-1">
+                                                @csrf
+                                                <select name="status" class="bg-white border border-orange-200 text-[10px] rounded-lg px-2 py-1 font-bold focus:outline-none">
+                                                    @foreach(['exchanged'=>'Exchanged ✓','processing'=>'Processing (re-ship)','shipped'=>'Shipped (replacement)','dispatched'=>'Dispatched','delivered'=>'Delivered','cancelled'=>'Cancelled'] as $val=>$label)
+                                                        <option value="{{ $val }}" {{ $ord->status===$val?'selected':'' }}>{{ $label }}</option>
+                                                    @endforeach
+                                                </select>
+                                                <button type="submit" class="bg-[var(--color-ebony)] hover:bg-orange-700 text-white text-[10px] font-bold px-2.5 py-1 rounded-lg">Update</button>
+                                            </form>
+                                        @endif
+                                    </div>
+                                    @if($ord->status==='exchanged')
+                                        <div class="text-[10px] text-emerald-700 font-bold mt-1">✅ Collected — warehouse stock restored. Now track re-shipment above.</div>
+                                    @endif
+                                </td>
+                            </tr>
+                            @empty
+                            <tr><td colspan="6" class="p-6 text-center text-xs text-gray-500">No exchange requests yet.</td></tr>
+                            @endforelse
+                        </tbody>
+                    </table>
+                </div>
+                <p class="text-[11px] text-gray-500 font-sans">💡 Exchanged orders stay here — after <b>Collect for Exchange</b> you can move them to <b>Shipped → Delivered</b> in this same table to track the replacement shipment.</p>
             </div>
         </div>
 
@@ -1375,11 +1528,11 @@ document.addEventListener('alpine:init', function() {
         <div class="relative w-full max-w-xl bg-white rounded-3xl p-6 sm:p-8 shadow-2xl z-10 border border-[var(--color-bisque)] my-8 space-y-5">
             <div class="flex items-center justify-between border-b border-[var(--color-bisque)]/60 pb-3">
                 <div>
-                    <h3 class="font-serif text-xl font-bold text-[var(--color-ebony)]" x-text="'Order #' + selectedOrder.order_no"></h3>
+                    <h3 class="font-serif text-xl font-bold text-[var(--color-ebony)]" id="mo-orderno" x-text="'Order #' + selectedOrder.order_no"></h3>
                     <div class="flex items-center gap-2 mt-0.5">
-                        <span class="text-[10px] font-mono text-gray-500" x-text="'Status: ' + (selectedOrder.status || '').toUpperCase()"></span>
+                        <span class="text-[10px] font-mono text-gray-500" id="mo-status" x-text="'Status: ' + (selectedOrder.status || '').toUpperCase()"></span>
                         <span class="text-gray-300">•</span>
-                        <span class="text-[10px] text-gray-500 font-mono" x-text="selectedOrder.payment_id ? ('Payment: ' + selectedOrder.payment_id) : 'Payment: Verified'"></span>
+                        <span class="text-[10px] text-gray-500 font-mono" id="mo-payline" x-text="selectedOrder.payment_id ? ('Payment: ' + selectedOrder.payment_id) : 'Payment: Verified'"></span>
                     </div>
                 </div>
                 <button onclick="adminHideModal('modal-view-order')" class="text-gray-400 hover:text-gray-600 text-lg">✕</button>
@@ -1389,47 +1542,37 @@ document.addEventListener('alpine:init', function() {
                 {{-- Delivery Address --}}
                 <div class="bg-[var(--color-offwhite)] p-3.5 rounded-xl space-y-1 border border-[var(--color-bisque)]/60">
                     <h4 class="font-bold text-[var(--color-ebony)] uppercase tracking-wider text-[10px]">Customer Delivery Address</h4>
-                    <p class="text-gray-800 font-bold" x-text="selectedOrder.full_name"></p>
-                    <p class="text-gray-600" x-text="selectedOrder.address"></p>
-                    <p class="text-gray-600" x-text="(selectedOrder.city || '') + ', ' + (selectedOrder.state || '') + ' - ' + (selectedOrder.pincode || '')"></p>
-                    <p class="text-gray-600" x-text="'Phone: ' + (selectedOrder.phone || '') + ' | Email: ' + (selectedOrder.email || '')"></p>
+                    <p class="text-gray-800 font-bold" id="mo-name" x-text="selectedOrder.full_name"></p>
+                    <p class="text-gray-600" id="mo-addr" x-text="selectedOrder.address"></p>
+                    <p class="text-gray-600" id="mo-city" x-text="(selectedOrder.city || '') + ', ' + (selectedOrder.state || '') + ' - ' + (selectedOrder.pincode || '')"></p>
+                    <p class="text-gray-600" id="mo-contact" x-text="'Phone: ' + (selectedOrder.phone || '') + ' | Email: ' + (selectedOrder.email || '')"></p>
                 </div>
 
                 {{-- Items --}}
                 <div class="space-y-2">
                     <h4 class="font-bold text-[var(--color-ebony)] uppercase tracking-wider text-[10px]">Purchased Couture Garments</h4>
-                    <div class="max-h-48 overflow-y-auto space-y-2">
-                        <template x-for="item in (selectedOrder.parsedItems || [])" :key="item.est_id || item.name">
-                            <div class="flex items-center justify-between p-2.5 bg-gray-50 rounded-xl border border-gray-100">
-                                <div>
-                                    <span class="font-bold text-gray-900 block" x-text="item.name || item.est_id"></span>
-                                    <span class="text-[10px] text-gray-500" x-text="'Qty: ' + (item.quantity || item.qty || 1) + ' • Size: ' + (item.selectedSize || item.size || 'Standard') + ' • Color: ' + (item.selectedColor || item.color || 'Standard')"></span>
-                                </div>
-                                <span class="font-serif font-bold text-xs text-gray-900" x-text="'₹' + Number(item.price || 0).toLocaleString()"></span>
-                            </div>
-                        </template>
+                    <div class="max-h-48 overflow-y-auto space-y-2" id="mo-items">
                     </div>
                 </div>
 
                 {{-- Order Notes & Referral info --}}
-                <template x-if="selectedOrder.note">
+                <div id="mo-notewrap" style="display:none;">
                     <div class="p-3 bg-amber-50 rounded-xl border border-amber-200/80 text-[11px] text-amber-900 space-y-0.5">
                         <span class="font-bold uppercase tracking-wider text-[9px] text-amber-800 block">Order Processing Note & Referral:</span>
-                        <p x-text="selectedOrder.note"></p>
+                        <p id="mo-note"></p>
                     </div>
-                </template>
+                </div>
 
                 {{-- Payment Details Box --}}
                 <div class="bg-slate-50 p-3.5 rounded-xl space-y-1.5 border border-slate-200">
                     <div class="flex items-center justify-between">
                         <span class="font-bold text-[10px] uppercase tracking-wider text-slate-600">Payment Mode & Verification</span>
-                        <span class="text-[10.5px] font-bold px-2.5 py-0.5 rounded-full border"
-                              :class="(selectedOrder.payment_id || '').includes('COD') ? 'bg-amber-100 text-amber-950 border-amber-300' : 'bg-purple-100 text-purple-950 border-purple-300'"
+                        <span class="text-[10.5px] font-bold px-2.5 py-0.5 rounded-full border bg-purple-100 text-purple-950 border-purple-300" id="mo-badge"
                               x-text="(selectedOrder.payment_id || '').includes('COD') ? '💵 Cash on Delivery (COD)' : ((selectedOrder.payment_id || '').includes('UPI') ? '⚡ UPI Instant (Verified)' : '💳 Prepaid Online (Verified)')"></span>
                     </div>
                     <div class="text-[11px] text-slate-700 flex justify-between font-mono pt-0.5">
                         <span class="text-slate-500">Gateway Ref ID:</span>
-                        <span class="font-bold text-slate-900" x-text="selectedOrder.payment_id || 'RAZORPAY-CONFIRMED'"></span>
+                        <span class="font-bold text-slate-900" id="mo-payref" x-text="selectedOrder.payment_id || 'RAZORPAY-CONFIRMED'"></span>
                     </div>
                 </div>
 
@@ -1437,21 +1580,21 @@ document.addEventListener('alpine:init', function() {
                 <div class="bg-gray-50 p-3.5 rounded-xl space-y-1.5 border border-gray-200">
                     <div class="flex justify-between text-gray-600 text-[11px]">
                         <span>Subtotal:</span>
-                        <span class="font-mono" x-text="'₹' + Number(selectedOrder.subtotal || selectedOrder.total || 0).toLocaleString()"></span>
-                    </div>
-                    <template x-if="selectedOrder.discount > 0">
-                        <div class="flex justify-between text-emerald-700 text-[11px] font-bold">
-                            <span>Discount / Coupon Applied:</span>
-                            <span class="font-mono" x-text="'-₹' + Number(selectedOrder.discount).toLocaleString()"></span>
+                            <span class="font-mono" id="mo-sub" x-text="'₹' + Number(selectedOrder.subtotal || selectedOrder.total || 0).toLocaleString()"></span>
                         </div>
-                    </template>
+                        <div id="mo-discwrap" style="display:none;">
+                            <div class="flex justify-between text-emerald-700 text-[11px] font-bold">
+                                <span>Discount / Coupon Applied:</span>
+                                <span class="font-mono" id="mo-disc"></span>
+                            </div>
+                        </div>
                     <div class="flex justify-between text-gray-600 text-[11px]">
                         <span>Shipping & Handling:</span>
-                        <span class="font-mono" x-text="selectedOrder.shipping > 0 ? ('₹' + selectedOrder.shipping) : 'FREE (Complimentary)'"></span>
+                            <span class="font-mono" id="mo-ship" x-text="selectedOrder.shipping > 0 ? ('₹' + selectedOrder.shipping) : 'FREE (Complimentary)'"></span>
                     </div>
                     <div class="border-t border-gray-200 pt-2 flex justify-between items-center text-sm font-bold text-[var(--color-ebony)]">
                         <span>Total Paid:</span>
-                        <span class="font-serif font-bold text-lg text-emerald-800" x-text="'₹' + Number(selectedOrder.total || 0).toLocaleString()"></span>
+                            <span class="font-serif font-bold text-lg text-emerald-800" id="mo-total" x-text="'₹' + Number(selectedOrder.total || 0).toLocaleString()"></span>
                     </div>
                 </div>
             </div>

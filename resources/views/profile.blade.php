@@ -4,19 +4,11 @@
 
 @section('content')
 <div class="min-h-screen bg-[var(--color-offwhite)] py-6 sm:py-10" x-data="{
-    activeTab: 'orders',
     reviewModal: false,
     selectedItemToReview: null,
     rating: 5,
     reviewComment: '',
     reviewSubmitted: false,
-
-    returnModal: false,
-    selectedOrderToReturn: null,
-    returnType: 'exchange',
-    returnReason: 'size',
-    returnNotes: '',
-    returnSubmitted: false,
 
     openReview(item) {
         this.selectedItemToReview = item;
@@ -32,25 +24,49 @@
             this.reviewModal = false;
             $store.shop.showToast('Thank you for reviewing your couture piece! ✨');
         }, 1200);
-    },
-
-    openReturn(order) {
-        this.selectedOrderToReturn = order;
-        this.returnType = 'exchange';
-        this.returnReason = 'size';
-        this.returnNotes = '';
-        this.returnSubmitted = false;
-        this.returnModal = true;
-    },
-
-    submitReturn() {
-        this.returnSubmitted = true;
-        setTimeout(() => {
-            this.returnModal = false;
-            $store.shop.showToast('7-Day Return / Exchange Request Submitted for Order #' + (this.selectedOrderToReturn ? this.selectedOrderToReturn.order_no : '') + '! Doorstep pickup scheduled. 🚚');
-        }, 1200);
     }
 }">
+<script>
+// profile vanilla data — no Alpine dependency for tabs/return
+window.PROFILE_ORDERS = @json($orders->values());
+window.profileReturnOrder = null;
+window.profileReturnType = 'exchange';
+function setProfileReturnType(t){
+    window.profileReturnType = t;
+    var ex = document.getElementById('pr-type-exchange');
+    var rf = document.getElementById('pr-type-return');
+    if(ex) ex.className = (t==='exchange'?'bg-[var(--color-ebony)] text-white':'bg-gray-100 text-gray-800')+' py-2.5 rounded-xl text-xs font-bold transition-all';
+    if(rf) rf.className = (t==='return'?'bg-[var(--color-ebony)] text-white':'bg-gray-100 text-gray-800')+' py-2.5 rounded-xl text-xs font-bold transition-all';
+}
+function openProfileReturn(id){
+    var list = window.PROFILE_ORDERS||[];
+    var ord=null; for(var i=0;i<list.length;i++){ if(String(list[i].id)===String(id)){ ord=list[i]; break; } }
+    if(!ord) return;
+    window.profileReturnOrder = ord;
+    var e1=document.getElementById('pr-orderno'); if(e1) e1.textContent='Order #'+(ord.order_no||'');
+    var e2=document.getElementById('pr-total'); if(e2) e2.textContent='Total Paid: ₹'+Number(ord.total||0).toLocaleString('en-IN');
+    setProfileReturnType('exchange');
+    var sel=document.getElementById('pr-reason'); if(sel) sel.value='size';
+    var nt=document.getElementById('pr-notes'); if(nt) nt.value='';
+    var m=document.getElementById('modal-profile-return'); if(m) m.style.display='flex';
+    document.body.style.overflow='hidden';
+}
+function closeProfileReturn(){
+    var m=document.getElementById('modal-profile-return'); if(m) m.style.display='none';
+    document.body.style.overflow='';
+}
+function submitProfileReturn(){
+    var ord=window.profileReturnOrder; if(!ord) return;
+    var form=document.createElement('form'); form.method='POST'; form.action='/orders/'+ord.id+'/return-request';
+    var token=document.querySelector('meta[name="csrf-token"]');
+    var add=function(n,v){ var i=document.createElement('input'); i.type='hidden'; i.name=n; i.value=v; form.appendChild(i); };
+    add('_token', token?token.getAttribute('content'):'');
+    add('type', window.profileReturnType==='exchange'?'exchange':'return');
+    var r=document.getElementById('pr-reason'); add('reason', r?r.value:'size');
+    var n=document.getElementById('pr-notes'); add('notes', n?n.value:'');
+    document.body.appendChild(form); form.submit();
+}
+</script>
 
     <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 space-y-6 sm:space-y-8">
 
@@ -146,20 +162,24 @@
                 <h2 class="font-serif text-lg font-bold text-[var(--color-ebony)]">Your Account</h2>
             </div>
 
-            <div class="flex items-center gap-2.5 overflow-x-auto pb-1 no-scrollbar text-xs font-sans">
-                <button @click="activeTab = 'orders'" :class="activeTab === 'orders' ? 'bg-[var(--color-ebony)] text-white shadow-sm ring-2 ring-[var(--color-ebony)]' : 'bg-white text-[var(--color-ebony)] border border-[var(--color-bisque)] hover:bg-[var(--color-offwhite)]'" class="px-5 py-2.5 rounded-full font-bold whitespace-nowrap transition-all flex items-center gap-1.5 shrink-0">
-                    <span>📦</span> Your Orders ({{ $orders->count() }})
+            <div class="flex items-center gap-2.5 overflow-x-auto pb-1 no-scrollbar text-xs font-sans" id="profile-pills">
+                <button id="pill-orders" onclick="setProfileTab('orders')" class="px-5 py-2.5 rounded-full font-bold whitespace-nowrap transition-all flex items-center gap-1.5 shrink-0 bg-[var(--color-ebony)] text-white shadow-sm ring-2 ring-[var(--color-ebony)]">
+                    <span>📦</span> Your Orders ({{ $orders->whereNotIn('status', ['exchange_requested', 'exchanged'])->count() }})
                 </button>
 
-                <button @click="activeTab = 'addresses'" :class="activeTab === 'addresses' ? 'bg-[var(--color-ebony)] text-white shadow-sm ring-2 ring-[var(--color-ebony)]' : 'bg-white text-[var(--color-ebony)] border border-[var(--color-bisque)] hover:bg-[var(--color-offwhite)]'" class="px-5 py-2.5 rounded-full font-bold whitespace-nowrap transition-all flex items-center gap-1.5 shrink-0">
+                <button id="pill-returns" onclick="setProfileTab('returns')" class="px-5 py-2.5 rounded-full font-bold whitespace-nowrap transition-all flex items-center gap-1.5 shrink-0 bg-white text-[var(--color-ebony)] border border-[var(--color-bisque)] hover:bg-[var(--color-offwhite)]">
+                    <span>🔄</span> Your Exchange Orders ({{ $orders->whereIn('status', ['exchange_requested', 'exchanged'])->count() }})
+                </button>
+
+                <button id="pill-addresses" onclick="setProfileTab('addresses')" class="px-5 py-2.5 rounded-full font-bold whitespace-nowrap transition-all flex items-center gap-1.5 shrink-0 bg-white text-[var(--color-ebony)] border border-[var(--color-bisque)] hover:bg-[var(--color-offwhite)]">
                     <span>📍</span> Saved Addresses
                 </button>
 
-                <button @click="activeTab = 'rewards'" :class="activeTab === 'rewards' ? 'bg-[var(--color-ebony)] text-white shadow-sm ring-2 ring-[var(--color-ebony)]' : 'bg-white text-[var(--color-ebony)] border border-[var(--color-bisque)] hover:bg-[var(--color-offwhite)]'" class="px-5 py-2.5 rounded-full font-bold whitespace-nowrap transition-all flex items-center gap-1.5 shrink-0">
+                <button id="pill-rewards" onclick="setProfileTab('rewards')" class="px-5 py-2.5 rounded-full font-bold whitespace-nowrap transition-all flex items-center gap-1.5 shrink-0 bg-white text-[var(--color-ebony)] border border-[var(--color-bisque)] hover:bg-[var(--color-offwhite)]">
                     <span>💎</span> Your Rewards
                 </button>
 
-                <button @click="activeTab = 'edit'" :class="activeTab === 'edit' ? 'bg-[var(--color-ebony)] text-white shadow-sm ring-2 ring-[var(--color-ebony)]' : 'bg-white text-[var(--color-ebony)] border border-[var(--color-bisque)] hover:bg-[var(--color-offwhite)]'" class="px-5 py-2.5 rounded-full font-bold whitespace-nowrap transition-all flex items-center gap-1.5 shrink-0">
+                <button id="pill-edit" onclick="setProfileTab('edit')" class="px-5 py-2.5 rounded-full font-bold whitespace-nowrap transition-all flex items-center gap-1.5 shrink-0 bg-white text-[var(--color-ebony)] border border-[var(--color-bisque)] hover:bg-[var(--color-offwhite)]">
                     <span>⚙️</span> Account Settings
                 </button>
 
@@ -167,10 +187,47 @@
                     <span>❤️</span> Wishlist
                 </a>
             </div>
+            <script>
+            // Vanilla tab switching (no framework dependency — pills always work)
+            function setProfileTab(name) {
+                if(name==='rewards'){
+                    var card=document.getElementById('rewards-card');
+                    if(card) card.scrollIntoView({behavior:'smooth',block:'center'});
+                    // highlight rewards pill, dim others
+                    ['orders','returns','addresses','edit','rewards'].forEach(function(t){
+                        var pill=document.getElementById('pill-'+t);
+                        if(!pill) return;
+                        var on = (t==='rewards');
+                        pill.className = on
+                          ? 'px-5 py-2.5 rounded-full font-bold whitespace-nowrap transition-all flex items-center gap-1.5 shrink-0 bg-[var(--color-ebony)] text-white shadow-sm ring-2 ring-[var(--color-ebony)]'
+                          : 'px-5 py-2.5 rounded-full font-bold whitespace-nowrap transition-all flex items-center gap-1.5 shrink-0 bg-white text-[var(--color-ebony)] border border-[var(--color-bisque)] hover:bg-[var(--color-offwhite)]';
+                    });
+                    // also hide all tab sections, show orders as fallback behind rewards
+                    ['orders','returns','addresses','edit'].forEach(function(t){
+                        var sec=document.getElementById('tabsec-'+t);
+                        if(sec) sec.style.display='none';
+                    });
+                    var ord=document.getElementById('tabsec-orders');
+                    if(ord) ord.style.display='';
+                    return;
+                }
+                var tabs = ['orders', 'returns', 'addresses', 'edit'];
+                var activeCls = 'px-5 py-2.5 rounded-full font-bold whitespace-nowrap transition-all flex items-center gap-1.5 shrink-0 bg-[var(--color-ebony)] text-white shadow-sm ring-2 ring-[var(--color-ebony)]';
+                var idleCls   = 'px-5 py-2.5 rounded-full font-bold whitespace-nowrap transition-all flex items-center gap-1.5 shrink-0 bg-white text-[var(--color-ebony)] border border-[var(--color-bisque)] hover:bg-[var(--color-offwhite)]';
+                tabs.forEach(function (t) {
+                    var sec = document.getElementById('tabsec-' + t);
+                    if (sec) sec.style.display = (t === name) ? '' : 'none';
+                });
+                ['orders','returns','addresses','edit','rewards'].forEach(function(t){
+                    var pill=document.getElementById('pill-'+t);
+                    if(pill) pill.className = (t===name?activeCls:idleCls);
+                });
+            }
+            </script>
         </div>
 
         {{-- 3. YOUR REWARDS & WALLET (Amazon-style 3-Column Rewards Card) --}}
-        <div class="bg-white rounded-3xl border border-[var(--color-bisque)]/80 p-5 sm:p-6 shadow-sm space-y-4">
+        <div id="rewards-card" class="bg-white rounded-3xl border border-[var(--color-bisque)]/80 p-5 sm:p-6 shadow-sm space-y-4">
             <div class="flex items-center justify-between pb-2 border-b border-[var(--color-bisque)]/40">
                 <h3 class="font-serif text-base sm:text-lg font-bold text-[var(--color-ebony)]">Your Rewards & Atelier Perks</h3>
                 <span class="text-[10px] font-sans font-bold text-emerald-800 bg-emerald-50 px-2.5 py-0.5 rounded-full border border-emerald-200">Active Patron</span>
@@ -248,15 +305,25 @@
         </div>
 
         {{-- 5. YOUR ORDERS (Comprehensive Orders List) --}}
-        <div x-show="activeTab === 'all' || activeTab === 'orders'" class="space-y-4">
+        @php
+            $activeOrders = $orders->whereNotIn('status', ['exchange_requested', 'exchanged']);
+            $returnOrders = $orders->whereIn('status', ['exchange_requested', 'exchanged']);
+        @endphp
+        <div id="tabsec-orders" class="space-y-4">
             <div class="flex items-center justify-between">
                 <h2 class="font-serif text-xl font-bold text-[var(--color-ebony)]">Your Recent Orders</h2>
-                <span class="text-xs font-sans text-[var(--color-ebony)]/60">{{ $orders->count() }} Total Placed</span>
+                <span class="text-xs font-sans text-[var(--color-ebony)]/60">{{ $activeOrders->count() }} Total Placed</span>
             </div>
 
-            @forelse($orders as $ord)
+            @forelse($activeOrders as $ord)
             @php
-                $items = is_string($ord->items) ? json_decode($ord->items, true) : ($ord->items ?? []);
+                $items = $ord->items;
+                for ($di = 0; $di < 3 && is_string($items); $di++) {
+                    $dec = json_decode($items, true);
+                    if (json_last_error() !== JSON_ERROR_NONE) break;
+                    $items = $dec;
+                }
+                if (!is_array($items)) $items = [];
             @endphp
             <div class="bg-white rounded-3xl border border-[var(--color-bisque)] p-5 sm:p-7 shadow-sm space-y-4">
                 <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-[var(--color-bisque)]/60">
@@ -278,8 +345,10 @@
                             {{ $ord->status === 'confirmed' || $ord->status === 'paid' ? 'bg-amber-100 text-amber-800' : '' }}
                             {{ $ord->status === 'cancelled' ? 'bg-rose-100 text-rose-800' : '' }}
                             {{ $ord->status === 'pending' ? 'bg-gray-100 text-gray-800' : '' }}
+                            {{ $ord->status === 'exchange_requested' ? 'bg-orange-100 text-orange-800' : '' }}
+                            {{ $ord->status === 'exchanged' ? 'bg-purple-100 text-purple-800' : '' }}
                         ">
-                            ● {{ $ord->status }}
+                            ● {{ str_replace('_', ' ', $ord->status) }}
                         </span>
                     </div>
                 </div>
@@ -303,20 +372,26 @@
                     @endforeach
                 </div>
 
-                {{-- Delivery Destination & 7-Day Return / Exchange Trigger --}}
+                {{-- Delivery Destination & 7-Day Exchange Trigger --}}
                 <div class="pt-3 border-t border-[var(--color-bisque)]/40 flex flex-col sm:flex-row items-start sm:items-center justify-between text-xs text-gray-600 gap-3">
                     <div>
                         <span class="font-bold text-[var(--color-ebony)]">Destination:</span>
                         {{ $ord->address }}, {{ $ord->city }}, {{ $ord->state }} - {{ $ord->pincode }}
                     </div>
                     <div class="flex items-center gap-3">
-                        <span class="text-[10px] text-gray-500 font-bold uppercase"><span class="text-emerald-600">🛡️ 7-Day Return Eligible</span> • {{ strtoupper($ord->payment_method ?? 'Online Pre-paid') }}</span>
+                        <span class="text-[10px] text-gray-500 font-bold uppercase"><span class="text-emerald-600">🛡️ 7-Day Exchange Eligible</span> • {{ strtoupper($ord->payment_method ?? 'Online Pre-paid') }}</span>
+                        @if(in_array($ord->status, ['delivered', 'confirmed', 'shipped', 'paid', 'processing', 'dispatched']))
                         <button type="button"
-                                @click="openReturn({{ json_encode($ord) }})"
+                                onclick="openProfileReturn({{ $ord->id }})"
                                 class="inline-flex items-center gap-1.5 bg-rose-50 hover:bg-rose-100 border border-rose-200 text-rose-800 text-[10px] font-sans font-bold uppercase tracking-wider px-3 py-1.5 rounded-full transition-all cursor-pointer">
                             <span>🔄</span>
-                            <span>Return / Exchange (7 Days)</span>
+                            <span>Exchange (7 Days)</span>
                         </button>
+                        @elseif(in_array($ord->status, ['exchange_requested', 'exchanged']))
+                        <span class="inline-flex items-center gap-1.5 bg-orange-100 border border-orange-200 text-orange-800 text-[10px] font-sans font-bold uppercase tracking-wider px-3 py-1.5 rounded-full">
+                            {{ str_replace('_', ' ', ucfirst($ord->status)) }} ⏳
+                        </span>
+                        @endif
                     </div>
                 </div>
             </div>
@@ -332,12 +407,54 @@
             @endforelse
         </div>
 
+        {{-- 5b. YOUR EXCHANGE ORDERS (Exchange history only) --}}
+        <div id="tabsec-returns" class="space-y-4" style="display:none;">
+            <div class="flex items-center justify-between">
+                <h2 class="font-serif text-xl font-bold text-[var(--color-ebony)]">Your Exchange Orders</h2>
+                <span class="text-xs font-sans text-[var(--color-ebony)]/60">{{ $returnOrders->count() }} Exchange Requests</span>
+            </div>
+
+            @forelse($returnOrders as $ord)
+            <div class="bg-white rounded-3xl border border-purple-200 p-5 sm:p-7 shadow-sm space-y-4">
+                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-[var(--color-bisque)]/60">
+                    <div>
+                        <span class="text-[10px] font-sans font-bold uppercase tracking-wider text-gray-500">Order Number</span>
+                        <h3 class="font-mono text-base font-bold text-[var(--color-ebony)]">{{ $ord->order_no }}</h3>
+                        <span class="text-xs text-gray-500">Placed on {{ $ord->created_at ? $ord->created_at->timezone('Asia/Kolkata')->format('d M Y, h:i A') : 'Recently' }}</span>
+                    </div>
+                    <div class="flex items-center gap-4">
+                        <div class="text-right">
+                            <span class="text-[10px] font-sans font-bold uppercase tracking-wider text-gray-500 block">Total</span>
+                            <span class="font-serif text-lg font-bold text-[var(--color-ebony)]">₹{{ number_format($ord->total, 0) }}</span>
+                        </div>
+                        <span class="px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider
+                            {{ $ord->status === 'exchange_requested' ? 'bg-orange-100 text-orange-800' : '' }}
+                            {{ $ord->status === 'exchanged' ? 'bg-purple-100 text-purple-800' : '' }}
+                        ">
+                            ● {{ str_replace('_', ' ', $ord->status) }}
+                        </span>
+                    </div>
+                </div>
+                @if($ord->note)
+                <p class="text-[11px] font-sans text-amber-900 bg-amber-50 border border-amber-200/70 rounded-xl px-3.5 py-2.5">{{ $ord->note }}</p>
+                @endif
+                <p class="text-[11px] font-sans text-gray-500">Pickup is scheduled within 24-48 hours of your request. Replacement will be shipped after collection.</p>
+            </div>
+            @empty
+            <div class="bg-white rounded-3xl border border-[var(--color-bisque)] p-10 text-center shadow-sm space-y-4">
+                <div class="text-4xl">🔄</div>
+                <h3 class="font-serif text-xl font-bold text-[var(--color-ebony)]">No Exchanges Yet</h3>
+                <p class="text-xs font-sans text-gray-500 max-w-md mx-auto">Delivered orders can be exchanged for a different size/color within 7 days from the Your Orders section.</p>
+            </div>
+            @endforelse
+        </div>
+
         {{-- 6. SAVED ADDRESSES TAB --}}
-        <div x-show="activeTab === 'addresses'" class="space-y-4">
+        <div id="tabsec-addresses" class="space-y-4" style="display:none;">
             <div class="bg-white rounded-3xl border border-[var(--color-bisque)] p-6 sm:p-8 shadow-sm space-y-4">
                 <div class="flex items-center justify-between pb-3 border-b border-[var(--color-bisque)]/60">
                     <h3 class="font-serif text-xl font-bold text-[var(--color-ebony)]">Your Delivery Addresses</h3>
-                    <button @click="activeTab = 'edit'" class="text-xs font-sans font-bold text-[var(--color-rose-antique)] hover:underline">+ Edit Default Address</button>
+                    <button onclick="setProfileTab('edit')" class="text-xs font-sans font-bold text-[var(--color-rose-antique)] hover:underline">+ Edit Default Address</button>
                 </div>
 
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -355,7 +472,7 @@
         </div>
 
         {{-- 7. ACCOUNT SETTINGS TAB --}}
-        <div x-show="activeTab === 'edit'" class="space-y-6">
+        <div id="tabsec-edit" class="space-y-6" style="display:none;">
             <div class="bg-white rounded-3xl border border-[var(--color-bisque)] p-6 sm:p-8 shadow-sm space-y-6 max-w-2xl">
                 <div class="border-b border-[var(--color-bisque)]/60 pb-3">
                     <h3 class="font-serif text-xl font-bold text-[var(--color-ebony)]">Update Profile & Security Details</h3>
@@ -451,44 +568,35 @@
         </div>
     </div>
 
-    {{-- 7-DAY EASY RETURN & EXCHANGE MODAL --}}
-    <div x-show="returnModal" style="display: none;" class="fixed inset-0 z-50 flex items-center justify-center p-4">
-        <div x-show="returnModal" x-transition.opacity @click="returnModal = false" class="absolute inset-0 bg-black/60 backdrop-blur-sm"></div>
+    {{-- 7-DAY EASY EXCHANGE MODAL (vanilla, return removed) --}}
+    <div id="modal-profile-return" style="display:none;" class="fixed inset-0 z-50 flex items-center justify-center p-4">
+        <div onclick="closeProfileReturn()" class="absolute inset-0 bg-black/60 backdrop-blur-sm"></div>
         <div class="relative w-full max-w-lg bg-white rounded-3xl p-6 sm:p-8 shadow-2xl z-10 border border-[var(--color-bisque)] space-y-4">
             <div class="flex items-center justify-between border-b border-[var(--color-bisque)]/60 pb-3">
                 <div>
-                    <h3 class="font-serif text-lg font-bold text-[var(--color-ebony)]">7-Day Easy Return &amp; Exchange</h3>
-                    <p class="text-[10px] text-gray-500 font-sans">Complimentary doorstep pickup within 24-48 hours</p>
+                    <h3 class="font-serif text-lg font-bold text-[var(--color-ebony)]">7-Day Easy Exchange</h3>
+                    <p class="text-[10px] text-gray-500 font-sans">Size/color exchange — doorstep pickup within 24-48 hours</p>
                 </div>
-                <button @click="returnModal = false" class="text-gray-400 hover:text-gray-600 text-base">✕</button>
+                <button onclick="closeProfileReturn()" class="text-gray-400 hover:text-gray-600 text-base">✕</button>
             </div>
 
-            <template x-if="selectedOrderToReturn">
-                <div class="p-3 bg-[var(--color-offwhite)] rounded-2xl border border-[var(--color-bisque)]/60 space-y-1">
-                    <div class="flex justify-between items-center text-xs font-bold text-[var(--color-ebony)]">
-                        <span>Order #<span x-text="selectedOrderToReturn.order_no"></span></span>
-                        <span class="text-emerald-700 text-[10px] font-sans">🛡️ 7-Day Window Active</span>
-                    </div>
-                    <p class="text-[10px] text-gray-500" x-text="'Total Paid: ₹' + Number(selectedOrderToReturn.total).toLocaleString('en-IN')"></p>
+            <div class="p-3 bg-[var(--color-offwhite)] rounded-2xl border border-[var(--color-bisque)]/60 space-y-1">
+                <div class="flex justify-between items-center text-xs font-bold text-[var(--color-ebony)]">
+                    <span id="pr-orderno">Order #—</span>
+                    <span class="text-emerald-700 text-[10px] font-sans">🛡️ 7-Day Window Active</span>
                 </div>
-            </template>
+                <p class="text-[10px] text-gray-500" id="pr-total">Total Paid: —</p>
+            </div>
 
             <div class="space-y-3">
-                <div>
-                    <label class="block text-xs font-sans font-bold uppercase tracking-wider mb-1 text-[var(--color-ebony)]">Request Type</label>
-                    <div class="grid grid-cols-2 gap-2">
-                        <button type="button" @click="returnType = 'exchange'" :class="returnType === 'exchange' ? 'bg-[var(--color-ebony)] text-white' : 'bg-gray-100 text-gray-800'" class="py-2.5 rounded-xl text-xs font-bold transition-all">
-                            🔄 Size / Color Exchange
-                        </button>
-                        <button type="button" @click="returnType = 'refund'" :class="returnType === 'refund' ? 'bg-[var(--color-ebony)] text-white' : 'bg-gray-100 text-gray-800'" class="py-2.5 rounded-xl text-xs font-bold transition-all">
-                            💵 Full Refund Return
-                        </button>
-                    </div>
+                <div class="hidden">
+                    <input type="hidden" id="pr-type-exchange" />
+                    <input type="hidden" id="pr-type-return" />
                 </div>
 
                 <div>
-                    <label class="block text-xs font-sans font-bold uppercase tracking-wider mb-1 text-[var(--color-ebony)]">Reason for Return / Exchange</label>
-                    <select x-model="returnReason" class="w-full bg-[var(--color-offwhite)] border border-[var(--color-bisque)] rounded-xl px-3.5 py-2.5 text-xs font-sans focus:outline-none focus:border-[var(--color-rose-antique)]">
+                    <label class="block text-xs font-sans font-bold uppercase tracking-wider mb-1 text-[var(--color-ebony)]">Reason for Exchange</label>
+                    <select id="pr-reason" class="w-full bg-[var(--color-offwhite)] border border-[var(--color-bisque)] rounded-xl px-3.5 py-2.5 text-xs font-sans focus:outline-none focus:border-[var(--color-rose-antique)]">
                         <option value="size">Size Fitting Issue (Too tight / Too loose)</option>
                         <option value="fabric">Fabric / Drape Preference</option>
                         <option value="color">Color Mismatch from Image</option>
@@ -499,13 +607,13 @@
 
                 <div>
                     <label class="block text-xs font-sans font-bold uppercase tracking-wider mb-1 text-[var(--color-ebony)]">Notes for Pickup Agent</label>
-                    <textarea x-model="returnNotes" rows="2" placeholder="Provide any special fitting notes or preferred pickup address/time..." class="w-full bg-[var(--color-offwhite)] border border-[var(--color-bisque)] rounded-xl px-3.5 py-2.5 text-xs font-sans focus:outline-none focus:border-[var(--color-rose-antique)]"></textarea>
+                    <textarea id="pr-notes" rows="2" placeholder="Provide any special fitting notes or preferred pickup address/time..." class="w-full bg-[var(--color-offwhite)] border border-[var(--color-bisque)] rounded-xl px-3.5 py-2.5 text-xs font-sans focus:outline-none focus:border-[var(--color-rose-antique)]"></textarea>
                 </div>
             </div>
 
             <div class="flex gap-2 pt-2">
-                <button type="button" @click="returnModal = false" class="flex-1 bg-gray-100 hover:bg-gray-200 text-[var(--color-ebony)] text-xs font-sans font-bold py-3 rounded-xl">Cancel</button>
-                <button type="button" @click="submitReturn()" class="flex-1 bg-[var(--color-ebony)] hover:bg-[var(--color-rose-deep)] text-white text-xs font-sans font-bold py-3 rounded-xl shadow-md cursor-pointer">Submit Return Request 🚚</button>
+                <button type="button" onclick="closeProfileReturn()" class="flex-1 bg-gray-100 hover:bg-gray-200 text-[var(--color-ebony)] text-xs font-sans font-bold py-3 rounded-xl">Cancel</button>
+                <button type="button" onclick="submitProfileReturn()" class="flex-1 bg-[var(--color-ebony)] hover:bg-[var(--color-rose-deep)] text-white text-xs font-sans font-bold py-3 rounded-xl shadow-md cursor-pointer">Submit Exchange Request 🚚</button>
             </div>
         </div>
     </div>

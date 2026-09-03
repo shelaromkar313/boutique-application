@@ -494,8 +494,21 @@ class AdminController extends Controller
     public function updateOrderStatus(Request $request, $id)
     {
         $order = Order::findOrFail($id);
+        $oldStatus = $order->status;
         $status = $request->input('status', 'confirmed');
+        $allowed = ['pending', 'confirmed', 'processing', 'shipped', 'dispatched', 'delivered', 'cancelled', 'exchange_requested', 'exchanged'];
+        if (!in_array($status, $allowed, true)) {
+            return redirect($this->adminBaseUrl('orders'))->withErrors(['status' => 'Invalid order status.']);
+        }
         $order->update(['status' => $status]);
+        // Exchanged garments go back to warehouse stock (return disabled)
+        if ($status === 'exchanged' && $oldStatus !== 'exchanged') {
+            try {
+                PaymentController::restoreStockForOrder($order->fresh());
+            } catch (\Throwable $e) {
+                \Illuminate\Support\Facades\Log::error('Stock restore error: ' . $e->getMessage());
+            }
+        }
         return redirect($this->adminBaseUrl('orders'))->with('success', "Order #{$order->order_no} status updated to " . strtoupper($status));
     }
 
