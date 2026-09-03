@@ -43,7 +43,11 @@ class AdminController extends Controller
         $categories = Category::all();
         $orders = Order::latest()->get();
         $customers = User::where('role', 'customer')->orWhereNull('role')->latest()->get();
-        $associates = DB::table('sales_associates')->latest()->get();
+        try {
+            $associates = DB::table('sales_associates')->latest()->get();
+        } catch (\Throwable $e) {
+            $associates = User::whereIn('role', ['sales_associate', 'associate', 'sales_executive'])->latest()->get();
+        }
         $reviews = Review::latest()->get();
         $coupons = Coupon::latest()->get();
         $announcedCoupons = Coupon::where('is_announced', true)->where('is_active', true)
@@ -343,6 +347,7 @@ class AdminController extends Controller
         Category::create([
             'name' => $request->name,
             'slug' => Str::slug($request->name),
+            'subcategories' => [],
         ]);
         return redirect($this->adminBaseUrl('inventory'))->with('success', 'New Category created successfully!');
     }

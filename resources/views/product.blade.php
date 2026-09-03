@@ -73,9 +73,16 @@ if ($dbProduct) {
     ]);
 }
 
+$relatedProducts = \App\Models\Product::where('id', '!=', optional($dbProduct)->id)
+    ->where(function($q) use ($product) { $q->where('main_category', $product['mainCategory'] ?? '')->orWhere('category', $product['category'] ?? ''); })
+    ->orderBy('created_at','desc')->take(4)->get()->map(function($p) {
+      return ['id'=>$p->est_id,'name'=>$p->name,'mainCategory'=>$p->main_category,'price'=>(float)$p->price,'images'=>is_array($p->images)?array_values($p->images):['/storage/hero/hero-main.jpg']];
+    });
+if ($relatedProducts->isEmpty()) {
 $relatedProducts = collect($productsData)->filter(function ($p) use ($product) {
     return $p['id'] !== $product['id'] && ($p['mainCategory'] ?? '') === ($product['mainCategory'] ?? '');
 })->take(4);
+}
 
 @endphp
 

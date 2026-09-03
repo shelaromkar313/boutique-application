@@ -140,6 +140,15 @@ class PaymentController extends Controller
 
         $orderNo = 'EST-' . rand(100000, 999999);
         $items = $request->input('items', []);
+        // Normalize: frontend may send JSON string -> avoid double-encoding "\"[...]\""
+        if (is_string($items)) {
+            $decoded = json_decode($items, true);
+            $itemsForDb = (json_last_error() === JSON_ERROR_NONE) ? json_encode($decoded) : $items;
+            $itemsForReferral = is_array($decoded) ? $decoded : [];
+        } else {
+            $itemsForDb = json_encode(is_array($items) ? $items : []);
+            $itemsForReferral = is_array($items) ? $items : [];
+        }
         $subtotal = (float) $request->input('subtotal', 0);
         $shipping = (float) $request->input('shipping', 0);
         $discount = (float) $request->input('discount', 0);
@@ -178,14 +187,14 @@ class PaymentController extends Controller
             'currency'    => 'INR',
             'payment_id'  => $request->payment_method === 'cod' ? 'COD-PENDING' : 'UPI-CONFIRMED',
             'status'      => 'confirmed',
-            'items'       => is_string($items) ? $items : json_encode($items),
+            'items'       => $itemsForDb,
             'note'        => 'Payment Mode: ' . strtoupper($request->payment_method) . ($referralCode ? ' • Referred by: ' . $referralCode : ''),
         ]);
 
         // Credit referral earnings to the sales associate (wrapped in try-catch so order is never blocked)
         if (!empty($referralCode)) {
             try {
-                $this->creditReferralAssociate($orderNo, is_array($items) ? $items : json_decode($items, true), $referralCode, $request->name);
+                $this->creditReferralAssociate($orderNo, $itemsForReferral, $referralCode, $request->name);
                 session()->forget('referral_code');
             } catch (\Throwable $e) {
                 // Log exception silently without failing the customer order

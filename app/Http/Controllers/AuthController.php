@@ -431,10 +431,7 @@ class AuthController extends Controller
         }
 
         return redirect('/estilo-hq-console/login')
-            ->with('success', 'Logged out of HQ Console successfully.')
-            ->header('Cache-Control', 'no-store, no-cache, must-revalidate, max-age=0, private')
-            ->header('Pragma', 'no-cache')
-            ->header('Expires', 'Thu, 01 Jan 1970 00:00:00 GMT');
+            ->with('success', 'Logged out of HQ Console successfully.');
     }
 
     /**
@@ -450,10 +447,7 @@ class AuthController extends Controller
         }
 
         return redirect('/login')
-            ->with('success', 'You have been logged out safely.')
-            ->header('Cache-Control', 'no-store, no-cache, must-revalidate, max-age=0, private')
-            ->header('Pragma', 'no-cache')
-            ->header('Expires', 'Thu, 01 Jan 1970 00:00:00 GMT');
+            ->with('success', 'You have been logged out safely.');
     }
 
     /**

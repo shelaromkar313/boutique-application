@@ -151,13 +151,13 @@ class AdminSessionAuthTest extends TestCase
             'password' => 'secret123',
         ]);
 
-        $response->assertRedirect('/');
-        $this->assertAuthenticated();
+        $response->assertRedirect('/login');
+        // registerCustomer redirects to login for confirmation (not auto-login)
+        $this->assertGuest();
 
         $user = User::where('email', 'aanya@example.com')->first();
         $this->assertNotNull($user);
         $this->assertEquals('customer', $user->role);
-        $this->assertAuthenticatedAs($user);
     }
 
     public function test_sales_associate_web_registration_generates_ref_code_and_authenticates(): void
@@ -448,6 +448,6 @@ class AdminSessionAuthTest extends TestCase
         $res = $this->actingAs($customer)->get('/profile');
         $res->assertStatus(200)
             ->assertSee('Ananya Sharma')
-            ->assertSee('Order History');
+            ->assertSee('Your Orders');
     }
 }
