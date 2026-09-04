@@ -11,39 +11,58 @@ class HomeController extends Controller
 {
     public function index()
     {
-        // 1. Fetch images mapped in ImageSeeder
-        $circleCategories = Image::where('category', 'circle')->orderBy('sort_order')->get()->map(function($img) {
+        // 2. Fetch proper Categories from DB (admin-created only)
+        $categoriesData = Category::orderBy('name')->get();
+
+        // 1. Homepage circle bar shows ONLY admin-created Categories (no hardcoded images).
+        // Photo = category photo if set, else first matching product photo.
+        $circleCategories = $categoriesData->map(function($cat) {
+            $words = array_filter(preg_split('/[\s&\/-]+/', strtolower($cat->name)), fn($w) => strlen($w) >= 3);
+            $prod = null;
+            foreach ($words as $w) {
+                $prod = Product::where('category', 'LIKE', '%' . $w . '%')
+                    ->orWhere('occasion', 'LIKE', '%' . $w . '%')
+                    ->orderBy('created_at', 'desc')->first();
+                if ($prod) break;
+            }
+            $prod = $prod ?? Product::orderBy('created_at', 'desc')->first();
+            $images = $prod ? (is_array($prod->images) ? $prod->images : []) : [];
+            $image = $cat->image ?: ($images[0] ?? '/images/circles/default.jpg');
             return [
-                'name' => $img->alt_text,
-                'path' => '/shop', // default path, can be customized based on slug later
-                'image' => $img->url
+                'name' => $cat->name,
+                'path' => '/shop?category=' . urlencode($cat->name),
+                'image' => $image,
             ];
         });
 
-        // 2. Fetch proper Categories from DB
-        $categoriesData = Category::all();
-
-        // 3. Occasions from Images
-        $occasionsData = Image::where('category', 'occasion')->orderBy('sort_order')->get()->map(function($img) {
+        // 3. Occasions from Images — card links to best-matching product occasion
+        // so admin renames never produce zero-result pages.
+        $allOccasions = Product::select('occasion')->distinct()->pluck('occasion')->filter()->values();
+        $occasionsData = Image::where('category', 'occasion')->orderBy('sort_order')->get()->map(function($img) use ($allOccasions) {
+            $name = $img->alt_text ?: $img->name;
+            $words = array_filter(preg_split('/[\s&\/–—-]+/u', strtolower($name)), fn($w) => strlen($w) >= 3);
+            $best = null;
+            $bestScore = 0;
+            foreach ($allOccasions as $occ) {
+                $ow = array_filter(preg_split('/[\s&\/–—-]+/u', strtolower($occ)), fn($w) => strlen($w) >= 3);
+                $score = count(array_intersect($words, $ow));
+                if ($score > $bestScore) {
+                    $bestScore = $score;
+                    $best = $occ;
+                }
+            }
             return [
-                'name' => $img->alt_text,
+                'name' => $name,
+                'link' => $bestScore > 0 ? $best : $name,
                 'slug' => str_replace('occasion-', '', $img->slug),
                 'image' => $img->url
             ];
         });
 
-        // 4. Products from DB (Trending, New Arrivals, Sarees)
-        $trendingProducts = Product::where('is_trending', true)->orderBy('created_at', 'desc')->get();
-        if ($trendingProducts->count() < 4) {
-            $extra = Product::whereNotIn('id', $trendingProducts->pluck('id'))->orderBy('created_at', 'desc')->take(6)->get();
-            $trendingProducts = $trendingProducts->concat($extra);
-        }
+        // 4. Products from DB (Trending, New Arrivals — strictly respect admin toggle, no fallback)
+        $trendingProducts = Product::where('is_trending', true)->orderBy('created_at', 'desc')->take(12)->get();
 
-        $newArrivals = Product::where('is_new_arrival', true)->orderBy('created_at', 'desc')->get();
-        if ($newArrivals->count() < 4) {
-            $extra = Product::whereNotIn('id', $newArrivals->pluck('id'))->orderBy('created_at', 'desc')->take(6)->get();
-            $newArrivals = $newArrivals->concat($extra);
-        }
+        $newArrivals = Product::where('is_new_arrival', true)->orderBy('created_at', 'desc')->take(12)->get();
 
         $sareeSpotlight = Product::where('main_category', 'Sarees')->orWhere('category', 'LIKE', '%Saree%')->orderBy('created_at', 'desc')->get();
         if ($sareeSpotlight->count() < 4) {
@@ -137,6 +156,31 @@ class HomeController extends Controller
             ]
         ];
 
+        // 6. Hero slideshow from DB (admin-editable); fallback to defaults if empty
+        $heroSlides = \App\Models\HeroSlide::where('is_active', true)
+            ->orderBy('sort_order')->orderBy('id')->get()
+            ->map(fn($s) => [
+                'tag' => $s->tag,
+                'titleline1' => $s->title1,
+                'titleline2' => $s->title2,
+                'titleline3' => $s->title3,
+                'desc' => $s->description,
+                'image' => $s->image,
+                'objectPos' => $s->object_pos ?: 'object-[center_top] sm:object-[center_top] md:object-[center_top]',
+                'fit' => $s->fit_mode ?: 'cover',
+                'btnText' => $s->btn_text,
+                'btnLink' => $s->btn_link,
+                'subLinkText' => $s->sub_text,
+                'subLink' => $s->sub_link,
+            ])->toArray();
+        if (empty($heroSlides)) {
+            $heroSlides = [
+                ['tag' => 'NEW COLLECTION — 2025', 'titleline1' => 'Timeless', 'titleline2' => 'Indian', 'titleline3' => 'Elegance', 'desc' => 'Handcrafted Indian fashion for the modern woman — curated from artisan weavers across India.', 'image' => '/hero/hero-main.jpg', 'objectPos' => 'object-[85%_top] sm:object-[82%_top] md:object-[right_top]', 'fit' => 'cover', 'btnText' => 'Shop Now', 'btnLink' => '/shop', 'subLinkText' => 'View New Arrivals', 'subLink' => '/shop?filter=new'],
+                ['tag' => 'LUXURY SILK EDIT', 'titleline1' => 'Royal', 'titleline2' => 'Banarasi', 'titleline3' => 'Sarees', 'desc' => 'Pure silk mark certified sarees featuring gold zari brocade & Kadwa weaving from Varanasi.', 'image' => '/hero/hero-slide-2.jpg', 'objectPos' => 'object-[center_top] sm:object-[center_top] md:object-[center_top]', 'fit' => 'cover', 'btnText' => 'Explore Sarees', 'btnLink' => '/shop?category=Sarees', 'subLinkText' => 'View Banarasi Silk', 'subLink' => '/shop?category=Sarees'],
+                ['tag' => 'ROYAL HERITAGE CRAFT', 'titleline1' => 'Lucknowi', 'titleline2' => 'Chikankari', 'titleline3' => 'Couture', 'desc' => 'Airy mulmul cotton & silk Anarkalis with hand-embroidered shadow work & silver Mukaish.', 'image' => '/hero/hero-slide-3.jpg', 'objectPos' => 'object-[center_top] sm:object-[center_top] md:object-[center_top]', 'fit' => 'cover', 'btnText' => 'Explore Chikankari', 'btnLink' => '/shop?category=Chikankari+Kurtis', 'subLinkText' => 'View Anarkalis', 'subLink' => '/shop?category=Anarkali'],
+            ];
+        }
+
         $instagramPosts = Image::where('category', 'instagram')->orderBy('sort_order')->get()->map(function($img, $index) {
             $likes = ['2.4k', '3.8k', '1.9k', '4.1k', '5.2k', '3.1k'];
             $tags = ['#EstiloWomen', '#SlayEveryLook', '#ChikankariLove', '#BoutiqueCouture', '#RoyalSilk', '#FestiveDrape'];
@@ -157,7 +201,8 @@ class HomeController extends Controller
             'sareeSpotlight',
             'fabricsData',
             'testimonialsData',
-            'instagramPosts'
+            'instagramPosts',
+            'heroSlides'
         ));
     }
 }

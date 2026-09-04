@@ -103,13 +103,14 @@ document.addEventListener('alpine:init', function() {
                 colors: [], colors_str: '', description: '',
                 size_stock: { XS: 1, S: 2, M: 4, L: 2, XL: 3, XXL: 2 }
             },
+            editSizeMode: 'apparel',
             selectedOrder:       { id: null, items: [], parsedItems: [] },
             selectedReview:      { id: null, rating: 5, comment: '', user_name: '', is_approved: true },
             selectedAnnouncement:{ id: null, title: '', message: '', type: 'sale', color: 'amber', icon: '📢', show_in_ticker: true, show_as_banner: false, is_active: true, starts_at: '', ends_at: '' },
             selectedCoupon:      { id: null, code: '', title: '', discount_type: 'percentage', discount_value: 20, min_order_value: 1999, campaign_type: 'festival', valid_until: '', is_active: true },
 
             init() {
-                const titles = { overview:'Dashboard', inventory:'Inventory', orders:'Orders', customers:'Customers', reports:'Reports', offers:'Offers & Coupons', announcements:'Announcements', reviews:'Reviews' };
+                const titles = { overview:'Dashboard', inventory:'Inventory', orders:'Orders', customers:'Customers', reports:'Reports', offers:'Offers & Coupons', announcements:'Announcements', reviews:'Reviews', homepage:'Homepage Circles' };
                 this.$watch('activeTab', t => document.title = 'Estilo HQ — ' + (titles[t] || 'Dashboard'));
             },
 
@@ -124,8 +125,23 @@ document.addEventListener('alpine:init', function() {
                 this.selectedProduct.colors_str = Array.isArray(p.colors) ? p.colors.map(c => (c && typeof c === 'object' ? (c.name || '') : c)).filter(Boolean).join(', ') : (p.colors || '');
                 let stock = p.size_stock || {};
                 if (typeof stock === 'string') { try { stock = JSON.parse(stock); } catch(e) { stock = {}; } }
-                if (!stock || !Object.keys(stock).length) { ['XS','S','M','L','XL','XXL'].forEach(sz => { stock[sz] = 2; }); }
-                this.selectedProduct.size_stock = Object.assign({ XS:1, S:2, M:4, L:2, XL:3, XXL:2 }, stock);
+                // Detect Free Size mode for sarees (same logic as create page)
+                let isFree = false;
+                if (stock && typeof stock === 'object' && Object.keys(stock).length) {
+                    isFree = Object.keys(stock).some(k => ['free size','freesize','one size','onesize','unstitched'].includes(String(k).toLowerCase().trim()));
+                } else if (String(p.category||'').toLowerCase().match(/saree|sari|dupatta|shawl|unstitched/)) {
+                    isFree = true;
+                }
+                this.editSizeMode = isFree ? 'freesize' : 'apparel';
+                // Ensure Free Size key exists if in freesize mode
+                if (isFree) {
+                    let freeQty = 6;
+                    for (let k in stock) { if (['free size','freesize','one size','onesize','unstitched'].includes(String(k).toLowerCase().trim())) { freeQty = Number(stock[k] || 6); } }
+                    this.selectedProduct.size_stock = { 'Free Size': freeQty };
+                } else {
+                    if (!stock || !Object.keys(stock).length) { ['XS','S','M','L','XL','XXL'].forEach(sz => { stock[sz] = 2; }); }
+                    this.selectedProduct.size_stock = Object.assign({ XS:1, S:2, M:4, L:2, XL:3, XXL:2 }, stock);
+                }
                 adminShowModal('modal-edit-product');
             },
 
@@ -281,7 +297,7 @@ document.addEventListener('alpine:init', function() {
                     </div>
                     <div class="flex items-center gap-3 w-full sm:w-auto flex-wrap sm:flex-nowrap">
                         <input type="text" x-model="search" placeholder="Search catalog..." class="w-full sm:w-64 pl-4 pr-4 py-2 bg-[var(--color-offwhite)] border border-[var(--color-bisque)] rounded-full text-xs font-sans focus:outline-none" />
-                        <button onclick="adminShowModal('modal-add-category')" class="bg-white border border-[var(--color-bisque)] hover:bg-gray-50 text-xs font-sans font-bold px-4 py-2 rounded-full shrink-0">
+                        <button type="button" onclick="document.getElementById('inline-add-category').classList.toggle('hidden'); document.getElementById('cat-inline-input')?.focus()" class="bg-white border border-[var(--color-bisque)] hover:bg-amber-50 text-xs font-sans font-bold px-4 py-2 rounded-full shrink-0">
                             + Category
                         </button>
                         <a href="/estilo-hq-console/products/create" class="bg-[var(--color-ebony)] hover:bg-[var(--color-rose-deep)] text-white text-xs font-sans font-bold px-4 py-2 rounded-full shrink-0 shadow-sm transition-all hover:scale-105 active:scale-95">
@@ -320,6 +336,18 @@ document.addEventListener('alpine:init', function() {
                         </form>
                     </div>
                     @endforeach
+                </div>
+
+                {{-- Inline Add Category (no modal, always works on mobile) --}}
+                <div id="inline-add-category" class="hidden p-3 sm:p-4 bg-amber-50/70 border border-amber-200 rounded-2xl">
+                    <form action="/estilo-hq-console/categories" method="POST" class="flex flex-col sm:flex-row gap-2">
+                        @csrf
+                        <input id="cat-inline-input" type="text" name="name" placeholder="e.g. Velvet Lehengas" required class="flex-1 bg-white border border-[var(--color-bisque)] rounded-xl px-4 py-2.5 text-xs font-sans focus:outline-none focus:border-amber-400" />
+                        <div class="flex gap-2 shrink-0">
+                            <button type="submit" class="flex-1 sm:flex-none bg-[var(--color-ebony)] text-white text-xs font-bold px-5 py-2.5 rounded-xl shadow-md">Create</button>
+                            <button type="button" onclick="document.getElementById('inline-add-category').classList.add('hidden')" class="bg-white border border-gray-200 text-xs font-bold px-4 py-2.5 rounded-xl">Cancel</button>
+                        </div>
+                    </form>
                 </div>
 
                 <div class="overflow-x-auto -mx-4 sm:mx-0 px-4 sm:px-0 scrollbar-thin">
@@ -406,6 +434,197 @@ document.addEventListener('alpine:init', function() {
                             @endforelse
                         </tbody>
                     </table>
+                </div>
+            </div>
+        </div>
+
+        {{-- TAB: HOMEPAGE CIRCLES (the round category bar) --}}
+        <div x-show="activeTab === 'homepage'" class="space-y-6">
+            <div class="bg-white rounded-3xl border border-[var(--color-bisque)] p-6 sm:p-8 shadow-sm space-y-6">
+                <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 border-b border-[var(--color-bisque)]/60 pb-3">
+                    <div>
+                        <h2 class="font-serif text-xl sm:text-2xl font-bold text-[var(--color-ebony)]">🏠 Homepage Circle Bar</h2>
+                        <p class="text-xs font-sans text-[var(--color-ebony)]/60">Only YOUR categories appear as circles on `/`. Rename, set photo or delete — live instantly. Leave photo empty to auto-use a product photo.</p>
+                    </div>
+                    <span class="text-[10px] font-bold bg-amber-50 border border-amber-200 text-amber-900 px-3 py-1 rounded-full">{{ $categories->count() }} Circles</span>
+                </div>
+
+                {{-- Add new category (becomes a circle) --}}
+                <form action="/estilo-hq-console/categories" method="POST" class="p-4 bg-[var(--color-champagne-light)]/40 rounded-2xl border border-[var(--color-bisque)] flex flex-col sm:flex-row gap-3 items-end">
+                    @csrf
+                    <div class="flex-1">
+                        <label class="block text-[10px] font-bold uppercase tracking-wider mb-1">New Category Name *</label>
+                        <input type="text" name="name" placeholder="e.g. Party Wear" required class="w-full bg-white border border-[var(--color-bisque)] rounded-xl px-3 py-2 text-xs font-sans focus:outline-none focus:border-amber-400" />
+                    </div>
+                    <button type="submit" class="bg-[var(--color-ebony)] hover:bg-black text-white text-xs font-bold px-5 py-2.5 rounded-full shrink-0">+ Add Category</button>
+                </form>
+
+                {{-- Current categories as circles --}}
+                <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4">
+                    @forelse($categories as $cat)
+                    @php
+                        $catWords = array_filter(preg_split('/[\s&\/-]+/', strtolower($cat->name)), fn($w) => strlen($w) >= 3);
+                        $catProd = null;
+                        foreach ($catWords as $w) {
+                            $catProd = \App\Models\Product::where('category', 'LIKE', '%' . $w . '%')->orderBy('created_at', 'desc')->first();
+                            if ($catProd) break;
+                        }
+                        $catImgs = $catProd ? (is_array($catProd->images) ? $catProd->images : []) : [];
+                        $catPhoto = $cat->image ?: ($catImgs[0] ?? '/images/circles/default.jpg');
+                        $catCount = \App\Models\Product::where(function($q) use ($catWords) { foreach ($catWords as $w) { $q->orWhere('category', 'LIKE', '%' . $w . '%'); } })->count();
+                    @endphp
+                    <div class="bg-white border border-[var(--color-bisque)] rounded-2xl p-3 space-y-2 shadow-sm">
+                        <img src="{{ $catPhoto }}" alt="{{ $cat->name }}" class="w-20 h-20 mx-auto rounded-full object-cover border-2 border-[var(--color-bisque)]" />
+                        <p class="text-xs font-bold text-center text-[var(--color-ebony)]">{{ $cat->name }}</p>
+                        <p class="text-[10px] text-center text-gray-500 font-mono">{{ $catCount }} products</p>
+                        <form action="/estilo-hq-console/categories/{{ $cat->id }}/photo" method="POST" enctype="multipart/form-data" class="space-y-1">
+                            @csrf
+                            <input type="text" name="name" value="{{ $cat->name }}" class="w-full border border-gray-200 rounded-lg px-2 py-1 text-xs" />
+                            <input type="file" name="image" accept="image/*" class="w-full text-[10px]" />
+                            <input type="text" name="image_url" placeholder="New photo URL (optional)" class="w-full border border-gray-200 rounded-lg px-2 py-1 text-xs mt-1" />
+                            <div class="grid grid-cols-2 gap-2">
+                                <select name="fit_mode" class="border border-gray-200 rounded-lg px-2 py-1 text-xs font-bold" title="Photo fit"><option value="cover" {{ ($slide->fit_mode ?? 'cover') === 'cover' ? 'selected' : '' }}>Cover (crop)</option><option value="contain" {{ ($slide->fit_mode ?? '') === 'contain' ? 'selected' : '' }}>Contain (full)</option></select>
+                                <select name="object_pos" class="border border-gray-200 rounded-lg px-2 py-1 text-xs" title="Focus"><option value="object-[center_top] sm:object-[center_top] md:object-[center_top]">Focus: Top</option><option value="object-center" {{ ($slide->object_pos ?? '') === 'object-center' ? 'selected' : '' }}>Focus: Center</option></select>
+                            </div>
+                            <button type="submit" class="w-full bg-amber-500 hover:bg-amber-600 text-white text-xs font-bold py-1 rounded-lg">Update</button>
+                        </form>
+                        <form action="/estilo-hq-console/categories/{{ $cat->id }}" method="POST" onsubmit="return confirm('Delete {{ $cat->name }} circle? Products stay, only the circle is removed.')">
+                            @csrf
+                            @method('DELETE')
+                            <button type="submit" class="w-full bg-rose-50 hover:bg-rose-100 text-rose-700 text-xs font-bold py-1 rounded-lg border border-rose-200">Remove</button>
+                        </form>
+                    </div>
+                    @empty
+                    <p class="text-xs text-gray-500 col-span-5 p-6 text-center border border-dashed rounded-2xl">No categories yet — add your first above.</p>
+                    @endforelse
+                </div>
+            </div>
+
+            {{-- Hero banner slideshow manager --}}
+            <div class="bg-white rounded-3xl border border-[var(--color-bisque)] p-6 sm:p-8 shadow-sm space-y-6">
+                <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 border-b border-[var(--color-bisque)]/60 pb-3">
+                    <div>
+                        <h2 class="font-serif text-xl sm:text-2xl font-bold text-[var(--color-ebony)]">🎬 Homepage Hero Banner</h2>
+                        <p class="text-xs font-sans text-[var(--color-ebony)]/60">Big slideshow on `/` — change photo, titles, description & buttons anytime. Uncheck Active to hide a slide.</p>
+                    </div>
+                    <span class="text-[10px] font-bold bg-amber-50 border border-amber-200 text-amber-900 px-3 py-1 rounded-full">{{ $heroSlides->count() }} Slides</span>
+                </div>
+
+                {{-- Add new slide --}}
+                <form action="/estilo-hq-console/hero-slides" method="POST" enctype="multipart/form-data" class="p-4 bg-[var(--color-champagne-light)]/40 rounded-2xl border border-[var(--color-bisque)] grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    @csrf
+                    <div class="sm:col-span-2">
+                        <label class="block text-[10px] font-bold uppercase tracking-wider mb-1">Small Top Tag *</label>
+                        <input type="text" name="tag" placeholder="e.g. LUXURY SILK EDIT" class="w-full bg-white border border-[var(--color-bisque)] rounded-xl px-3 py-2 text-xs" />
+                    </div>
+                    <div><label class="block text-[10px] font-bold uppercase tracking-wider mb-1">Big Title Line 1 *</label><input type="text" name="title1" placeholder="Royal" required class="w-full bg-white border border-[var(--color-bisque)] rounded-xl px-3 py-2 text-xs" /></div>
+                    <div><label class="block text-[10px] font-bold uppercase tracking-wider mb-1">Title Line 2 (pink)</label><input type="text" name="title2" placeholder="Banarasi" class="w-full bg-white border border-[var(--color-bisque)] rounded-xl px-3 py-2 text-xs" /></div>
+                    <div><label class="block text-[10px] font-bold uppercase tracking-wider mb-1">Title Line 3</label><input type="text" name="title3" placeholder="Sarees" class="w-full bg-white border border-[var(--color-bisque)] rounded-xl px-3 py-2 text-xs" /></div>
+                    <div><label class="block text-[10px] font-bold uppercase tracking-wider mb-1">Order</label><input type="number" name="sort_order" value="{{ $heroSlides->count() + 1 }}" class="w-full bg-white border border-[var(--color-bisque)] rounded-xl px-3 py-2 text-xs" /></div>
+                    <div class="sm:col-span-2"><label class="block text-[10px] font-bold uppercase tracking-wider mb-1">Description</label><textarea name="description" rows="2" placeholder="Pure silk mark certified sarees featuring..." class="w-full bg-white border border-[var(--color-bisque)] rounded-xl px-3 py-2 text-xs"></textarea></div>
+                    <div><label class="block text-[10px] font-bold uppercase tracking-wider mb-1">Photo (upload or URL)</label><input type="file" name="image" accept="image/*" class="w-full text-xs" /><input type="text" name="image_url" placeholder="https://... (optional)" class="w-full mt-1 bg-white border border-[var(--color-bisque)] rounded-lg px-3 py-1 text-xs" /></div>
+                    <div class="grid grid-cols-2 gap-2">
+                        <div><label class="block text-[10px] font-bold uppercase tracking-wider mb-1">Photo Fit</label><select name="fit_mode" class="w-full bg-white border border-[var(--color-bisque)] rounded-xl px-3 py-2 text-xs font-bold"><option value="cover">Cover (fill, may crop)</option><option value="contain">Contain (full photo)</option></select></div>
+                        <div><label class="block text-[10px] font-bold uppercase tracking-wider mb-1">Focus</label><select name="object_pos" class="w-full bg-white border border-[var(--color-bisque)] rounded-xl px-3 py-2 text-xs"><option value="object-[center_top] sm:object-[center_top] md:object-[center_top]">Top</option><option value="object-center">Center</option></select></div>
+                    </div>
+                    <div class="grid grid-cols-2 gap-2">
+                        <div><label class="block text-[10px] font-bold uppercase tracking-wider mb-1">Button Text</label><input type="text" name="btn_text" value="Shop Now" class="w-full bg-white border border-[var(--color-bisque)] rounded-xl px-3 py-2 text-xs" /></div>
+                        <div><label class="block text-[10px] font-bold uppercase tracking-wider mb-1">Button Link</label><input type="text" name="btn_link" value="/shop" class="w-full bg-white border border-[var(--color-bisque)] rounded-xl px-3 py-2 text-xs" /></div>
+                        <div><label class="block text-[10px] font-bold uppercase tracking-wider mb-1">Small Link Text</label><input type="text" name="sub_text" value="View New Arrivals" class="w-full bg-white border border-[var(--color-bisque)] rounded-xl px-3 py-2 text-xs" /></div>
+                        <div><label class="block text-[10px] font-bold uppercase tracking-wider mb-1">Small Link URL</label><input type="text" name="sub_link" value="/shop?filter=new" class="w-full bg-white border border-[var(--color-bisque)] rounded-xl px-3 py-2 text-xs" /></div>
+                    </div>
+                    <label class="flex items-center gap-2 text-xs font-bold sm:col-span-2"><input type="checkbox" name="is_active" checked class="accent-emerald-600" /> Active (visible on homepage)</label>
+                    <button type="submit" class="bg-[var(--color-ebony)] hover:bg-black text-white text-xs font-bold px-5 py-2.5 rounded-full shrink-0 sm:col-span-2">+ Add Slide</button>
+                </form>
+
+                {{-- Existing slides --}}
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                    @forelse($heroSlides as $slide)
+                    <div class="border border-[var(--color-bisque)] rounded-2xl overflow-hidden shadow-sm {{ $slide->is_active ? 'bg-white' : 'bg-gray-50 opacity-75' }}">
+                        <img src="{{ $slide->image }}" alt="{{ $slide->title1 }}" class="w-full h-40 object-cover" />
+                        <form action="/estilo-hq-console/hero-slides/{{ $slide->id }}" method="POST" enctype="multipart/form-data" class="p-3 space-y-2">
+                            @csrf
+                            <div class="grid grid-cols-3 gap-2">
+                                <input type="text" name="title1" value="{{ $slide->title1 }}" class="border border-gray-200 rounded-lg px-2 py-1 text-xs font-bold" />
+                                <input type="text" name="title2" value="{{ $slide->title2 }}" class="border border-gray-200 rounded-lg px-2 py-1 text-xs" />
+                                <input type="text" name="title3" value="{{ $slide->title3 }}" class="border border-gray-200 rounded-lg px-2 py-1 text-xs" />
+                            </div>
+                            <input type="text" name="tag" value="{{ $slide->tag }}" class="w-full border border-gray-200 rounded-lg px-2 py-1 text-xs" />
+                            <textarea name="description" rows="2" class="w-full border border-gray-200 rounded-lg px-2 py-1 text-xs">{{ $slide->description }}</textarea>
+                            <input type="file" name="image" accept="image/*" class="w-full text-[10px]" />
+                            <input type="text" name="image_url" placeholder="New photo URL (optional)" class="w-full border border-gray-200 rounded-lg px-2 py-1 text-xs" />
+                            <div class="grid grid-cols-2 gap-2">
+                                <input type="text" name="btn_text" value="{{ $slide->btn_text }}" class="border border-gray-200 rounded-lg px-2 py-1 text-xs" />
+                                <input type="text" name="btn_link" value="{{ $slide->btn_link }}" class="border border-gray-200 rounded-lg px-2 py-1 text-xs" />
+                                <input type="text" name="sub_text" value="{{ $slide->sub_text }}" class="border border-gray-200 rounded-lg px-2 py-1 text-xs" />
+                                <input type="text" name="sub_link" value="{{ $slide->sub_link }}" class="border border-gray-200 rounded-lg px-2 py-1 text-xs" />
+                            </div>
+                            <div class="flex items-center gap-2">
+                                <input type="number" name="sort_order" value="{{ $slide->sort_order }}" class="w-16 border border-gray-200 rounded-lg px-2 py-1 text-xs" title="Order" />
+                                <label class="flex items-center gap-1 text-xs font-bold"><input type="checkbox" name="is_active" {{ $slide->is_active ? 'checked' : '' }} class="accent-emerald-600" /> Active</label>
+                                <button type="submit" class="flex-1 bg-amber-500 hover:bg-amber-600 text-white text-xs font-bold py-1 rounded-lg">Update</button>
+                            </div>
+                        </form>
+                        <form action="/estilo-hq-console/hero-slides/{{ $slide->id }}" method="POST" onsubmit="return confirm('Delete this slide?')" class="px-3 pb-3">
+                            @csrf
+                            @method('DELETE')
+                            <button type="submit" class="w-full bg-rose-50 hover:bg-rose-100 text-rose-700 text-xs font-bold py-1 rounded-lg border border-rose-200">Remove</button>
+                        </form>
+                    </div>
+                    @empty
+                    <p class="text-xs text-gray-500 p-6 text-center border border-dashed rounded-2xl col-span-2">No slides — homepage shows defaults. Add your first above.</p>
+                    @endforelse
+                </div>
+            </div>
+        </div>
+
+            {{-- Shop By Occasion cards manager --}}
+            <div class="bg-white rounded-3xl border border-[var(--color-bisque)] p-6 sm:p-8 shadow-sm space-y-6">
+                <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 border-b border-[var(--color-bisque)]/60 pb-3">
+                    <div>
+                        <h2 class="font-serif text-xl sm:text-2xl font-bold text-[var(--color-ebony)]">🎭 Shop By Occasion Cards</h2>
+                        <p class="text-xs font-sans text-[var(--color-ebony)]/60">Cards on `/` link to <code>/shop?occasion=&lt;name&gt;</code>. Name should match a product occasion (e.g. Festive Wear) for results.</p>
+                    </div>
+                    <span class="text-[10px] font-bold bg-amber-50 border border-amber-200 text-amber-900 px-3 py-1 rounded-full">{{ $homeOccasions->count() }} Cards</span>
+                </div>
+
+                {{-- Add new occasion card --}}
+                <form action="/estilo-hq-console/occasions" method="POST" enctype="multipart/form-data" class="p-4 bg-[var(--color-champagne-light)]/40 rounded-2xl border border-[var(--color-bisque)] flex flex-col sm:flex-row gap-3 items-end">
+                    @csrf
+                    <div class="flex-1">
+                        <label class="block text-[10px] font-bold uppercase tracking-wider mb-1">Occasion Name *</label>
+                        <input type="text" name="name" placeholder="e.g. Haldi Ceremony" required class="w-full bg-white border border-[var(--color-bisque)] rounded-xl px-3 py-2 text-xs font-sans focus:outline-none focus:border-amber-400" />
+                    </div>
+                    <div class="flex-1">
+                        <label class="block text-[10px] font-bold uppercase tracking-wider mb-1">Photo (upload or URL)</label>
+                        <input type="file" name="image" accept="image/*" class="w-full text-xs file:mr-2 file:py-1.5 file:px-3 file:rounded-full file:border-0 file:bg-black file:text-white file:text-xs" />
+                        <input type="text" name="image_url" placeholder="https://... (optional)" class="w-full mt-1 bg-white border border-[var(--color-bisque)] rounded-lg px-3 py-1 text-xs" />
+                    </div>
+                    <button type="submit" class="bg-[var(--color-ebony)] hover:bg-black text-white text-xs font-bold px-5 py-2.5 rounded-full shrink-0">+ Add Card</button>
+                </form>
+
+                {{-- Current occasion cards --}}
+                <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4">
+                    @forelse($homeOccasions as $occ)
+                    <div class="bg-white border border-[var(--color-bisque)] rounded-2xl p-3 space-y-2 shadow-sm">
+                        <img src="{{ $occ->url }}" alt="{{ $occ->alt_text }}" class="w-full h-28 object-cover rounded-xl" />
+                        <p class="text-xs font-bold text-center text-[var(--color-ebony)]">{{ $occ->name }}</p>
+                        <form action="/estilo-hq-console/occasions/{{ $occ->id }}" method="POST" enctype="multipart/form-data" class="space-y-1">
+                            @csrf
+                            <input type="text" name="name" value="{{ $occ->name }}" class="w-full border border-gray-200 rounded-lg px-2 py-1 text-xs" />
+                            <input type="file" name="image" accept="image/*" class="w-full text-[10px]" />
+                            <input type="text" name="image_url" placeholder="New photo URL" class="w-full border border-gray-200 rounded-lg px-2 py-1 text-xs mt-1" />
+                            <button type="submit" class="w-full bg-amber-500 hover:bg-amber-600 text-white text-xs font-bold py-1 rounded-lg">Update</button>
+                        </form>
+                        <form action="/estilo-hq-console/occasions/{{ $occ->id }}" method="POST" onsubmit="return confirm('Delete {{ $occ->name }}?')">
+                            @csrf
+                            @method('DELETE')
+                            <button type="submit" class="w-full bg-rose-50 hover:bg-rose-100 text-rose-700 text-xs font-bold py-1 rounded-lg border border-rose-200">Remove</button>
+                        </form>
+                    </div>
+                    @empty
+                    <p class="text-xs text-gray-500 col-span-5 p-6 text-center border border-dashed rounded-2xl">No occasion cards — add your first above.</p>
+                    @endforelse
                 </div>
             </div>
         </div>
@@ -1469,24 +1688,42 @@ document.addEventListener('alpine:init', function() {
                     </div>
                 </div>
 
-                {{-- Size-Wise Stock Inventory Configuration --}}
-                <div class="space-y-2 p-4 bg-[var(--color-champagne-light)]/40 rounded-2xl border border-[var(--color-bisque)]">
-                    <div class="flex items-center justify-between">
+                {{-- Size-Wise Stock Inventory Configuration — now with Free Size toggle for Sarees --}}
+                <div class="space-y-3 p-3 sm:p-4 bg-[var(--color-champagne-light)]/40 rounded-2xl border border-[var(--color-bisque)]">
+                    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
                         <label class="block text-xs font-sans font-bold text-[var(--color-ebony)] uppercase tracking-wider">
-                            Stock Quantity Per Size (XS, S, M, L, XL, XXL)
+                            Stock Quantity Per Size
                         </label>
-                        <span class="text-[10.5px] font-bold text-emerald-900 bg-emerald-100 border border-emerald-300 px-2.5 py-0.5 rounded-full"
+                        <span class="text-[10.5px] font-bold text-emerald-900 bg-emerald-100 border border-emerald-300 px-2.5 py-0.5 rounded-full self-start sm:self-auto"
                               x-text="'Total: ' + (Object.values(selectedProduct.size_stock || {}).reduce((acc, val) => Number(acc) + Number(val || 0), 0)) + ' Units In Stock'">
                         </span>
                     </div>
-                    <p class="text-[10px] text-gray-500 font-sans">Adjust quantity for each garment size:</p>
-                    <div class="grid grid-cols-3 sm:grid-cols-6 gap-2.5 pt-1">
-                        <template x-for="sz in ['XS', 'S', 'M', 'L', 'XL', 'XXL']" :key="sz">
-                            <div class="bg-white p-2 rounded-xl border border-[var(--color-bisque)] text-center space-y-1 shadow-xs">
-                                <span class="block text-[11px] font-bold font-mono text-[var(--color-ebony)]" x-text="sz"></span>
-                                <input type="number" min="0" :name="'size_stock[' + sz + ']'" x-model="selectedProduct.size_stock[sz]" class="w-full bg-[var(--color-offwhite)] border border-gray-200 rounded-lg py-1.5 text-center text-xs font-bold font-mono focus:outline-none focus:border-[var(--color-rose-antique)]" />
-                            </div>
-                        </template>
+                    {{-- Toggle Free Size / Standard --}}
+                    <div class="grid grid-cols-2 gap-2 p-1 bg-white rounded-xl border border-[var(--color-bisque)]">
+                        <button type="button" @click="editSizeMode='freesize'; selectedProduct.size_stock={'Free Size': (selectedProduct.size_stock['Free Size']||6)}"
+                                :class="editSizeMode==='freesize' ? 'bg-[var(--color-ebony)] text-white font-bold shadow-sm' : 'text-gray-600 hover:text-[var(--color-ebony)]'"
+                                class="py-2 px-2 rounded-lg text-xs font-sans flex items-center justify-center gap-1">🥻 Free Size</button>
+                        <button type="button" @click="editSizeMode='apparel'; let cur=Object.values(selectedProduct.size_stock||{})[0]||2; selectedProduct.size_stock={XS:2,S:2,M:4,L:2,XL:3,XXL:2}"
+                                :class="editSizeMode==='apparel' ? 'bg-[var(--color-ebony)] text-white font-bold shadow-sm' : 'text-gray-600 hover:text-[var(--color-ebony)]'"
+                                class="py-2 px-2 rounded-lg text-xs font-sans flex items-center justify-center gap-1">👗 Standard (XS-XXL)</button>
+                    </div>
+                    <div x-show="editSizeMode==='freesize'" class="space-y-2">
+                        <p class="text-[10px] text-gray-500 font-sans">Universal for Sarees, Dupattas, Shawls (5.5m + blouse)</p>
+                        <div class="flex flex-col sm:flex-row sm:items-center gap-2">
+                            <label class="text-xs font-bold text-gray-700 shrink-0">Warehouse Stock (Free Size):</label>
+                            <input type="number" min="0" name="size_stock[Free Size]" x-model="selectedProduct.size_stock['Free Size']" class="w-full sm:w-28 bg-white border border-gray-200 rounded-lg py-2 px-3 text-center text-xs font-bold font-mono" />
+                        </div>
+                    </div>
+                    <div x-show="editSizeMode==='apparel'" class="space-y-2">
+                        <p class="text-[10px] text-gray-500 font-sans">Adjust quantity for each stitched size:</p>
+                        <div class="grid grid-cols-3 sm:grid-cols-6 gap-2.5 pt-1">
+                            <template x-for="sz in ['XS', 'S', 'M', 'L', 'XL', 'XXL']" :key="sz">
+                                <div class="bg-white p-2 rounded-xl border border-[var(--color-bisque)] text-center space-y-1 shadow-xs">
+                                    <span class="block text-[11px] font-bold font-mono text-[var(--color-ebony)]" x-text="sz"></span>
+                                    <input type="number" min="0" :name="'size_stock[' + sz + ']'" x-model="selectedProduct.size_stock[sz]" class="w-full bg-[var(--color-offwhite)] border border-gray-200 rounded-lg py-1.5 text-center text-xs font-bold font-mono focus:outline-none focus:border-[var(--color-rose-antique)]" />
+                                </div>
+                            </template>
+                        </div>
                     </div>
                 </div>
 

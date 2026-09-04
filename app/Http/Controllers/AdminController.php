@@ -55,6 +55,8 @@ class AdminController extends Controller
             ->get();
         $announcements = Announcement::orderBy('sort_order', 'asc')->latest()->get();
         $referralSales = ReferralSale::with('associate')->latest()->get();
+        $heroSlides = \App\Models\HeroSlide::orderBy('sort_order')->orderBy('id')->get();
+        $homeOccasions = \App\Models\Image::where('category', 'occasion')->orderBy('sort_order')->orderBy('id')->get();
 
         // Key KPI Metrics
         $totalRevenue = $orders->where('status', '!=', 'cancelled')->sum('total');
@@ -90,7 +92,9 @@ class AdminController extends Controller
             'inStockCount',
             'totalAssociatesCount',
             'totalCommissionPaid',
-            'monthlyReports'
+            'monthlyReports',
+            'heroSlides',
+            'homeOccasions'
         ));
     }
 
@@ -405,6 +409,159 @@ class AdminController extends Controller
         $request->validate(['fabric' => 'required|string']);
         $count = Product::where('fabric', $request->fabric)->update(['fabric' => 'Handloom Artisanal']);
         return redirect($this->adminBaseUrl('inventory'))->with('success', "Fabric '{$request->fabric}' removed from {$count} product(s).");
+    }
+
+    /**
+     * Homepage hero slideshow CRUD (big banner on `/`).
+     */
+    public function storeHeroSlide(Request $request)
+    {
+        $request->validate([
+            'title1' => 'required|string|max:100',
+            'image' => 'nullable|image|mimes:jpeg,png,jpg,webp|max:10240',
+            'image_url' => 'nullable|string|max:500',
+        ]);
+        $image = '/hero/hero-main.jpg';
+        if ($request->hasFile('image')) {
+            $path = $request->file('image')->store('hero', 'public');
+            $image = '/storage/' . $path;
+        } elseif ($request->filled('image_url')) {
+            $image = trim($request->image_url);
+        }
+        \App\Models\HeroSlide::create([
+            'tag' => trim($request->input('tag', '')),
+            'title1' => trim($request->title1),
+            'title2' => trim($request->input('title2', '')),
+            'title3' => trim($request->input('title3', '')),
+            'description' => trim($request->input('description', '')),
+            'image' => $image,
+            'object_pos' => trim($request->input('object_pos', 'object-[center_top] sm:object-[center_top] md:object-[center_top]')),
+            'fit_mode' => $request->input('fit_mode', 'cover') === 'contain' ? 'contain' : 'cover',
+            'btn_text' => trim($request->input('btn_text', 'Shop Now')),
+            'btn_link' => trim($request->input('btn_link', '/shop')),
+            'sub_text' => trim($request->input('sub_text', 'View New Arrivals')),
+            'sub_link' => trim($request->input('sub_link', '/shop?filter=new')),
+            'sort_order' => (int) $request->input('sort_order', (int) \App\Models\HeroSlide::max('sort_order') + 1),
+            'is_active' => $request->has('is_active'),
+        ]);
+        return redirect($this->adminBaseUrl('homepage'))->with('success', '🎬 New hero banner slide added to homepage.');
+    }
+
+    public function updateHeroSlide(Request $request, $id)
+    {
+        $slide = \App\Models\HeroSlide::findOrFail($id);
+        $request->validate(['title1' => 'required|string|max:100']);
+        $data = [
+            'tag' => trim($request->input('tag', $slide->tag)),
+            'title1' => trim($request->title1),
+            'title2' => trim($request->input('title2', $slide->title2)),
+            'title3' => trim($request->input('title3', $slide->title3)),
+            'description' => trim($request->input('description', $slide->description)),
+            'object_pos' => trim($request->input('object_pos', $slide->object_pos)),
+            'fit_mode' => $request->input('fit_mode', $slide->fit_mode) === 'contain' ? 'contain' : 'cover',
+            'btn_text' => trim($request->input('btn_text', $slide->btn_text)),
+            'btn_link' => trim($request->input('btn_link', $slide->btn_link)),
+            'sub_text' => trim($request->input('sub_text', $slide->sub_text)),
+            'sub_link' => trim($request->input('sub_link', $slide->sub_link)),
+            'sort_order' => (int) $request->input('sort_order', $slide->sort_order),
+            'is_active' => $request->has('is_active'),
+        ];
+        if ($request->hasFile('image')) {
+            $path = $request->file('image')->store('hero', 'public');
+            $data['image'] = '/storage/' . $path;
+        } elseif ($request->filled('image_url')) {
+            $data['image'] = trim($request->image_url);
+        }
+        $slide->update($data);
+        return redirect($this->adminBaseUrl('homepage'))->with('success', "🎬 Hero slide '{$data['title1']}' updated.");
+    }
+
+    public function deleteHeroSlide($id)
+    {
+        $slide = \App\Models\HeroSlide::findOrFail($id);
+        $slide->delete();
+        return redirect($this->adminBaseUrl('homepage'))->with('success', 'Hero slide removed.');
+    }
+
+    /**
+     * Shop By Occasion cards (homepage) — Image rows with category=occasion.
+     * Card links to /shop?occasion=<name>; shop fuzzy-matches it.
+     */
+    public function storeHomeOccasion(Request $request)
+    {
+        $request->validate([
+            'name' => 'required|string|max:100',
+            'image' => 'nullable|image|mimes:jpeg,png,jpg,webp|max:10240',
+            'image_url' => 'nullable|string|max:500',
+        ]);
+        $name = trim($request->name);
+        $url = '/images/occasions/default.jpg';
+        if ($request->hasFile('image')) {
+            $path = $request->file('image')->store('occasions', 'public');
+            $url = '/storage/' . $path;
+        } elseif ($request->filled('image_url')) {
+            $url = trim($request->image_url);
+        }
+        \App\Models\Image::create([
+            'name' => $name,
+            'slug' => 'occasion-' . Str::slug($name) . '-' . time(),
+            'url' => $url,
+            'category' => 'occasion',
+            'section' => 'home-occasions',
+            'alt_text' => $name,
+            'sort_order' => (int) \App\Models\Image::where('category', 'occasion')->max('sort_order') + 1,
+            'is_active' => true,
+        ]);
+        return redirect($this->adminBaseUrl('homepage'))->with('success', "Occasion '{$name}' added to homepage.");
+    }
+
+    public function updateHomeOccasion(Request $request, $id)
+    {
+        $occ = \App\Models\Image::where('category', 'occasion')->findOrFail($id);
+        $request->validate([
+            'name' => 'required|string|max:100',
+            'image' => 'nullable|image|mimes:jpeg,png,jpg,webp|max:10240',
+            'image_url' => 'nullable|string|max:500',
+        ]);
+        $data = ['name' => trim($request->name), 'alt_text' => trim($request->name)];
+        if ($request->hasFile('image')) {
+            $path = $request->file('image')->store('occasions', 'public');
+            $data['url'] = '/storage/' . $path;
+        } elseif ($request->filled('image_url')) {
+            $data['url'] = trim($request->image_url);
+        }
+        $occ->update($data);
+        return redirect($this->adminBaseUrl('homepage'))->with('success', "Occasion '{$data['name']}' updated.");
+    }
+
+    public function deleteHomeOccasion($id)
+    {
+        $occ = \App\Models\Image::where('category', 'occasion')->findOrFail($id);
+        $name = $occ->name;
+        $occ->delete();
+        return redirect($this->adminBaseUrl('homepage'))->with('success', "Occasion '{$name}' removed.");
+    }
+
+    /**
+     * Homepage circle = admin Category. Update its name + circle photo here.
+     */
+    public function updateCategoryPhoto(Request $request, $id)
+    {
+        $cat = Category::findOrFail($id);
+        $request->validate([
+            'name' => 'required|string|max:255',
+            'image' => 'nullable|image|mimes:jpeg,png,jpg,webp|max:5120',
+            'image_url' => 'nullable|string|max:500',
+        ]);
+        $data = ['name' => trim($request->name), 'slug' => Str::slug($request->name)];
+        if ($request->hasFile('image')) {
+            $path = $request->file('image')->store('categories', 'public');
+            $data['image'] = '/storage/' . $path;
+        } elseif ($request->filled('image_url')) {
+            $data['image'] = trim($request->image_url);
+        }
+        $cat->update($data);
+        return redirect($this->adminBaseUrl('homepage'))->with('success', "Circle '{$data['name']}' updated.");
     }
 
     /**

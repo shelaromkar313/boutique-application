@@ -9,6 +9,9 @@
     <meta name="csrf-token" content="{{ csrf_token() }}">
 
     <title>@yield('title', 'ESTILO WEAR | Slay Every Look')</title>
+    <!-- Favicon — EW logo in Chrome tab (top of browser) -->
+    <link rel="icon" type="image/jpeg" href="/favicon.jpg">
+    <link rel="apple-touch-icon" href="/favicon.jpg">
     
     <!-- Preload Hero Image for Instant Render -->
     <link rel="preload" as="image" href="/storage/hero/hero-main.jpg" fetchpriority="high">

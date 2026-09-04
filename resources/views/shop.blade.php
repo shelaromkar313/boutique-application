@@ -282,6 +282,7 @@ function shopPage(products, meta) {
         selectedSizes:      [],
         priceRange:       25000,
         sortBy:           new URLSearchParams(window.location.search).get('filter') === 'new' ? 'newest' : 'featured',
+        newOnly: new URLSearchParams(window.location.search).get('filter') === 'new',
         saleOnly: new URLSearchParams(window.location.search).get('sale') === 'true',
         mobileFilterOpen: false,
         gridColumns:      3,
@@ -301,6 +302,7 @@ function shopPage(products, meta) {
             this.selectedOccasions  = [];
             this.selectedSizes      = [];
             this.saleOnly           = false;
+            this.newOnly            = false;
             this.priceRange         = 25000;
             // Clear URL search param if present without full reload
             if (window.history.pushState) {
@@ -314,18 +316,29 @@ function shopPage(products, meta) {
 
             return this.products.filter(p => {
                 // Search query match across product name, category, fabric, occasion, and colors
+                // Multi-word queries match if ANY meaningful word hits (e.g. "Designer Sarees" finds all sarees)
                 if (query) {
-                    const nameMatch = (p.name || '').toLowerCase().includes(query);
-                    const catMatch = (p.category || '').toLowerCase().includes(query);
-                    const fabricMatch = (p.fabric || '').toLowerCase().includes(query);
-                    const occasionMatch = (p.occasion || '').toLowerCase().includes(query);
-                    const colorMatch = (p.colors || []).some(c => (c.name || '').toLowerCase().includes(query));
-                    if (!nameMatch && !catMatch && !fabricMatch && !occasionMatch && !colorMatch) {
+                    const hay = [
+                        p.name || '', p.category || '', p.fabric || '', p.occasion || '',
+                        (p.colors || []).map(c => c.name || '').join(' ')
+                    ].join(' ').toLowerCase();
+                    const words = query.split(/\s+/).filter(w => w.length >= 3);
+                    const terms = words.length ? words : [query];
+                    if (!terms.some(t => hay.includes(t))) {
                         return false;
                     }
                 }
 
-                if (this.selectedCategories.length && !this.selectedCategories.some(c => p.category.toLowerCase().includes(c.toLowerCase()))) return false;
+                // New Arrivals circle: /shop?filter=new shows only new arrivals
+                if (this.newOnly && !p.isNewArrival) return false;
+
+                // Category match is word-based so circle links like "Designer Sarees" find all sarees
+                if (this.selectedCategories.length && !this.selectedCategories.some(c => {
+                    const cat = (p.category || '').toLowerCase();
+                    const words = String(c || '').toLowerCase().split(/[\s&\/-]+/).filter(w => w.length >= 3);
+                    if (!words.length) return cat.includes(String(c || '').toLowerCase());
+                    return words.some(w => cat.includes(w));
+                })) return false;
                 if (this.selectedFabrics.length && !this.selectedFabrics.includes(p.fabric)) return false;
                 // Festive fix: /shop?occasion=Festive must match 'Festive Wear' + 'Festive / Wedding'
                 if (this.selectedOccasions.length && !this.selectedOccasions.some(o => {
