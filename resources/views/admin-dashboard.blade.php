@@ -122,58 +122,70 @@ document.addEventListener('alpine:init', function() {
 
             openEditProduct(p) {
                 this.selectedProduct = Object.assign({}, p);
-                // Pre-fill colors as comma-separated string
-                this.selectedProduct.colors_str = Array.isArray(p.colors)
-                    ? p.colors.map(c => (c && typeof c === 'object' ? (c.name || '') : c)).filter(Boolean).join(', ')
-                    : (p.colors || '');
 
-                // Parse size_stock from DB (may be JSON string)
+                // ── 1. Parse colors into a comma-separated string ──
+                let colorsStr = '';
+                if (Array.isArray(p.colors)) {
+                    colorsStr = p.colors.map(c => (c && typeof c === 'object' ? (c.name || '') : c)).filter(Boolean).join(', ');
+                } else if (typeof p.colors === 'string') {
+                    try { let ca = JSON.parse(p.colors); colorsStr = Array.isArray(ca) ? ca.map(c => typeof c === 'object' ? (c.name||'') : c).join(', ') : p.colors; }
+                    catch(e) { colorsStr = p.colors; }
+                }
+                this.selectedProduct.colors_str = colorsStr;
+
+                // ── 2. Parse size_stock ──
                 let stock = p.size_stock || {};
                 if (typeof stock === 'string') { try { stock = JSON.parse(stock); } catch(e) { stock = {}; } }
 
-                // Auto-detect: Free Size = Sarees/Dupattas/Shawls/Unstitched
-                // Apparel (XS-XXL) = Kurtis, Dresses, Anarkali, Co-Ord, Lehenga, Suits, etc.
+                // ── 3. Auto-detect Free Size vs Apparel ──
                 let isFree = false;
                 const catLower = String(p.category || p.occasion || '').toLowerCase();
-                const apparelKeywords = /kurti|dress|anarkali|lehenga|suit|co.ord|coord|set|gown|tunic|top|blouse|palazzo/;
-                const freesizeKeywords = /saree|sari|dupatta|shawl|unstitched/;
-
-                if (stock && typeof stock === 'object' && Object.keys(stock).length) {
-                    // Trust whatever keys are already stored in DB
-                    isFree = Object.keys(stock).some(k =>
-                        ['free size','freesize','one size','onesize','unstitched'].includes(String(k).toLowerCase().trim())
-                    );
-                } else if (freesizeKeywords.test(catLower)) {
-                    isFree = true;
-                } else if (apparelKeywords.test(catLower)) {
-                    isFree = false;
-                } else if (freesizeKeywords.test(catLower)) {
+                const freesizeRe = /saree|sari|dupatta|shawl|unstitched/;
+                if (stock && Object.keys(stock).length) {
+                    isFree = Object.keys(stock).some(k => ['free size','freesize','one size','onesize','unstitched'].includes(String(k).toLowerCase().trim()));
+                } else if (freesizeRe.test(catLower)) {
                     isFree = true;
                 }
-
                 this.editSizeMode = isFree ? 'freesize' : 'apparel';
 
+                // ── 4. Compute stock object ──
+                let finalStock = {};
                 if (isFree) {
-                    // Use actual stored free-size quantity, not a hardcoded 6
                     let freeQty = 0;
                     for (let k in stock) {
-                        if (['free size','freesize','one size','onesize','unstitched'].includes(String(k).toLowerCase().trim())) {
-                            freeQty = Number(stock[k] || 0);
-                        }
+                        if (['free size','freesize','one size','onesize','unstitched'].includes(String(k).toLowerCase().trim())) freeQty = Number(stock[k] || 0);
                     }
-                    if (freeQty === 0 && Object.keys(stock).length === 0) freeQty = 6;
-                    this.selectedProduct.size_stock = { 'Free Size': freeQty };
+                    if (!freeQty && !Object.keys(stock).length) freeQty = 6;
+                    finalStock = { 'Free Size': freeQty };
                 } else {
-                    // Use the ACTUAL stored per-size quantities — do NOT reset to defaults
-                    if (!stock || !Object.keys(stock).length) {
-                        // Only use defaults if product has NO stock data at all
-                        stock = { XS: 0, S: 0, M: 0, L: 0, XL: 0, XXL: 0 };
-                    }
-                    // Ensure all standard sizes exist (fill missing with 0, keep existing values)
-                    let fullStock = { XS: 0, S: 0, M: 0, L: 0, XL: 0, XXL: 0 };
-                    Object.keys(stock).forEach(k => { fullStock[k] = Number(stock[k] || 0); });
-                    this.selectedProduct.size_stock = fullStock;
+                    let base = { XS: 0, S: 0, M: 0, L: 0, XL: 0, XXL: 0 };
+                    Object.keys(stock).forEach(k => { base[k] = Number(stock[k] || 0); });
+                    finalStock = base;
                 }
+                this.selectedProduct.size_stock = finalStock;
+
+                // ── 5. Directly fill DOM fields (100% reliable, no Alpine timing issues) ──
+                var setVal = function(id, val) { var el = document.getElementById(id); if (el) el.value = val == null ? '' : val; };
+                // Set form action URL
+                var form = document.getElementById('edit-product-form');
+                if (form) form.action = '/estilo-hq-console/products/' + p.id;
+                setVal('edit-product-id', p.id);
+                setVal('edit-name', p.name || '');
+                setVal('edit-category', p.category || '');
+                setVal('edit-price', p.price || '');
+                setVal('edit-colors', colorsStr);
+                var descEl = document.getElementById('edit-description');
+                if (descEl) descEl.value = p.description || '';
+                // Fill free size input
+                setVal('edit-stock-freesize', finalStock['Free Size'] || 0);
+                // Fill per-size inputs (XS, S, M, L, XL, XXL)
+                ['XS','S','M','L','XL','XXL'].forEach(function(sz) {
+                    setVal('edit-stock-' + sz.toLowerCase(), finalStock[sz] || 0);
+                });
+                // Featured checkbox
+                var featCb = document.getElementById('edit-is-featured');
+                if (featCb) featCb.checked = !!p.is_featured;
+
                 adminShowModal('modal-edit-product');
             },
 
@@ -1722,21 +1734,23 @@ document.addEventListener('alpine:init', function() {
                 <button onclick="adminHideModal('modal-edit-product')" class="text-gray-400 hover:text-gray-600 text-lg">✕</button>
             </div>
 
-            <form :action="'/estilo-hq-console/products/' + selectedProduct.id" method="POST" enctype="multipart/form-data" class="space-y-4">
+            <form id="edit-product-form" action="/estilo-hq-console/products/0" method="POST" enctype="multipart/form-data" class="space-y-4">
                 @csrf
+                @method('PUT')
+                <input type="hidden" id="edit-product-id" name="_product_id" value="" />
                 <div>
                     <label class="block text-xs font-sans font-bold text-[var(--color-ebony)] uppercase tracking-wider mb-1">Product Title / Name</label>
-                    <input type="text" name="name" x-model="selectedProduct.name" required class="w-full bg-[var(--color-offwhite)] border border-[var(--color-bisque)] rounded-xl px-4 py-2.5 text-xs font-sans" />
+                    <input type="text" id="edit-name" name="name" required class="w-full bg-[var(--color-offwhite)] border border-[var(--color-bisque)] rounded-xl px-4 py-2.5 text-xs font-sans" />
                 </div>
 
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
                         <label class="block text-xs font-sans font-bold text-[var(--color-ebony)] uppercase tracking-wider mb-1">Category</label>
-                        <input type="text" name="category" x-model="selectedProduct.category" required class="w-full bg-[var(--color-offwhite)] border border-[var(--color-bisque)] rounded-xl px-4 py-2.5 text-xs font-sans" />
+                        <input type="text" id="edit-category" name="category" required class="w-full bg-[var(--color-offwhite)] border border-[var(--color-bisque)] rounded-xl px-4 py-2.5 text-xs font-sans" />
                     </div>
                     <div>
                         <label class="block text-xs font-sans font-bold text-[var(--color-ebony)] uppercase tracking-wider mb-1">Customer Price (₹)</label>
-                        <input type="number" name="price" x-model="selectedProduct.price" required class="w-full bg-[var(--color-offwhite)] border border-[var(--color-bisque)] rounded-xl px-4 py-2.5 text-xs font-sans font-bold" />
+                        <input type="number" id="edit-price" name="price" required class="w-full bg-[var(--color-offwhite)] border border-[var(--color-bisque)] rounded-xl px-4 py-2.5 text-xs font-sans font-bold" />
                     </div>
                 </div>
 
@@ -1746,16 +1760,13 @@ document.addEventListener('alpine:init', function() {
                         <label class="block text-xs font-sans font-bold text-[var(--color-ebony)] uppercase tracking-wider">
                             Stock Quantity Per Size
                         </label>
-                        <span class="text-[10.5px] font-bold text-emerald-900 bg-emerald-100 border border-emerald-300 px-2.5 py-0.5 rounded-full self-start sm:self-auto"
-                              x-text="'Total: ' + (Object.values(selectedProduct.size_stock || {}).reduce((acc, val) => Number(acc) + Number(val || 0), 0)) + ' Units In Stock'">
-                        </span>
                     </div>
                     {{-- Toggle Free Size / Standard --}}
                     <div class="grid grid-cols-2 gap-2 p-1 bg-white rounded-xl border border-[var(--color-bisque)]">
-                        <button type="button" @click="editSizeMode='freesize'; selectedProduct.size_stock={'Free Size': (selectedProduct.size_stock['Free Size']||6)}"
+                        <button type="button" @click="editSizeMode='freesize'"
                                 :class="editSizeMode==='freesize' ? 'bg-[var(--color-ebony)] text-white font-bold shadow-sm' : 'text-gray-600 hover:text-[var(--color-ebony)]'"
                                 class="py-2 px-2 rounded-lg text-xs font-sans flex items-center justify-center gap-1">🥻 Free Size</button>
-                        <button type="button" @click="editSizeMode='apparel'; let cur=Object.values(selectedProduct.size_stock||{})[0]||2; selectedProduct.size_stock={XS:2,S:2,M:4,L:2,XL:3,XXL:2}"
+                        <button type="button" @click="editSizeMode='apparel'"
                                 :class="editSizeMode==='apparel' ? 'bg-[var(--color-ebony)] text-white font-bold shadow-sm' : 'text-gray-600 hover:text-[var(--color-ebony)]'"
                                 class="py-2 px-2 rounded-lg text-xs font-sans flex items-center justify-center gap-1">👗 Standard (XS-XXL)</button>
                     </div>
@@ -1763,25 +1774,29 @@ document.addEventListener('alpine:init', function() {
                         <p class="text-[10px] text-gray-500 font-sans">Universal for Sarees, Dupattas, Shawls (5.5m + blouse)</p>
                         <div class="flex flex-col sm:flex-row sm:items-center gap-2">
                             <label class="text-xs font-bold text-gray-700 shrink-0">Warehouse Stock (Free Size):</label>
-                            <input type="number" min="0" name="size_stock[Free Size]" x-model="selectedProduct.size_stock['Free Size']" class="w-full sm:w-28 bg-white border border-gray-200 rounded-lg py-2 px-3 text-center text-xs font-bold font-mono" />
+                            <input type="number" min="0" id="edit-stock-freesize" name="size_stock[Free Size]" class="w-full sm:w-28 bg-white border border-gray-200 rounded-lg py-2 px-3 text-center text-xs font-bold font-mono" />
                         </div>
                     </div>
                     <div x-show="editSizeMode==='apparel'" class="space-y-2">
                         <p class="text-[10px] text-gray-500 font-sans">Adjust quantity for each stitched size:</p>
                         <div class="grid grid-cols-3 sm:grid-cols-6 gap-2.5 pt-1">
-                            <template x-for="sz in ['XS', 'S', 'M', 'L', 'XL', 'XXL']" :key="sz">
-                                <div class="bg-white p-2 rounded-xl border border-[var(--color-bisque)] text-center space-y-1 shadow-xs">
-                                    <span class="block text-[11px] font-bold font-mono text-[var(--color-ebony)]" x-text="sz"></span>
-                                    <input type="number" min="0" :name="'size_stock[' + sz + ']'" x-model="selectedProduct.size_stock[sz]" class="w-full bg-[var(--color-offwhite)] border border-gray-200 rounded-lg py-1.5 text-center text-xs font-bold font-mono focus:outline-none focus:border-[var(--color-rose-antique)]" />
-                                </div>
-                            </template>
+                            @foreach(['XS','S','M','L','XL','XXL'] as $sz)
+                            <div class="bg-white p-2 rounded-xl border border-[var(--color-bisque)] text-center space-y-1 shadow-xs">
+                                <span class="block text-[11px] font-bold font-mono text-[var(--color-ebony)]">{{ $sz }}</span>
+                                <input type="number" min="0"
+                                       id="edit-stock-{{ strtolower($sz) }}"
+                                       name="size_stock[{{ $sz }}]"
+                                       value="0"
+                                       class="w-full bg-[var(--color-offwhite)] border border-gray-200 rounded-lg py-1.5 text-center text-xs font-bold font-mono focus:outline-none focus:border-[var(--color-rose-antique)]" />
+                            </div>
+                            @endforeach
                         </div>
                     </div>
                 </div>
 
                 <div>
                     <label class="block text-xs font-sans font-bold text-[var(--color-ebony)] uppercase tracking-wider mb-1">Color Palette (Comma Separated)</label>
-                    <input type="text" name="colors" x-model="selectedProduct.colors_str" class="w-full bg-[var(--color-offwhite)] border border-[var(--color-bisque)] rounded-xl px-4 py-2.5 text-xs font-sans" />
+                    <input type="text" id="edit-colors" name="colors" class="w-full bg-[var(--color-offwhite)] border border-[var(--color-bisque)] rounded-xl px-4 py-2.5 text-xs font-sans" />
                 </div>
 
                 <div>
@@ -1791,12 +1806,12 @@ document.addEventListener('alpine:init', function() {
 
                 <div>
                     <label class="block text-xs font-sans font-bold text-[var(--color-ebony)] uppercase tracking-wider mb-1">Description</label>
-                    <textarea name="description" x-model="selectedProduct.description" rows="3" required class="w-full bg-[var(--color-offwhite)] border border-[var(--color-bisque)] rounded-xl px-4 py-2.5 text-xs font-sans"></textarea>
+                    <textarea id="edit-description" name="description" rows="3" required class="w-full bg-[var(--color-offwhite)] border border-[var(--color-bisque)] rounded-xl px-4 py-2.5 text-xs font-sans"></textarea>
                 </div>
 
                 <div class="flex items-center gap-6 pt-1">
                     <label class="flex items-center gap-2 cursor-pointer text-xs font-bold text-gray-700">
-                        <input type="checkbox" name="is_featured" :checked="selectedProduct.is_featured" class="accent-[var(--color-rose-antique)]" /> Feature on Homepage
+                        <input type="checkbox" id="edit-is-featured" name="is_featured" class="accent-[var(--color-rose-antique)]" /> Feature on Homepage
                     </label>
                 </div>
 
