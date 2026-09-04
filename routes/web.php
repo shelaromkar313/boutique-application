@@ -101,7 +101,7 @@ $adminRoutes = function () {
     Route::post('/profile', [AdminController::class, 'updateProfile']);
 
     Route::post('/products', [AdminController::class, 'storeProduct']);
-    Route::post('/products/{id}', [AdminController::class, 'updateProduct']);
+    Route::match(['post', 'put'], '/products/{id}', [AdminController::class, 'updateProduct']);
     Route::delete('/products/{id}', [AdminController::class, 'deleteProduct']);
     Route::post('/categories', [AdminController::class, 'storeCategory']);
     Route::delete('/categories/{id}', [AdminController::class, 'deleteCategory']);

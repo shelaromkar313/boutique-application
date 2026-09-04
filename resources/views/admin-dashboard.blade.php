@@ -19,63 +19,330 @@ function adminHideModal(id) {
     if (el) { el.style.display = 'none'; document.body.style.overflow = ''; }
 }
 
-// All orders payload for the vanilla popup (no Alpine dependency — click always works)
+// Size mode toggle for Add Product modal (Free Size vs Standard Sizes)
+function setAddProductSizeMode(mode) {
+    var btnFree = document.getElementById('add-btn-freesize');
+    var btnApparel = document.getElementById('add-btn-apparel');
+    var secFree = document.getElementById('add-section-freesize');
+    var secApparel = document.getElementById('add-section-apparel');
+    var inputFree = document.getElementById('add-stock-freesize');
+
+    if (mode === 'freesize') {
+        if (secFree) secFree.style.display = 'block';
+        if (secApparel) secApparel.style.display = 'none';
+        if (inputFree) inputFree.disabled = false;
+        ['xs','s','m','l','xl','xxl'].forEach(function(sz) {
+            var el = document.getElementById('add-stock-' + sz);
+            if (el) el.disabled = true;
+        });
+        if (btnFree) {
+            btnFree.className = 'px-3 py-1.5 rounded-lg text-xs font-bold transition-all bg-amber-100 text-amber-900 border border-amber-300 shadow-xs';
+        }
+        if (btnApparel) {
+            btnApparel.className = 'px-3 py-1.5 rounded-lg text-xs font-bold transition-all text-gray-600 hover:text-gray-900';
+        }
+    } else {
+        if (secFree) secFree.style.display = 'none';
+        if (secApparel) secApparel.style.display = 'block';
+        if (inputFree) inputFree.disabled = true;
+        ['xs','s','m','l','xl','xxl'].forEach(function(sz) {
+            var el = document.getElementById('add-stock-' + sz);
+            if (el) el.disabled = false;
+        });
+        if (btnFree) {
+            btnFree.className = 'px-3 py-1.5 rounded-lg text-xs font-bold transition-all text-gray-600 hover:text-gray-900';
+        }
+        if (btnApparel) {
+            btnApparel.className = 'px-3 py-1.5 rounded-lg text-xs font-bold transition-all bg-blue-100 text-blue-900 border border-blue-300 shadow-xs';
+        }
+    }
+}
+
+function checkAddCategorySize(cat) {
+    var c = String(cat || '').toLowerCase();
+    if (/saree|sari|dupatta|shawl|unstitched/.test(c)) {
+        setAddProductSizeMode('freesize');
+    } else {
+        setAddProductSizeMode('apparel');
+    }
+}
+
+// All orders & products payload for vanilla popup (no Alpine dependency — click always works)
 window.ADMIN_ORDERS = @json($orders->values());
+window.ADMIN_PRODUCTS = @json($products->values());
+
 function escHtml(s) {
     return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) {
         return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];
     });
 }
-// Open order detail popup by id — plain JS so EST-xxxxxx always opens
+
+// Quick jump to Edit Product modal directly from inside the Order Details modal
+function openAdminEditProductFromOrder(prodId) {
+    adminHideModal('modal-view-order');
+    var prods = window.ADMIN_PRODUCTS || [];
+    var p = prods.find(function(x) { return String(x.id) === String(prodId) || String(x.est_id) === String(prodId); });
+    if (p && window.adminDashboardInstance && typeof window.adminDashboardInstance.openEditProduct === 'function') {
+        window.adminDashboardInstance.openEditProduct(p);
+    }
+}
+
+// Open order detail popup by id — shows full order info & COMPLETE product specifications
 function openOrderPopup(id) {
     var ord = null, list = window.ADMIN_ORDERS || [];
     for (var i = 0; i < list.length; i++) {
         if (String(list[i].id) === String(id)) { ord = list[i]; break; }
     }
     if (!ord) return;
+
     var items = ord.items || [];
     for (var k = 0; k < 3 && typeof items === 'string'; k++) {
         try { items = JSON.parse(items || '[]'); } catch (e) { items = []; break; }
     }
     if (!Array.isArray(items)) items = [];
+
     var set = function (elid, val) { var el = document.getElementById(elid); if (el) el.textContent = val; };
+
+    // ── 1. Order Number & Status ──
     set('mo-orderno', 'Order #' + (ord.order_no || ''));
-    set('mo-status', 'Status: ' + String(ord.status || '').toUpperCase());
-    set('mo-payline', ord.payment_id ? ('Payment: ' + ord.payment_id) : 'Payment: Verified');
-    set('mo-name', ord.full_name || '');
-    set('mo-addr', ord.address || '');
+    
+    // Quick status update form inside modal
+    var statusForm = document.getElementById('mo-status-form');
+    if (statusForm) statusForm.action = '/estilo-hq-console/orders/' + ord.id + '/status';
+    var statusSelect = document.getElementById('mo-status-select');
+    if (statusSelect) statusSelect.value = ord.status || 'pending';
+
+    // Status badge
+    var st = String(ord.status || '').toLowerCase();
+    var stColors = {
+        delivered: 'bg-emerald-100 text-emerald-900 border-emerald-300',
+        shipped: 'bg-blue-100 text-blue-900 border-blue-300',
+        dispatched: 'bg-blue-100 text-blue-900 border-blue-300',
+        processing: 'bg-amber-100 text-amber-900 border-amber-300',
+        confirmed: 'bg-amber-100 text-amber-900 border-amber-300',
+        paid: 'bg-emerald-100 text-emerald-900 border-emerald-300',
+        cancelled: 'bg-rose-100 text-rose-900 border-rose-300',
+        exchange_requested: 'bg-orange-100 text-orange-900 border-orange-300',
+        exchanged: 'bg-purple-100 text-purple-900 border-purple-300'
+    };
+    var stEl = document.getElementById('mo-status-badge');
+    if (stEl) {
+        stEl.textContent = (ord.status || '').replace('_', ' ').toUpperCase();
+        stEl.className = 'px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider border ' + (stColors[st] || 'bg-gray-100 text-gray-800 border-gray-300');
+    }
+
+    // Placed date
+    var dateStr = ord.created_at ? (new Date(ord.created_at).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' })) : 'Recent';
+    set('mo-placed-date', 'Placed on ' + dateStr);
+
+    // ── 2. Customer Delivery Address & Contact ──
+    set('mo-name', ord.full_name || 'Guest Customer');
+    set('mo-addr', ord.address || 'Address not provided');
     set('mo-city', (ord.city || '') + ', ' + (ord.state || '') + ' - ' + (ord.pincode || ''));
-    set('mo-contact', 'Phone: ' + (ord.phone || '') + ' | Email: ' + (ord.email || ''));
+    
+    var telEl = document.getElementById('mo-phone-link');
+    if (telEl) {
+        telEl.textContent = ord.phone || 'N/A';
+        telEl.href = ord.phone ? ('tel:' + ord.phone) : '#';
+    }
+    var mailEl = document.getElementById('mo-email-link');
+    if (mailEl) {
+        mailEl.textContent = ord.email || 'N/A';
+        mailEl.href = ord.email ? ('mailto:' + ord.email) : '#';
+    }
+
+    // ── 3. Notes / Return / Exchange Request Banner ──
+    var nw = document.getElementById('mo-notewrap');
+    if (nw) {
+        if (ord.note && ord.note.trim()) {
+            nw.style.display = 'block';
+            set('mo-note', ord.note);
+        } else {
+            nw.style.display = 'none';
+        }
+    }
+
+    // ── 4. Payment Mode & Verification Box ──
+    var pid = String(ord.payment_id || '');
+    var noteUpper = String(ord.note || '').toUpperCase();
+    var isCod = pid.indexOf('COD') !== -1 || noteUpper.indexOf('COD') !== -1;
+    var isUpi = pid.indexOf('UPI') !== -1 || noteUpper.indexOf('UPI') !== -1;
+    var badge = document.getElementById('mo-badge');
+    if (badge) {
+        badge.textContent = isCod ? '💵 Cash on Delivery (COD)' : (isUpi ? '⚡ UPI Instant (Verified)' : '💳 Prepaid Online Gateway');
+        badge.className = 'text-xs font-bold px-3 py-1 rounded-full border ' + (isCod ? 'bg-amber-100 text-amber-950 border-amber-300' : 'bg-purple-100 text-purple-950 border-purple-300');
+    }
+    set('mo-payref', pid || 'CONFIRMED');
+
+    // ── 5. Render COMPLETE PRODUCT DETAILS & SPECIFICATIONS ──
     var box = document.getElementById('mo-items');
     if (box) {
         if (!items.length) {
-            box.innerHTML = '<div class="text-center text-xs text-gray-500 py-4">No items recorded for this order.</div>';
+            box.innerHTML = '<div class="text-center text-xs text-gray-500 py-6 bg-gray-50 rounded-2xl border border-gray-200">No items recorded for this order.</div>';
         } else {
             var html = '';
+            var prods = window.ADMIN_PRODUCTS || [];
+
             for (var j = 0; j < items.length; j++) {
                 var it = items[j] || {};
-                html += '<div class="flex items-center justify-between p-2.5 bg-gray-50 rounded-xl border border-gray-100">'
-                    + '<div><span class="font-bold text-gray-900 block">' + escHtml(it.name || it.est_id || 'Item') + '</span>'
-                    + '<span class="text-[10px] text-gray-500">Qty: ' + escHtml(it.quantity || it.qty || 1) + ' • Size: ' + escHtml(it.selectedSize || it.size || 'Standard') + ' • Color: ' + escHtml(it.selectedColor || it.color || 'Standard') + '</span></div>'
-                    + '<span class="font-serif font-bold text-xs text-gray-900">₹' + Number(it.price || 0).toLocaleString('en-IN') + '</span></div>';
+                var targetId = String(it.id || it.est_id || '').toLowerCase().trim();
+                var targetName = String(it.name || '').toLowerCase().trim();
+
+                // Find full product record in catalog
+                var p = prods.find(function(x) {
+                    if (!x) return false;
+                    if (targetId && (String(x.est_id || '').toLowerCase() === targetId || String(x.id) === targetId)) return true;
+                    if (targetName && String(x.name || '').toLowerCase() === targetName) return true;
+                    if (it.sku && String(x.sku || '').toLowerCase() === String(it.sku).toLowerCase()) return true;
+                    return false;
+                });
+
+                // Resolve values
+                var pImg = (p && Array.isArray(p.images) && p.images[0]) ? p.images[0] : (it.image || '/images/placeholder.jpg');
+                var pTitle = (p && p.name) ? p.name : (it.name || 'Couture Garment');
+                var pSku = (p && p.sku) ? p.sku : (it.sku || (p && p.est_id ? p.est_id.toUpperCase() : (it.id ? String(it.id).toUpperCase() : 'EST-ITEM')));
+                var pEstId = (p && p.est_id) ? p.est_id : (it.id || it.est_id || '');
+                var pCategory = (p && p.category) ? p.category : (it.category || 'Luxury Handloom');
+                var pOccasion = (p && p.occasion) ? p.occasion : '';
+                var pFabric = (p && p.fabric) ? p.fabric : '';
+                var pDesc = (p && p.description) ? p.description : '';
+                var pCare = (p && p.care) ? p.care : '';
+                var pDetails = (p && Array.isArray(p.details)) ? p.details : [];
+
+                var sz = it.selectedSize || it.size || 'Standard';
+                var clr = it.selectedColor || it.color || 'Standard';
+                var qty = Number(it.quantity || it.qty || 1);
+                var unitPrice = Number(it.price || (p ? p.price : 0));
+                var lineTotal = unitPrice * qty;
+
+                // Color swatch hex
+                var colorHex = null;
+                if (p && Array.isArray(p.colors)) {
+                    for (var cIdx = 0; cIdx < p.colors.length; cIdx++) {
+                        var colObj = p.colors[cIdx];
+                        if (colObj && typeof colObj === 'object' && colObj.name && colObj.name.toLowerCase() === clr.toLowerCase()) {
+                            colorHex = colObj.hex;
+                            break;
+                        }
+                    }
+                }
+
+                // Inventory / Stock Status
+                var stockText = '';
+                var stockClass = 'bg-emerald-50 text-emerald-900 border-emerald-200';
+                if (p) {
+                    var sStock = p.size_stock || {};
+                    if (sStock && sStock[sz] !== undefined) {
+                        var szCount = Number(sStock[sz]);
+                        if (szCount > 0) {
+                            stockText = '● ' + szCount + ' left in size ' + sz + ' (' + (p.stock_count || 0) + ' total in catalog)';
+                        } else {
+                            stockText = '○ Size ' + sz + ' is currently Out of Stock';
+                            stockClass = 'bg-rose-50 text-rose-900 border-rose-200';
+                        }
+                    } else if (p.stock_count !== undefined) {
+                        stockText = (p.stock_count > 0 ? ('● ' + p.stock_count + ' units in warehouse') : '○ Out of Stock');
+                        if (p.stock_count <= 0) stockClass = 'bg-rose-50 text-rose-900 border-rose-200';
+                    }
+                }
+
+                var productUrl = pEstId ? ('/product/' + pEstId) : '/shop';
+                var editBtnHtml = p ? ('<button type="button" onclick="openAdminEditProductFromOrder(' + p.id + ')" class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-amber-50 hover:bg-amber-100 text-amber-900 border border-amber-200 rounded-lg text-xs font-bold transition-all">✏️ Edit Product in Catalog</button>') : '';
+
+                // Build Item Card HTML
+                html += '<div class="bg-white rounded-2xl border border-[var(--color-bisque)] p-4 sm:p-5 shadow-xs space-y-4 hover:border-amber-400 transition-all">'
+                    + '<div class="flex flex-col sm:flex-row gap-4 items-start">'
+                    // Product Photo
+                    + '<div class="relative shrink-0">'
+                    + '<img src="' + escHtml(pImg) + '" alt="' + escHtml(pTitle) + '" class="w-20 h-24 sm:w-24 sm:h-28 object-cover rounded-xl border border-[var(--color-bisque)] shadow-xs" onerror="this.src=\'/images/placeholder.jpg\'" />'
+                    + '<span class="absolute -top-2 -right-2 bg-[var(--color-ebony)] text-white text-[10px] font-bold px-2 py-0.5 rounded-full shadow-xs">x' + qty + '</span>'
+                    + '</div>'
+                    // Main Info
+                    + '<div class="flex-1 min-w-0 space-y-2">'
+                    + '<div class="flex flex-col sm:flex-row sm:items-start justify-between gap-2">'
+                    + '<div>'
+                    + '<a href="' + productUrl + '" target="_blank" class="font-serif text-base sm:text-lg font-bold text-[var(--color-ebony)] hover:text-amber-700 transition-colors inline-block leading-snug">' + escHtml(pTitle) + ' ↗</a>'
+                    + '<div class="flex flex-wrap items-center gap-1.5 mt-1">'
+                    + '<span class="text-[10px] font-mono font-bold bg-gray-100 text-gray-800 px-2 py-0.5 rounded-md border border-gray-200">SKU: ' + escHtml(pSku) + '</span>'
+                    + '<span class="text-[10px] font-sans font-bold bg-amber-50 text-amber-900 px-2 py-0.5 rounded-md border border-amber-200">📁 ' + escHtml(pCategory) + '</span>'
+                    + (pOccasion ? ('<span class="text-[10px] font-sans font-bold bg-purple-50 text-purple-900 px-2 py-0.5 rounded-md border border-purple-200">🎭 ' + escHtml(pOccasion) + '</span>') : '')
+                    + '</div>'
+                    + '</div>'
+                    // Line Price
+                    + '<div class="text-left sm:text-right shrink-0">'
+                    + '<div class="font-serif font-bold text-base sm:text-lg text-[var(--color-ebony)]">₹' + lineTotal.toLocaleString('en-IN') + '</div>'
+                    + '<div class="text-[10px] text-gray-500 font-mono">₹' + unitPrice.toLocaleString('en-IN') + ' × ' + qty + ' ' + (qty > 1 ? 'units' : 'unit') + '</div>'
+                    + '</div>'
+                    + '</div>'
+
+                    // Specs Badges Row (Size, Color, Fabric, Stock)
+                    + '<div class="grid grid-cols-2 sm:grid-cols-4 gap-2 pt-1">'
+                    + '<div class="bg-[var(--color-champagne-light)]/40 p-2.5 rounded-xl border border-[var(--color-bisque)]/80">'
+                    + '<span class="text-[9.5px] uppercase font-bold text-gray-500 block">Ordered Size</span>'
+                    + '<span class="text-xs font-bold text-[var(--color-ebony)] font-mono">' + escHtml(sz) + '</span>'
+                    + '</div>'
+                    + '<div class="bg-[var(--color-champagne-light)]/40 p-2.5 rounded-xl border border-[var(--color-bisque)]/80">'
+                    + '<span class="text-[9.5px] uppercase font-bold text-gray-500 block">Ordered Color</span>'
+                    + '<div class="flex items-center gap-1.5 mt-0.5">'
+                    + (colorHex ? ('<span class="w-3.5 h-3.5 rounded-full border border-gray-300 shrink-0" style="background-color:' + colorHex + '"></span>') : '')
+                    + '<span class="text-xs font-bold text-[var(--color-ebony)] truncate">' + escHtml(clr) + '</span>'
+                    + '</div>'
+                    + '</div>'
+                    + '<div class="bg-[var(--color-champagne-light)]/40 p-2.5 rounded-xl border border-[var(--color-bisque)]/80">'
+                    + '<span class="text-[9.5px] uppercase font-bold text-gray-500 block">Fabric / Material</span>'
+                    + '<span class="text-xs font-bold text-[var(--color-ebony)] truncate block" title="' + escHtml(pFabric || 'Pure Handloom') + '">' + escHtml(pFabric || 'Pure Handloom') + '</span>'
+                    + '</div>'
+                    + '<div class="bg-[var(--color-champagne-light)]/40 p-2.5 rounded-xl border border-[var(--color-bisque)]/80">'
+                    + '<span class="text-[9.5px] uppercase font-bold text-gray-500 block">Units Ordered</span>'
+                    + '<span class="text-xs font-bold text-[var(--color-ebony)] font-mono">' + qty + ' Qty</span>'
+                    + '</div>'
+                    + '</div>'
+
+                    // Stock Pill (if available)
+                    + (stockText ? ('<div class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[11px] font-bold border ' + stockClass + '">' + stockText + '</div>') : '')
+
+                    // Product Details / Inclusions (if present)
+                    + (pDetails.length > 0 ? (
+                        '<div class="bg-gray-50 p-3 rounded-xl border border-gray-100 space-y-1.5 text-[11px]">'
+                        + '<span class="font-bold text-gray-700 text-[10px] uppercase tracking-wider block">Outfit Highlights & Inclusions:</span>'
+                        + '<div class="grid grid-cols-1 sm:grid-cols-2 gap-1.5 text-gray-600">'
+                        + pDetails.map(function(d) { return '<div class="flex items-center gap-1.5"><span>•</span> <span>' + escHtml(d) + '</span></div>'; }).join('')
+                        + '</div>'
+                        + '</div>'
+                    ) : '')
+
+                    // Description & Care
+                    + (pDesc ? ('<p class="text-[11px] text-gray-600 line-clamp-2 italic">"' + escHtml(pDesc) + '"</p>') : '')
+                    + (pCare ? ('<div class="text-[10.5px] text-gray-500 flex items-center gap-1"><span>🧼</span> <strong>Care:</strong> ' + escHtml(pCare) + '</div>') : '')
+
+                    // Action buttons
+                    + '<div class="flex items-center gap-2 pt-2 border-t border-gray-100">'
+                    + '<a href="' + productUrl + '" target="_blank" class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-gray-100 hover:bg-gray-200 text-gray-900 rounded-lg text-xs font-bold transition-all">👁️ View in Storefront ↗</a>'
+                    + editBtnHtml
+                    + '</div>'
+
+                    + '</div>' // end min-w-0
+                    + '</div>' // end flex
+                    + '</div>'; // end card
             }
             box.innerHTML = html;
         }
     }
-    var nw = document.getElementById('mo-notewrap');
-    if (nw) { if (ord.note) { nw.style.display = ''; set('mo-note', ord.note); } else { nw.style.display = 'none'; } }
-    var badge = document.getElementById('mo-badge');
-    if (badge) {
-        var pid = String(ord.payment_id || '');
-        badge.textContent = pid.indexOf('COD') !== -1 ? '💵 Cash on Delivery (COD)' : (pid.indexOf('UPI') !== -1 ? '⚡ UPI Instant (Verified)' : '💳 Prepaid Online (Verified)');
-        badge.className = 'text-[10.5px] font-bold px-2.5 py-0.5 rounded-full border ' + (pid.indexOf('COD') !== -1 ? 'bg-amber-100 text-amber-950 border-amber-300' : 'bg-purple-100 text-purple-950 border-purple-300');
-        set('mo-payref', pid || 'RAZORPAY-CONFIRMED');
-    }
+
+    // ── 6. Price & Billing Breakdown ──
     set('mo-sub', '₹' + Number(ord.subtotal || ord.total || 0).toLocaleString('en-IN'));
     var dw = document.getElementById('mo-discwrap');
-    if (dw) { if (Number(ord.discount) > 0) { dw.style.display = ''; set('mo-disc', '-₹' + Number(ord.discount).toLocaleString('en-IN')); } else { dw.style.display = 'none'; } }
-    set('mo-ship', Number(ord.shipping) > 0 ? ('₹' + ord.shipping) : 'FREE (Complimentary)');
+    if (dw) {
+        if (Number(ord.discount) > 0) {
+            dw.style.display = 'flex';
+            set('mo-disc', '-₹' + Number(ord.discount).toLocaleString('en-IN'));
+        } else {
+            dw.style.display = 'none';
+        }
+    }
+    set('mo-ship', Number(ord.shipping) > 0 ? ('₹' + Number(ord.shipping).toLocaleString('en-IN')) : 'FREE (Complimentary)');
     set('mo-total', '₹' + Number(ord.total || 0).toLocaleString('en-IN'));
+
     adminShowModal('modal-view-order');
 }
 
@@ -97,7 +364,7 @@ document.addEventListener('alpine:init', function() {
                 campaign_type: 'festival',
                 valid_until: '2027-12-31'
             },
-
+            newSizeStock: { XS: 1, S: 2, M: 4, L: 2, XL: 3, XXL: 2 },
             selectedProduct: {
                 id: null, name: '', price: 0, category: '',
                 colors: [], colors_str: '', description: '',
@@ -110,6 +377,7 @@ document.addEventListener('alpine:init', function() {
             selectedCoupon:      { id: null, code: '', title: '', discount_type: 'percentage', discount_value: 20, min_order_value: 1999, campaign_type: 'festival', valid_until: '', is_active: true },
 
             init() {
+                window.adminDashboardInstance = this;
                 const titles = { overview:'Dashboard', inventory:'Inventory', orders:'Orders', customers:'Customers', reports:'Reports', offers:'Offers & Coupons', announcements:'Announcements', reviews:'Reviews', homepage:'Homepage Circles' };
                 this.$watch('activeTab', t => document.title = 'Estilo HQ — ' + (titles[t] || 'Dashboard'));
             },
@@ -141,7 +409,11 @@ document.addEventListener('alpine:init', function() {
                 let isFree = false;
                 const catLower = String(p.category || p.occasion || '').toLowerCase();
                 const freesizeRe = /saree|sari|dupatta|shawl|unstitched/;
-                if (stock && Object.keys(stock).length) {
+                let sizes = p.sizes || [];
+                if (typeof sizes === 'string') { try { sizes = JSON.parse(sizes); } catch(e) { sizes = [sizes]; } }
+                if (Array.isArray(sizes) && sizes.some(s => ['free size','freesize','one size','onesize','unstitched'].includes(String(s).toLowerCase().trim()))) {
+                    isFree = true;
+                } else if (stock && Object.keys(stock).length) {
                     isFree = Object.keys(stock).some(k => ['free size','freesize','one size','onesize','unstitched'].includes(String(k).toLowerCase().trim()));
                 } else if (freesizeRe.test(catLower)) {
                     isFree = true;
@@ -155,7 +427,7 @@ document.addEventListener('alpine:init', function() {
                     for (let k in stock) {
                         if (['free size','freesize','one size','onesize','unstitched'].includes(String(k).toLowerCase().trim())) freeQty = Number(stock[k] || 0);
                     }
-                    if (!freeQty && !Object.keys(stock).length) freeQty = 6;
+                    if (!freeQty && !Object.keys(stock).length) freeQty = Number(p.stock_count || 0) || 5;
                     finalStock = { 'Free Size': freeQty };
                 } else {
                     let base = { XS: 0, S: 0, M: 0, L: 0, XL: 0, XXL: 0 };
@@ -164,7 +436,7 @@ document.addEventListener('alpine:init', function() {
                 }
                 this.selectedProduct.size_stock = finalStock;
 
-                // ── 5. Directly fill DOM fields (100% reliable, no Alpine timing issues) ──
+                // ── 5. Directly fill DOM fields and toggle size sections (100% reliable) ──
                 var setVal = function(id, val) { var el = document.getElementById(id); if (el) el.value = val == null ? '' : val; };
                 // Set form action URL
                 var form = document.getElementById('edit-product-form');
@@ -176,15 +448,59 @@ document.addEventListener('alpine:init', function() {
                 setVal('edit-colors', colorsStr);
                 var descEl = document.getElementById('edit-description');
                 if (descEl) descEl.value = p.description || '';
-                // Fill free size input
-                setVal('edit-stock-freesize', finalStock['Free Size'] || 0);
-                // Fill per-size inputs (XS, S, M, L, XL, XXL)
-                ['XS','S','M','L','XL','XXL'].forEach(function(sz) {
-                    setVal('edit-stock-' + sz.toLowerCase(), finalStock[sz] || 0);
-                });
+
                 // Featured checkbox
                 var featCb = document.getElementById('edit-is-featured');
                 if (featCb) featCb.checked = !!p.is_featured;
+
+                // Toggle badges and sections: ONLY show the relevant size section
+                var badgeFree = document.getElementById('edit-badge-freesize');
+                var badgeApparel = document.getElementById('edit-badge-apparel');
+                var secFree = document.getElementById('edit-section-freesize');
+                var secApparel = document.getElementById('edit-section-apparel');
+                var inputFree = document.getElementById('edit-stock-freesize');
+
+                if (isFree) {
+                    // Show Free Size badge & section only
+                    if (badgeFree) badgeFree.style.display = 'inline-flex';
+                    if (badgeApparel) badgeApparel.style.display = 'none';
+                    if (secFree) secFree.style.display = 'block';
+                    if (secApparel) secApparel.style.display = 'none';
+
+                    // Enable Free Size input and fill value
+                    if (inputFree) {
+                        inputFree.disabled = false;
+                        inputFree.value = finalStock['Free Size'] !== undefined ? finalStock['Free Size'] : 5;
+                    }
+                    // Disable all apparel size inputs so they are NOT sent to backend
+                    ['xs','s','m','l','xl','xxl'].forEach(function(sz) {
+                        var el = document.getElementById('edit-stock-' + sz);
+                        if (el) {
+                            el.disabled = true;
+                            el.value = 0;
+                        }
+                    });
+                } else {
+                    // Show Standard Sizes badge & section only
+                    if (badgeFree) badgeFree.style.display = 'none';
+                    if (badgeApparel) badgeApparel.style.display = 'inline-flex';
+                    if (secFree) secFree.style.display = 'none';
+                    if (secApparel) secApparel.style.display = 'block';
+
+                    // Disable Free Size input so it is NOT sent to backend
+                    if (inputFree) {
+                        inputFree.disabled = true;
+                        inputFree.value = 0;
+                    }
+                    // Enable and fill all apparel size inputs
+                    ['XS','S','M','L','XL','XXL'].forEach(function(sz) {
+                        var el = document.getElementById('edit-stock-' + sz.toLowerCase());
+                        if (el) {
+                            el.disabled = false;
+                            el.value = finalStock[sz] !== undefined ? finalStock[sz] : 0;
+                        }
+                    });
+                }
 
                 adminShowModal('modal-edit-product');
             },
@@ -640,7 +956,6 @@ document.addEventListener('alpine:init', function() {
                     @endforelse
                 </div>
             </div>
-        </div>
 
             {{-- Shop By Occasion cards manager --}}
             <div class="bg-white rounded-3xl border border-[var(--color-bisque)] p-6 sm:p-8 shadow-sm space-y-6">
@@ -1652,7 +1967,7 @@ document.addEventListener('alpine:init', function() {
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
                         <label class="block text-xs font-sans font-bold text-[var(--color-ebony)] uppercase tracking-wider mb-1">Category</label>
-                        <select name="category" class="w-full bg-[var(--color-offwhite)] border border-[var(--color-bisque)] rounded-xl px-4 py-2.5 text-xs font-sans">
+                        <select name="category" onchange="checkAddCategorySize(this.value)" class="w-full bg-[var(--color-offwhite)] border border-[var(--color-bisque)] rounded-xl px-4 py-2.5 text-xs font-sans">
                             <option value="Kurtis & Suits">Kurtis & Suits</option>
                             <option value="Chikankari Kurtis">Chikankari Kurtis</option>
                             <option value="Anarkali Suits">Anarkali Suits & Sets</option>
@@ -1672,24 +1987,47 @@ document.addEventListener('alpine:init', function() {
                     </div>
                 </div>
 
-                {{-- Size-Wise Stock Inventory Configuration --}}
-                <div class="space-y-2 p-4 bg-[var(--color-champagne-light)]/40 rounded-2xl border border-[var(--color-bisque)]">
-                    <div class="flex items-center justify-between">
+                {{-- Size Configuration & Stock Inventory — 2 Options (Free Size OR Standard Sizes) --}}
+                <div class="space-y-3 p-4 bg-[var(--color-champagne-light)]/40 rounded-2xl border border-[var(--color-bisque)]">
+                    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
                         <label class="block text-xs font-sans font-bold text-[var(--color-ebony)] uppercase tracking-wider">
-                            Stock Quantity Per Size (XS, S, M, L, XL, XXL)
+                            Size Format & Stock Units
                         </label>
-                        <span class="text-[10.5px] font-bold text-emerald-900 bg-emerald-100 border border-emerald-300 px-2.5 py-0.5 rounded-full"
-                              x-text="'Total: ' + (Number(newSizeStock['XS']||0) + Number(newSizeStock['S']||0) + Number(newSizeStock['M']||0) + Number(newSizeStock['L']||0) + Number(newSizeStock['XL']||0) + Number(newSizeStock['XXL']||0)) + ' Units In Stock'">
-                        </span>
+                        {{-- 2 Option Toggle Buttons --}}
+                        <div class="inline-flex rounded-xl bg-white p-1 border border-gray-200 shadow-2xs">
+                            <button type="button" id="add-btn-freesize" onclick="setAddProductSizeMode('freesize')"
+                                    class="px-3 py-1.5 rounded-lg text-xs font-bold transition-all bg-amber-100 text-amber-900 border border-amber-300 shadow-xs">
+                                🥻 Free Size
+                            </button>
+                            <button type="button" id="add-btn-apparel" onclick="setAddProductSizeMode('apparel')"
+                                    class="px-3 py-1.5 rounded-lg text-xs font-bold transition-all text-gray-600 hover:text-gray-900">
+                                👗 Standard Sizes (XS – XXL)
+                            </button>
+                        </div>
                     </div>
-                    <p class="text-[10px] text-gray-500 font-sans">Set initial available stock count for each size:</p>
-                    <div class="grid grid-cols-3 sm:grid-cols-6 gap-2.5 pt-1">
-                        <template x-for="sz in ['XS', 'S', 'M', 'L', 'XL', 'XXL']" :key="sz">
+
+                    {{-- Option 1: Free Size Section (Active by default) --}}
+                    <div id="add-section-freesize" class="space-y-2">
+                        <p class="text-[10px] text-gray-500 font-sans">Universal size for Sarees, Dupattas, Shawls, and Unstitched Fabrics.</p>
+                        <div class="flex flex-col sm:flex-row sm:items-center gap-2">
+                            <label class="text-xs font-bold text-gray-700 shrink-0">Initial Stock (Free Size):</label>
+                            <input type="number" min="0" id="add-stock-freesize" name="size_stock[Free Size]" value="5"
+                                   class="w-full sm:w-28 bg-white border border-gray-200 rounded-lg py-2 px-3 text-center text-xs font-bold font-mono focus:outline-none focus:border-[var(--color-rose-antique)]" />
+                        </div>
+                    </div>
+
+                    {{-- Option 2: Standard Apparel Sizes Section (XS – XXL) --}}
+                    <div id="add-section-apparel" style="display: none;" class="space-y-2">
+                        <p class="text-[10px] text-gray-500 font-sans">Set initial stock count for each stitched size:</p>
+                        <div class="grid grid-cols-3 sm:grid-cols-6 gap-2.5 pt-1">
+                            @foreach(['XS', 'S', 'M', 'L', 'XL', 'XXL'] as $sz)
                             <div class="bg-white p-2 rounded-xl border border-[var(--color-bisque)] text-center space-y-1 shadow-xs">
-                                <span class="block text-[11px] font-bold font-mono text-[var(--color-ebony)]" x-text="sz"></span>
-                                <input type="number" min="0" :name="'size_stock[' + sz + ']'" x-model="newSizeStock[sz]" required class="w-full bg-[var(--color-offwhite)] border border-gray-200 rounded-lg py-1.5 text-center text-xs font-bold font-mono focus:outline-none focus:border-[var(--color-rose-antique)]" />
+                                <span class="block text-[11px] font-bold font-mono text-[var(--color-ebony)]">{{ $sz }}</span>
+                                <input type="number" min="0" id="add-stock-{{ strtolower($sz) }}" name="size_stock[{{ $sz }}]" value="2" disabled
+                                       class="w-full bg-[var(--color-offwhite)] border border-gray-200 rounded-lg py-1.5 text-center text-xs font-bold font-mono focus:outline-none focus:border-[var(--color-rose-antique)]" />
                             </div>
-                        </template>
+                            @endforeach
+                        </div>
                     </div>
                 </div>
 
@@ -1736,7 +2074,6 @@ document.addEventListener('alpine:init', function() {
 
             <form id="edit-product-form" action="/estilo-hq-console/products/0" method="POST" enctype="multipart/form-data" class="space-y-4">
                 @csrf
-                @method('PUT')
                 <input type="hidden" id="edit-product-id" name="_product_id" value="" />
                 <div>
                     <label class="block text-xs font-sans font-bold text-[var(--color-ebony)] uppercase tracking-wider mb-1">Product Title / Name</label>
@@ -1824,88 +2161,152 @@ document.addEventListener('alpine:init', function() {
                     <button type="submit" class="flex-1 bg-[var(--color-ebony)] hover:bg-[var(--color-rose-deep)] text-white font-sans text-xs font-bold py-3 rounded-xl shadow-md">Update Product</button>
                 </div>
             </form>
+        </div>
     </div>
 
-    {{-- MODAL 3: VIEW ORDER DETAILS --}}
-    <div id="modal-view-order" style="display: none;" class="fixed inset-0 z-50 flex items-center justify-center p-4 overflow-y-auto">
-        <div onclick="adminHideModal('modal-view-order')" class="fixed inset-0 bg-black/60 backdrop-blur-sm"></div>
-        <div class="relative w-full max-w-xl bg-white rounded-3xl p-6 sm:p-8 shadow-2xl z-10 border border-[var(--color-bisque)] my-8 space-y-5">
-            <div class="flex items-center justify-between border-b border-[var(--color-bisque)]/60 pb-3">
-                <div>
-                    <h3 class="font-serif text-xl font-bold text-[var(--color-ebony)]" id="mo-orderno" x-text="'Order #' + selectedOrder.order_no"></h3>
-                    <div class="flex items-center gap-2 mt-0.5">
-                        <span class="text-[10px] font-mono text-gray-500" id="mo-status" x-text="'Status: ' + (selectedOrder.status || '').toUpperCase()"></span>
-                        <span class="text-gray-300">•</span>
-                        <span class="text-[10px] text-gray-500 font-mono" id="mo-payline" x-text="selectedOrder.payment_id ? ('Payment: ' + selectedOrder.payment_id) : 'Payment: Verified'"></span>
+    {{-- MODAL 3: VIEW ORDER DETAILS (COMPREHENSIVE PRODUCT & FULFILLMENT AUDIT) --}}
+    <div id="modal-view-order" style="display: none;" class="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6 overflow-hidden">
+        <div onclick="adminHideModal('modal-view-order')" class="fixed inset-0 bg-black/60 backdrop-blur-sm transition-opacity"></div>
+        <div class="relative w-full max-w-4xl max-h-[92vh] flex flex-col bg-white rounded-3xl shadow-2xl z-10 border border-[var(--color-bisque)] overflow-hidden">
+            
+            {{-- Modal Header --}}
+            <div class="p-5 sm:px-7 sm:py-4 border-b border-[var(--color-bisque)] flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 bg-[var(--color-champagne-light)]/40 shrink-0">
+                <div class="space-y-1">
+                    <div class="flex items-center gap-3">
+                        <h3 class="font-serif text-xl sm:text-2xl font-bold text-[var(--color-ebony)]" id="mo-orderno">Order Details</h3>
+                        <span id="mo-status-badge" class="px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider border bg-amber-100 text-amber-900 border-amber-300">PROCESSING</span>
+                    </div>
+                    <div class="flex flex-wrap items-center gap-2 text-xs text-gray-500 font-sans">
+                        <span id="mo-placed-date">Placed recently</span>
+                        <span>•</span>
+                        <span id="mo-payline" class="font-mono">Payment: Verified</span>
                     </div>
                 </div>
-                <button onclick="adminHideModal('modal-view-order')" class="text-gray-400 hover:text-gray-600 text-lg">✕</button>
+                <div class="flex items-center gap-3 self-end sm:self-center">
+                    {{-- Quick Fulfillment Status Updater --}}
+                    <form id="mo-status-form" method="POST" class="inline-flex items-center gap-1.5 bg-white border border-[var(--color-bisque)] rounded-xl p-1 shadow-2xs">
+                        @csrf
+                        <select id="mo-status-select" name="status" class="bg-transparent text-xs font-bold text-gray-700 px-2 py-1 focus:outline-none cursor-pointer">
+                            <option value="pending">Pending</option>
+                            <option value="confirmed">Confirmed</option>
+                            <option value="processing">Processing</option>
+                            <option value="shipped">Shipped</option>
+                            <option value="dispatched">Dispatched</option>
+                            <option value="delivered">Delivered</option>
+                            <option value="cancelled">Cancelled</option>
+                            <option value="exchange_requested">Exchange Requested</option>
+                            <option value="exchanged">Exchanged</option>
+                        </select>
+                        <button type="submit" class="bg-[var(--color-ebony)] hover:bg-black text-white text-[11px] font-bold px-3 py-1 rounded-lg transition-colors shadow-2xs">
+                            Save Status
+                        </button>
+                    </form>
+                    <button type="button" onclick="adminHideModal('modal-view-order')" class="w-8 h-8 rounded-full bg-white hover:bg-gray-100 text-gray-400 hover:text-gray-700 border border-gray-200 flex items-center justify-center text-sm font-bold transition-all shadow-2xs">✕</button>
+                </div>
             </div>
 
-            <div class="space-y-3 text-xs font-sans">
-                {{-- Delivery Address --}}
-                <div class="bg-[var(--color-offwhite)] p-3.5 rounded-xl space-y-1 border border-[var(--color-bisque)]/60">
-                    <h4 class="font-bold text-[var(--color-ebony)] uppercase tracking-wider text-[10px]">Customer Delivery Address</h4>
-                    <p class="text-gray-800 font-bold" id="mo-name" x-text="selectedOrder.full_name"></p>
-                    <p class="text-gray-600" id="mo-addr" x-text="selectedOrder.address"></p>
-                    <p class="text-gray-600" id="mo-city" x-text="(selectedOrder.city || '') + ', ' + (selectedOrder.state || '') + ' - ' + (selectedOrder.pincode || '')"></p>
-                    <p class="text-gray-600" id="mo-contact" x-text="'Phone: ' + (selectedOrder.phone || '') + ' | Email: ' + (selectedOrder.email || '')"></p>
-                </div>
+            {{-- Modal Body (Scrollable) --}}
+            <div class="p-5 sm:p-7 overflow-y-auto space-y-6 text-xs font-sans flex-1" style="scrollbar-width: thin;">
 
-                {{-- Items --}}
-                <div class="space-y-2">
-                    <h4 class="font-bold text-[var(--color-ebony)] uppercase tracking-wider text-[10px]">Purchased Couture Garments</h4>
-                    <div class="max-h-48 overflow-y-auto space-y-2" id="mo-items">
-                    </div>
-                </div>
-
-                {{-- Order Notes & Referral info --}}
-                <div id="mo-notewrap" style="display:none;">
-                    <div class="p-3 bg-amber-50 rounded-xl border border-amber-200/80 text-[11px] text-amber-900 space-y-0.5">
-                        <span class="font-bold uppercase tracking-wider text-[9px] text-amber-800 block">Order Processing Note & Referral:</span>
-                        <p id="mo-note"></p>
-                    </div>
-                </div>
-
-                {{-- Payment Details Box --}}
-                <div class="bg-slate-50 p-3.5 rounded-xl space-y-1.5 border border-slate-200">
-                    <div class="flex items-center justify-between">
-                        <span class="font-bold text-[10px] uppercase tracking-wider text-slate-600">Payment Mode & Verification</span>
-                        <span class="text-[10.5px] font-bold px-2.5 py-0.5 rounded-full border bg-purple-100 text-purple-950 border-purple-300" id="mo-badge"
-                              x-text="(selectedOrder.payment_id || '').includes('COD') ? '💵 Cash on Delivery (COD)' : ((selectedOrder.payment_id || '').includes('UPI') ? '⚡ UPI Instant (Verified)' : '💳 Prepaid Online (Verified)')"></span>
-                    </div>
-                    <div class="text-[11px] text-slate-700 flex justify-between font-mono pt-0.5">
-                        <span class="text-slate-500">Gateway Ref ID:</span>
-                        <span class="font-bold text-slate-900" id="mo-payref" x-text="selectedOrder.payment_id || 'RAZORPAY-CONFIRMED'"></span>
-                    </div>
-                </div>
-
-                {{-- Price Breakdown --}}
-                <div class="bg-gray-50 p-3.5 rounded-xl space-y-1.5 border border-gray-200">
-                    <div class="flex justify-between text-gray-600 text-[11px]">
-                        <span>Subtotal:</span>
-                            <span class="font-mono" id="mo-sub" x-text="'₹' + Number(selectedOrder.subtotal || selectedOrder.total || 0).toLocaleString()"></span>
+                {{-- Customer & Shipping Destination Grid --}}
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    {{-- Customer Contact --}}
+                    <div class="bg-[var(--color-offwhite)] p-4 rounded-2xl border border-[var(--color-bisque)]/70 space-y-2">
+                        <div class="flex items-center justify-between">
+                            <span class="text-[10px] uppercase font-bold text-gray-500 tracking-wider">👤 Customer Profile</span>
+                            <span class="text-[10px] font-mono text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-md border border-emerald-200">Verified Client</span>
                         </div>
-                        <div id="mo-discwrap" style="display:none;">
-                            <div class="flex justify-between text-emerald-700 text-[11px] font-bold">
-                                <span>Discount / Coupon Applied:</span>
-                                <span class="font-mono" id="mo-disc"></span>
+                        <p class="text-sm font-bold text-[var(--color-ebony)]" id="mo-name"></p>
+                        <div class="space-y-1 pt-1 text-gray-600 font-sans">
+                            <div class="flex items-center gap-2">
+                                <span>📞</span>
+                                <a id="mo-phone-link" href="#" class="font-bold text-blue-700 hover:underline"></a>
+                            </div>
+                            <div class="flex items-center gap-2">
+                                <span>✉️</span>
+                                <a id="mo-email-link" href="#" class="text-blue-700 hover:underline truncate"></a>
                             </div>
                         </div>
-                    <div class="flex justify-between text-gray-600 text-[11px]">
-                        <span>Shipping & Handling:</span>
-                            <span class="font-mono" id="mo-ship" x-text="selectedOrder.shipping > 0 ? ('₹' + selectedOrder.shipping) : 'FREE (Complimentary)'"></span>
                     </div>
-                    <div class="border-t border-gray-200 pt-2 flex justify-between items-center text-sm font-bold text-[var(--color-ebony)]">
-                        <span>Total Paid:</span>
-                            <span class="font-serif font-bold text-lg text-emerald-800" id="mo-total" x-text="'₹' + Number(selectedOrder.total || 0).toLocaleString()"></span>
+
+                    {{-- Shipping Destination --}}
+                    <div class="bg-[var(--color-offwhite)] p-4 rounded-2xl border border-[var(--color-bisque)]/70 space-y-2">
+                        <span class="text-[10px] uppercase font-bold text-gray-500 tracking-wider block">📍 Shipping Destination</span>
+                        <p class="text-xs font-medium text-gray-800 leading-relaxed whitespace-pre-line" id="mo-addr"></p>
+                        <p class="text-xs font-bold text-[var(--color-ebony)]" id="mo-city"></p>
                     </div>
                 </div>
+
+                {{-- Special Notes / Return & Exchange Request Banner --}}
+                <div id="mo-notewrap" style="display: none;">
+                    <div class="p-3.5 bg-amber-50 rounded-2xl border border-amber-300 text-amber-900 space-y-1">
+                        <div class="flex items-center gap-2 font-bold text-[11px] uppercase tracking-wider text-amber-900">
+                            <span>⚠️</span>
+                            <span>Customer Note / Exchange & Delivery Instructions:</span>
+                        </div>
+                        <p id="mo-note" class="text-xs text-amber-950 font-medium pl-6"></p>
+                    </div>
+                </div>
+
+                {{-- Ordered Products & Specifications Section --}}
+                <div class="space-y-3">
+                    <div class="flex items-center justify-between border-b border-[var(--color-bisque)]/70 pb-2">
+                        <div>
+                            <h4 class="font-serif text-base sm:text-lg font-bold text-[var(--color-ebony)]">🛍️ Purchased Couture Garments & Full Specifications</h4>
+                            <p class="text-[11px] text-gray-500">Fabric, work details, live warehouse inventory, ordered size and specifications</p>
+                        </div>
+                    </div>
+                    {{-- Container populated dynamically by openOrderPopup with complete product cards --}}
+                    <div class="space-y-4" id="mo-items"></div>
+                </div>
+
+                {{-- Payment & Financial Breakdown Grid --}}
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    {{-- Payment Mode Box --}}
+                    <div class="bg-slate-50 p-4 rounded-2xl border border-slate-200 space-y-2.5">
+                        <div class="flex items-center justify-between">
+                            <span class="font-bold text-[10px] uppercase tracking-wider text-slate-500">Payment Verification</span>
+                            <span class="text-[11px] font-bold px-3 py-1 rounded-full border bg-purple-100 text-purple-950 border-purple-300" id="mo-badge"></span>
+                        </div>
+                        <div class="text-[11px] text-slate-700 flex justify-between font-mono pt-1">
+                            <span class="text-slate-500">Gateway Ref ID:</span>
+                            <span class="font-bold text-slate-900" id="mo-payref"></span>
+                        </div>
+                    </div>
+
+                    {{-- Billing Breakdown Box --}}
+                    <div class="bg-[var(--color-offwhite)] p-4 rounded-2xl border border-[var(--color-bisque)]/70 space-y-2">
+                        <div class="flex justify-between text-gray-600 text-xs">
+                            <span>Subtotal:</span>
+                            <span class="font-mono font-bold" id="mo-sub"></span>
+                        </div>
+                        <div id="mo-discwrap" style="display: none;" class="flex justify-between text-emerald-700 text-xs font-bold">
+                            <span>Discount / Coupon Applied:</span>
+                            <span class="font-mono" id="mo-disc"></span>
+                        </div>
+                        <div class="flex justify-between text-gray-600 text-xs">
+                            <span>Shipping & Handling:</span>
+                            <span class="font-mono font-bold" id="mo-ship"></span>
+                        </div>
+                        <div class="border-t border-[var(--color-bisque)] pt-2 flex justify-between items-center">
+                            <span class="text-xs uppercase font-bold text-[var(--color-ebony)]">Total Paid:</span>
+                            <span class="font-serif font-bold text-xl text-emerald-800" id="mo-total"></span>
+                        </div>
+                    </div>
+                </div>
+
             </div>
 
-            <div class="pt-2">
-                <button type="button" onclick="adminHideModal('modal-view-order')" class="w-full bg-[var(--color-ebony)] hover:bg-[var(--color-rose-deep)] text-white text-xs font-bold py-3 rounded-xl transition-colors">Close Details</button>
+            {{-- Modal Footer --}}
+            <div class="p-4 sm:px-7 sm:py-3.5 border-t border-[var(--color-bisque)]/80 flex items-center justify-between bg-gray-50 shrink-0">
+                <button type="button" onclick="window.print()" class="inline-flex items-center gap-1.5 px-4 py-2 bg-white hover:bg-gray-100 text-gray-700 text-xs font-bold rounded-xl border border-gray-300 transition-colors shadow-2xs">
+                    🖨️ Print Order Slip
+                </button>
+                <button type="button" onclick="adminHideModal('modal-view-order')" class="bg-[var(--color-ebony)] hover:bg-black text-white text-xs font-bold px-6 py-2.5 rounded-xl transition-colors shadow-xs">
+                    Close Details
+                </button>
             </div>
+
         </div>
     </div>
 
@@ -2005,7 +2406,7 @@ document.addEventListener('alpine:init', function() {
                     </div>
                     <div>
                         <label class="block text-[10px] font-sans font-bold uppercase tracking-wider mb-1 text-[var(--color-ebony)]">Min Order (₹)</label>
-                        <input type="number" name="min_order_value" x-model="newCoupon.min_order_value" min="0" step="100"
+                        <input type="number" name="min_order_value" x-model="newCoupon.min_order_value" min="0" step="100" placeholder="0"
                                class="w-full bg-[var(--color-offwhite)] border border-[var(--color-bisque)] rounded-xl px-3 py-2 text-xs font-bold focus:outline-none focus:border-amber-400" />
                     </div>
                 </div>

@@ -183,14 +183,14 @@ class AdminController extends Controller
         $sizeStock = [];
         if ($request->has('size_stock') && is_array($request->input('size_stock'))) {
             foreach ($request->input('size_stock') as $sz => $qty) {
-                if (is_numeric($qty) && (int) $qty > 0) {
+                if (is_numeric($qty) && (int) $qty >= 0) {
                     $cleanSz = trim($sz);
                     if (in_array(strtolower($cleanSz), ['free size', 'freesize', 'one size', 'onesize', 'unstitched'])) {
                         $key = 'Free Size';
                     } else {
                         $key = strtoupper($cleanSz);
                     }
-                    $sizeStock[$key] = (int) $qty;
+                    $sizeStock[$key] = max(0, (int) $qty);
                 }
             }
         } elseif ($request->filled('size_stock_text')) {
@@ -289,14 +289,14 @@ class AdminController extends Controller
         if ($request->has('size_stock') && is_array($request->input('size_stock'))) {
             $sizeStock = [];
             foreach ($request->input('size_stock') as $sz => $qty) {
-                if (is_numeric($qty) && (int) $qty > 0) {
+                if (is_numeric($qty) && (int) $qty >= 0) {
                     $cleanSz = trim($sz);
                     if (in_array(strtolower($cleanSz), ['free size', 'freesize', 'one size', 'onesize', 'unstitched'])) {
                         $key = 'Free Size';
                     } else {
                         $key = strtoupper($cleanSz);
                     }
-                    $sizeStock[$key] = (int) $qty;
+                    $sizeStock[$key] = max(0, (int) $qty);
                 }
             }
         } elseif ($request->filled('size_stock_text')) {
@@ -749,13 +749,13 @@ class AdminController extends Controller
         ]);
 
         Coupon::create([
-            'code'            => strtoupper($request->code),
-            'title'           => $request->title,
-            'discount_type'   => $request->input('discount_type', 'percentage'),
-            'discount_value'  => $request->discount_value,
-            'min_order_value' => $request->input('min_order_value', 0),
-            'campaign_type'   => $request->input('campaign_type', 'festival'),
-            'valid_until'     => $request->input('valid_until', now()->addMonths(3)),
+            'code'            => strtoupper(trim($request->code)),
+            'title'           => trim($request->title),
+            'discount_type'   => $request->input('discount_type') ?: 'percentage',
+            'discount_value'  => (float) ($request->discount_value ?: 0),
+            'min_order_value' => (float) ($request->filled('min_order_value') ? $request->input('min_order_value') : 0),
+            'campaign_type'   => $request->input('campaign_type') ?: 'festival',
+            'valid_until'     => $request->filled('valid_until') ? $request->valid_until : now()->addMonths(3),
             'is_active'       => true,
         ]);
 
@@ -773,13 +773,13 @@ class AdminController extends Controller
         ]);
 
         $coupon->update([
-            'code'            => strtoupper($request->code),
-            'title'           => $request->title,
-            'discount_type'   => $request->input('discount_type', 'percentage'),
-            'discount_value'  => $request->discount_value,
-            'min_order_value' => $request->input('min_order_value', 0),
-            'campaign_type'   => $request->input('campaign_type', 'festival'),
-            'valid_until'     => $request->input('valid_until', $coupon->valid_until),
+            'code'            => strtoupper(trim($request->code)),
+            'title'           => trim($request->title),
+            'discount_type'   => $request->input('discount_type') ?: 'percentage',
+            'discount_value'  => (float) ($request->discount_value ?: 0),
+            'min_order_value' => (float) ($request->filled('min_order_value') ? $request->input('min_order_value') : 0),
+            'campaign_type'   => $request->input('campaign_type') ?: 'festival',
+            'valid_until'     => $request->filled('valid_until') ? $request->valid_until : $coupon->valid_until,
             'is_active'       => $request->boolean('is_active', true),
         ]);
 

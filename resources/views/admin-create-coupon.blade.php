@@ -127,7 +127,7 @@
                     </div>
                     <div>
                         <label class="block text-xs font-sans font-bold uppercase tracking-wider mb-1.5 text-[var(--color-ebony)]">Min Order Value (₹)</label>
-                        <input type="number" name="min_order_value" x-model="coupon.min_order_value" min="0" step="100"
+                        <input type="number" name="min_order_value" x-model="coupon.min_order_value" min="0" step="100" placeholder="0"
                                class="w-full bg-[var(--color-offwhite)] border border-[var(--color-bisque)] rounded-xl px-4 py-3 text-sm font-bold focus:outline-none focus:border-amber-400 focus:bg-white transition-all shadow-inner" />
                     </div>
                 </div>
