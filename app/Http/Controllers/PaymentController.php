@@ -20,38 +20,42 @@ class PaymentController extends Controller
      */
     public function createOrder(Request $request)
     {
-        $request->validate([
-            'items' => 'required|array',
-            'items.*.est_id' => 'required|string',
-            'items.*.quantity' => 'required|integer|min:1',
-        ]);
+        try {
+            $request->validate([
+                'items' => 'required|array',
+            ]);
 
-        // Compute exact total from server-side (items looked up from DB)
-        $subtotal = $request->input('subtotal', 0);
-        $shipping = $request->input('shipping', 199);
-        $discount = $request->input('discount', 0);
-        $total = $subtotal + $shipping - $discount;
+            // Compute exact total from server-side (items looked up from DB)
+            $subtotal = $request->input('subtotal', 0);
+            $shipping = $request->input('shipping', 199);
+            $discount = $request->input('discount', 0);
+            $total = $subtotal + $shipping - $discount;
 
-        $razorpay = new RazorpayApi(env('RAZORPAY_KEY_ID', ''), env('RAZORPAY_KEY_SECRET', ''));
+            $razorpay = new RazorpayApi(env('RAZORPAY_KEY_ID', ''), env('RAZORPAY_KEY_SECRET', ''));
 
-        $order = $razorpay->order->create([
-            'receipt'     => 'ORD-' . strtoupper(substr(uniqid(), 0, 10)),
-            'amount'      => (int) round($total * 100),
-            'currency'    => 'INR',
-            'payment_capture' => 1,
-            'notes'       => [
-                'order_type' => 'boutique',
-                'items'      => json_encode($request->input('items', [])),
-            ],
-        ]);
+            $order = $razorpay->order->create([
+                'receipt'     => 'ORD-' . strtoupper(substr(uniqid(), 0, 10)),
+                'amount'      => (int) round($total * 100),
+                'currency'    => 'INR',
+                'payment_capture' => 1,
+                'notes'       => [
+                    'order_type' => 'boutique',
+                ],
+            ]);
 
-        return response()->json([
-            'success' => true,
-            'order_id' => $order['id'],
-            'amount'   => (int) round($total * 100),
-            'currency' => 'INR',
-            'receipt'  => $order['receipt'],
-        ], 201);
+            return response()->json([
+                'success' => true,
+                'order_id' => $order['id'],
+                'amount'   => (int) round($total * 100),
+                'currency' => 'INR',
+                'receipt'  => $order['receipt'],
+            ], 201);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => $e->getMessage()
+            ], 500);
+        }
     }
 
     /**
@@ -90,12 +94,12 @@ class PaymentController extends Controller
         $order = Order::create([
             'order_no' => 'EST-PAY-' . time(),
             'user_id' => $userId,
-            'full_name' => $request->input('full_name', 'Customer'),
+            'full_name' => $request->input('name', $request->input('full_name', 'Customer')),
             'email' => $request->input('email', ''),
             'phone' => $request->input('phone', ''),
             'address' => $request->input('address', ''),
-            'city' => $request->input('city', ''),
-            'state' => $request->input('state', ''),
+            'city' => $request->input('city') ?: 'Metropolitan',
+            'state' => $request->input('state') ?: 'India',
             'pincode' => $request->input('pincode', ''),
             'subtotal' => $request->input('subtotal', 0),
             'shipping' => $request->input('shipping', 199),

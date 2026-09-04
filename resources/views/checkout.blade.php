@@ -3,6 +3,7 @@
 @section('title', 'Secure Checkout | ESTILO WEAR')
 
 @section('content')
+<script src="https://checkout.razorpay.com/v1/checkout.js"></script>
 
 @php
     $refCode = session('referral_code');
@@ -67,48 +68,111 @@
         this.submitting = true;
 
         try {
-            const res = await fetch('/checkout/place-order', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-CSRF-TOKEN': '{{ csrf_token() }}',
-                    'Accept': 'application/json'
-                },
-                body: JSON.stringify({
-                    name: this.name,
-                    email: this.email,
-                    phone: this.phone,
-                    address: this.address,
-                    city: this.city || 'Metropolitan',
-                    state: this.state || 'India',
-                    pincode: this.pincode,
-                    payment_method: this.paymentMethod,
-                    items: $store.shop.cart,
-                    subtotal: $store.shop.cartSubtotal,
-                    shipping: this.shipping,
-                    discount: $store.shop.discountAmount || 0,
-                    total: this.finalTotal,
-                    referral_code: '{{ $refCode }}'
-                })
-            });
+            if (this.paymentMethod === 'card' || this.paymentMethod === 'upi') {
+                const res = await fetch('/api/payments/create-order', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': '{{ csrf_token() }}', 'Accept': 'application/json' },
+                    body: JSON.stringify({
+                        items: $store.shop.cart,
+                        subtotal: $store.shop.cartSubtotal,
+                        shipping: this.shipping,
+                        discount: $store.shop.discountAmount || 0,
+                    })
+                });
+                
+                const orderData = await res.json();
 
-            const data = await res.json();
-            if (res.ok && data.success) {
-                this.orderId = data.order_id;
-                this.orderPlaced = true;
-                $store.shop.cart = [];
-                $store.shop.saveCart();
+                if (!res.ok || !orderData.success) {
+                    alert('Error: ' + (orderData.message || 'Could not start payment.'));
+                    this.submitting = false;
+                    return;
+                }
+
+                var options = {
+                    key: '{{ env('RAZORPAY_KEY_ID') }}',
+                    amount: orderData.amount,
+                    currency: orderData.currency || 'INR',
+                    name: 'Estilo Wear Boutique',
+                    description: 'Premium Couture Purchase',
+                    order_id: orderData.order_id,
+                    prefill: {
+                        name: this.name,
+                        email: this.email,
+                        contact: this.phone
+                    },
+                    theme: { color: '#800020' },
+                    handler: async (response) => {
+                        const verifyRes = await fetch('/api/payments/verify', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': '{{ csrf_token() }}', 'Accept': 'application/json' },
+                            body: JSON.stringify({
+                                razorpay_payment_id: response.razorpay_payment_id,
+                                razorpay_order_id: response.razorpay_order_id,
+                                razorpay_signature: response.razorpay_signature,
+                                name: this.name, email: this.email, phone: this.phone,
+                                address: this.address, city: this.city, state: this.state, pincode: this.pincode,
+                                items: $store.shop.cart, subtotal: $store.shop.cartSubtotal,
+                                shipping: this.shipping, discount: $store.shop.discountAmount || 0, total: this.finalTotal,
+                                referral_code: '{{ $refCode }}'
+                            })
+                        });
+
+                        const verifyData = await verifyRes.json();
+                        if(verifyRes.ok && verifyData.success) {
+                            this.orderId = verifyData.order_id;
+                            this.orderPlaced = true;
+                            $store.shop.cart = [];
+                            $store.shop.saveCart();
+                        } else {
+                            alert('Payment verification failed! Please contact support.');
+                        }
+                    }
+                };
+                
+                var rzp1 = new Razorpay(options);
+                rzp1.open();
+                this.submitting = false;
+
             } else {
-                alert(data.message || 'Unable to place order. Please check details and try again.');
+                const res = await fetch('/checkout/place-order', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                        'Accept': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        name: this.name,
+                        email: this.email,
+                        phone: this.phone,
+                        address: this.address,
+                        city: this.city || 'Metropolitan',
+                        state: this.state || 'India',
+                        pincode: this.pincode,
+                        payment_method: this.paymentMethod,
+                        items: $store.shop.cart,
+                        subtotal: $store.shop.cartSubtotal,
+                        shipping: this.shipping,
+                        discount: $store.shop.discountAmount || 0,
+                        total: this.finalTotal,
+                        referral_code: '{{ $refCode }}'
+                    })
+                });
+
+                const data = await res.json();
+                if (res.ok && data.success) {
+                    this.orderId = data.order_id;
+                    this.orderPlaced = true;
+                    $store.shop.cart = [];
+                    $store.shop.saveCart();
+                } else {
+                    alert(data.message || 'Unable to place order. Please check details and try again.');
+                }
+                this.submitting = false;
             }
         } catch(e) {
             console.error('Checkout error:', e);
-            // Fallback client order generation so customer checkout experience never fails
-            this.orderId = 'EST-' + Math.floor(100000 + Math.random() * 900000);
-            this.orderPlaced = true;
-            $store.shop.cart = [];
-            $store.shop.saveCart();
-        } finally {
+            alert('A network error occurred. Please try again.');
             this.submitting = false;
         }
     }
@@ -214,48 +278,14 @@
                                 <button type="button" @click="paymentMethod = 'cod'" :class="paymentMethod === 'cod' ? 'bg-[var(--color-ebony)] text-white' : 'bg-[var(--color-offwhite)] text-[var(--color-ebony)]'" class="rounded-xl py-2.5 text-[11px] font-bold transition-all">COD</button>
                             </div>
 
-                            <div class="rounded-2xl border border-[var(--color-bisque)]/70 bg-[var(--color-offwhite)] p-4" x-show="paymentMethod === 'upi'">
-                                <div class="flex items-center justify-between gap-3 mb-3">
-                                    <span class="text-[11px] font-bold uppercase tracking-wider text-[var(--color-ebony)]/70">Scan & Pay</span>
-                                    <span class="text-[10px] font-semibold text-emerald-600">Quickest option</span>
-                                </div>
-
-                                <div class="flex flex-col sm:flex-row items-center gap-4">
-                                    <div class="flex-shrink-0 bg-white p-3 rounded-2xl border border-[var(--color-bisque)] shadow-sm">
-                                        <img :src="'https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=' + encodeURIComponent('upi://pay?pa=estilowear@icici&pn=Estilo%20Wear%20Boutique&am=' + finalTotal + '&cu=INR')" alt="QR code for UPI payment" class="w-28 h-28 rounded-xl" />
-                                    </div>
-
-                                    <div class="w-full space-y-3">
-                                        <div>
-                                            <label class="block font-bold text-[var(--color-ebony)] mb-1.5 text-[10px] uppercase tracking-wider">UPI ID / VPA</label>
-                                            <input type="text" placeholder="yourname@upi" class="w-full px-3.5 py-2.5 bg-white border border-[var(--color-bisque)] rounded-xl focus:outline-none focus:border-[var(--color-rose-antique)] text-xs" />
-                                        </div>
-
-                                        <div class="flex gap-2">
-                                            <button type="button" @click="openUPIScanner()" class="flex-1 bg-[var(--color-ebony)] hover:bg-[var(--color-rose-deep)] text-white text-[10px] font-bold uppercase tracking-wider py-2.5 rounded-xl transition-all shadow-xs flex items-center justify-center gap-1 cursor-pointer">
-                                                <span>📲</span>
-                                                <span>Open Scanner</span>
-                                            </button>
-                                            <button type="button" @click="copyUPI()" class="flex-1 bg-white hover:bg-gray-50 border border-[var(--color-bisque)] text-[var(--color-ebony)] text-[10px] font-bold uppercase tracking-wider py-2.5 rounded-xl transition-all shadow-xs flex items-center justify-center gap-1 cursor-pointer">
-                                                <span>📋</span>
-                                                <span>Copy UPI</span>
-                                            </button>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <p class="mt-3 text-[10px] text-[var(--color-ebony)]/60">Scan the QR code in any UPI app or click "Open Scanner" to launch your mobile UPI scanner directly.</p>
+                            <div class="rounded-2xl border border-[var(--color-bisque)]/70 bg-[var(--color-offwhite)] p-4 text-center" x-show="paymentMethod === 'upi'">
+                                <p class="font-bold text-[var(--color-ebony)] text-xs">Pay securely with UPI via Razorpay</p>
+                                <p class="mt-1 text-[10px] text-[var(--color-ebony)]/60">You will be securely redirected to Razorpay to scan a QR code or enter your UPI ID.</p>
                             </div>
 
-                            <div class="rounded-2xl border border-[var(--color-bisque)]/70 bg-[var(--color-offwhite)] p-4" x-show="paymentMethod === 'card'">
-                                <div class="space-y-3 text-xs font-sans">
-                                    <input type="text" placeholder="Card number" class="w-full px-3.5 py-2.5 bg-white border border-[var(--color-bisque)] rounded-xl focus:outline-none focus:border-[var(--color-rose-antique)]" />
-                                    <input type="text" placeholder="Name on card" class="w-full px-3.5 py-2.5 bg-white border border-[var(--color-bisque)] rounded-xl focus:outline-none focus:border-[var(--color-rose-antique)]" />
-                                    <div class="grid grid-cols-2 gap-3">
-                                        <input type="text" placeholder="MM/YY" class="w-full px-3.5 py-2.5 bg-white border border-[var(--color-bisque)] rounded-xl focus:outline-none focus:border-[var(--color-rose-antique)]" />
-                                        <input type="text" placeholder="CVV" class="w-full px-3.5 py-2.5 bg-white border border-[var(--color-bisque)] rounded-xl focus:outline-none focus:border-[var(--color-rose-antique)]" />
-                                    </div>
-                                </div>
+                            <div class="rounded-2xl border border-[var(--color-bisque)]/70 bg-[var(--color-offwhite)] p-4 text-center" x-show="paymentMethod === 'card'">
+                                <p class="font-bold text-[var(--color-ebony)] text-xs">Pay securely with Card via Razorpay</p>
+                                <p class="mt-1 text-[10px] text-[var(--color-ebony)]/60">You will be securely redirected to Razorpay to enter your credit or debit card details.</p>
                             </div>
 
                             <div class="rounded-2xl border border-[var(--color-bisque)]/70 bg-[var(--color-offwhite)] p-4 text-xs font-sans" x-show="paymentMethod === 'cod'">
