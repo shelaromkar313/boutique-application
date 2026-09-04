@@ -422,7 +422,12 @@ class AdminController extends Controller
             'image_url' => 'nullable|string|max:500',
         ]);
         $image = '/hero/hero-main.jpg';
+        $autoContain = false;
         if ($request->hasFile('image')) {
+            $size = @getimagesize($request->file('image')->getRealPath());
+            if (is_array($size) && $size[1] > $size[0] * 1.1) {
+                $autoContain = true; // portrait upload → show full photo, not cropped face
+            }
             $path = $request->file('image')->store('hero', 'public');
             $image = '/storage/' . $path;
         } elseif ($request->filled('image_url')) {
@@ -436,7 +441,7 @@ class AdminController extends Controller
             'description' => trim($request->input('description', '')),
             'image' => $image,
             'object_pos' => trim($request->input('object_pos', 'object-[center_top] sm:object-[center_top] md:object-[center_top]')),
-            'fit_mode' => $request->input('fit_mode', 'cover') === 'contain' ? 'contain' : 'cover',
+            'fit_mode' => $request->filled('fit_mode') ? ($request->input('fit_mode') === 'contain' ? 'contain' : 'cover') : ($autoContain ? 'contain' : 'cover'),
             'btn_text' => trim($request->input('btn_text', 'Shop Now')),
             'btn_link' => trim($request->input('btn_link', '/shop')),
             'sub_text' => trim($request->input('sub_text', 'View New Arrivals')),
