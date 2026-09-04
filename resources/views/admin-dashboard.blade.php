@@ -103,6 +103,7 @@ document.addEventListener('alpine:init', function() {
                 colors: [], colors_str: '', description: '',
                 size_stock: { XS: 1, S: 2, M: 4, L: 2, XL: 3, XXL: 2 }
             },
+            editSizeMode: 'apparel',
             selectedOrder:       { id: null, items: [], parsedItems: [] },
             selectedReview:      { id: null, rating: 5, comment: '', user_name: '', is_approved: true },
             selectedAnnouncement:{ id: null, title: '', message: '', type: 'sale', color: 'amber', icon: '📢', show_in_ticker: true, show_as_banner: false, is_active: true, starts_at: '', ends_at: '' },
@@ -124,8 +125,23 @@ document.addEventListener('alpine:init', function() {
                 this.selectedProduct.colors_str = Array.isArray(p.colors) ? p.colors.map(c => (c && typeof c === 'object' ? (c.name || '') : c)).filter(Boolean).join(', ') : (p.colors || '');
                 let stock = p.size_stock || {};
                 if (typeof stock === 'string') { try { stock = JSON.parse(stock); } catch(e) { stock = {}; } }
-                if (!stock || !Object.keys(stock).length) { ['XS','S','M','L','XL','XXL'].forEach(sz => { stock[sz] = 2; }); }
-                this.selectedProduct.size_stock = Object.assign({ XS:1, S:2, M:4, L:2, XL:3, XXL:2 }, stock);
+                // Detect Free Size mode for sarees (same logic as create page)
+                let isFree = false;
+                if (stock && typeof stock === 'object' && Object.keys(stock).length) {
+                    isFree = Object.keys(stock).some(k => ['free size','freesize','one size','onesize','unstitched'].includes(String(k).toLowerCase().trim()));
+                } else if (String(p.category||'').toLowerCase().match(/saree|sari|dupatta|shawl|unstitched/)) {
+                    isFree = true;
+                }
+                this.editSizeMode = isFree ? 'freesize' : 'apparel';
+                // Ensure Free Size key exists if in freesize mode
+                if (isFree) {
+                    let freeQty = 6;
+                    for (let k in stock) { if (['free size','freesize','one size','onesize','unstitched'].includes(String(k).toLowerCase().trim())) { freeQty = Number(stock[k] || 6); } }
+                    this.selectedProduct.size_stock = { 'Free Size': freeQty };
+                } else {
+                    if (!stock || !Object.keys(stock).length) { ['XS','S','M','L','XL','XXL'].forEach(sz => { stock[sz] = 2; }); }
+                    this.selectedProduct.size_stock = Object.assign({ XS:1, S:2, M:4, L:2, XL:3, XXL:2 }, stock);
+                }
                 adminShowModal('modal-edit-product');
             },
 
@@ -281,7 +297,7 @@ document.addEventListener('alpine:init', function() {
                     </div>
                     <div class="flex items-center gap-3 w-full sm:w-auto flex-wrap sm:flex-nowrap">
                         <input type="text" x-model="search" placeholder="Search catalog..." class="w-full sm:w-64 pl-4 pr-4 py-2 bg-[var(--color-offwhite)] border border-[var(--color-bisque)] rounded-full text-xs font-sans focus:outline-none" />
-                        <button onclick="adminShowModal('modal-add-category')" class="bg-white border border-[var(--color-bisque)] hover:bg-gray-50 text-xs font-sans font-bold px-4 py-2 rounded-full shrink-0">
+                        <button type="button" onclick="document.getElementById('inline-add-category').classList.toggle('hidden'); document.getElementById('cat-inline-input')?.focus()" class="bg-white border border-[var(--color-bisque)] hover:bg-amber-50 text-xs font-sans font-bold px-4 py-2 rounded-full shrink-0">
                             + Category
                         </button>
                         <a href="/estilo-hq-console/products/create" class="bg-[var(--color-ebony)] hover:bg-[var(--color-rose-deep)] text-white text-xs font-sans font-bold px-4 py-2 rounded-full shrink-0 shadow-sm transition-all hover:scale-105 active:scale-95">
@@ -320,6 +336,18 @@ document.addEventListener('alpine:init', function() {
                         </form>
                     </div>
                     @endforeach
+                </div>
+
+                {{-- Inline Add Category (no modal, always works on mobile) --}}
+                <div id="inline-add-category" class="hidden p-3 sm:p-4 bg-amber-50/70 border border-amber-200 rounded-2xl">
+                    <form action="/estilo-hq-console/categories" method="POST" class="flex flex-col sm:flex-row gap-2">
+                        @csrf
+                        <input id="cat-inline-input" type="text" name="name" placeholder="e.g. Velvet Lehengas" required class="flex-1 bg-white border border-[var(--color-bisque)] rounded-xl px-4 py-2.5 text-xs font-sans focus:outline-none focus:border-amber-400" />
+                        <div class="flex gap-2 shrink-0">
+                            <button type="submit" class="flex-1 sm:flex-none bg-[var(--color-ebony)] text-white text-xs font-bold px-5 py-2.5 rounded-xl shadow-md">Create</button>
+                            <button type="button" onclick="document.getElementById('inline-add-category').classList.add('hidden')" class="bg-white border border-gray-200 text-xs font-bold px-4 py-2.5 rounded-xl">Cancel</button>
+                        </div>
+                    </form>
                 </div>
 
                 <div class="overflow-x-auto -mx-4 sm:mx-0 px-4 sm:px-0 scrollbar-thin">
@@ -1469,24 +1497,42 @@ document.addEventListener('alpine:init', function() {
                     </div>
                 </div>
 
-                {{-- Size-Wise Stock Inventory Configuration --}}
-                <div class="space-y-2 p-4 bg-[var(--color-champagne-light)]/40 rounded-2xl border border-[var(--color-bisque)]">
-                    <div class="flex items-center justify-between">
+                {{-- Size-Wise Stock Inventory Configuration — now with Free Size toggle for Sarees --}}
+                <div class="space-y-3 p-3 sm:p-4 bg-[var(--color-champagne-light)]/40 rounded-2xl border border-[var(--color-bisque)]">
+                    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
                         <label class="block text-xs font-sans font-bold text-[var(--color-ebony)] uppercase tracking-wider">
-                            Stock Quantity Per Size (XS, S, M, L, XL, XXL)
+                            Stock Quantity Per Size
                         </label>
-                        <span class="text-[10.5px] font-bold text-emerald-900 bg-emerald-100 border border-emerald-300 px-2.5 py-0.5 rounded-full"
+                        <span class="text-[10.5px] font-bold text-emerald-900 bg-emerald-100 border border-emerald-300 px-2.5 py-0.5 rounded-full self-start sm:self-auto"
                               x-text="'Total: ' + (Object.values(selectedProduct.size_stock || {}).reduce((acc, val) => Number(acc) + Number(val || 0), 0)) + ' Units In Stock'">
                         </span>
                     </div>
-                    <p class="text-[10px] text-gray-500 font-sans">Adjust quantity for each garment size:</p>
-                    <div class="grid grid-cols-3 sm:grid-cols-6 gap-2.5 pt-1">
-                        <template x-for="sz in ['XS', 'S', 'M', 'L', 'XL', 'XXL']" :key="sz">
-                            <div class="bg-white p-2 rounded-xl border border-[var(--color-bisque)] text-center space-y-1 shadow-xs">
-                                <span class="block text-[11px] font-bold font-mono text-[var(--color-ebony)]" x-text="sz"></span>
-                                <input type="number" min="0" :name="'size_stock[' + sz + ']'" x-model="selectedProduct.size_stock[sz]" class="w-full bg-[var(--color-offwhite)] border border-gray-200 rounded-lg py-1.5 text-center text-xs font-bold font-mono focus:outline-none focus:border-[var(--color-rose-antique)]" />
-                            </div>
-                        </template>
+                    {{-- Toggle Free Size / Standard --}}
+                    <div class="grid grid-cols-2 gap-2 p-1 bg-white rounded-xl border border-[var(--color-bisque)]">
+                        <button type="button" @click="editSizeMode='freesize'; selectedProduct.size_stock={'Free Size': (selectedProduct.size_stock['Free Size']||6)}"
+                                :class="editSizeMode==='freesize' ? 'bg-[var(--color-ebony)] text-white font-bold shadow-sm' : 'text-gray-600 hover:text-[var(--color-ebony)]'"
+                                class="py-2 px-2 rounded-lg text-xs font-sans flex items-center justify-center gap-1">🥻 Free Size</button>
+                        <button type="button" @click="editSizeMode='apparel'; let cur=Object.values(selectedProduct.size_stock||{})[0]||2; selectedProduct.size_stock={XS:2,S:2,M:4,L:2,XL:3,XXL:2}"
+                                :class="editSizeMode==='apparel' ? 'bg-[var(--color-ebony)] text-white font-bold shadow-sm' : 'text-gray-600 hover:text-[var(--color-ebony)]'"
+                                class="py-2 px-2 rounded-lg text-xs font-sans flex items-center justify-center gap-1">👗 Standard (XS-XXL)</button>
+                    </div>
+                    <div x-show="editSizeMode==='freesize'" class="space-y-2">
+                        <p class="text-[10px] text-gray-500 font-sans">Universal for Sarees, Dupattas, Shawls (5.5m + blouse)</p>
+                        <div class="flex flex-col sm:flex-row sm:items-center gap-2">
+                            <label class="text-xs font-bold text-gray-700 shrink-0">Warehouse Stock (Free Size):</label>
+                            <input type="number" min="0" name="size_stock[Free Size]" x-model="selectedProduct.size_stock['Free Size']" class="w-full sm:w-28 bg-white border border-gray-200 rounded-lg py-2 px-3 text-center text-xs font-bold font-mono" />
+                        </div>
+                    </div>
+                    <div x-show="editSizeMode==='apparel'" class="space-y-2">
+                        <p class="text-[10px] text-gray-500 font-sans">Adjust quantity for each stitched size:</p>
+                        <div class="grid grid-cols-3 sm:grid-cols-6 gap-2.5 pt-1">
+                            <template x-for="sz in ['XS', 'S', 'M', 'L', 'XL', 'XXL']" :key="sz">
+                                <div class="bg-white p-2 rounded-xl border border-[var(--color-bisque)] text-center space-y-1 shadow-xs">
+                                    <span class="block text-[11px] font-bold font-mono text-[var(--color-ebony)]" x-text="sz"></span>
+                                    <input type="number" min="0" :name="'size_stock[' + sz + ']'" x-model="selectedProduct.size_stock[sz]" class="w-full bg-[var(--color-offwhite)] border border-gray-200 rounded-lg py-1.5 text-center text-xs font-bold font-mono focus:outline-none focus:border-[var(--color-rose-antique)]" />
+                                </div>
+                            </template>
+                        </div>
                     </div>
                 </div>
 

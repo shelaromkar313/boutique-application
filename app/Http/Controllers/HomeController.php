@@ -32,18 +32,10 @@ class HomeController extends Controller
             ];
         });
 
-        // 4. Products from DB (Trending, New Arrivals, Sarees)
-        $trendingProducts = Product::where('is_trending', true)->orderBy('created_at', 'desc')->get();
-        if ($trendingProducts->count() < 4) {
-            $extra = Product::whereNotIn('id', $trendingProducts->pluck('id'))->orderBy('created_at', 'desc')->take(6)->get();
-            $trendingProducts = $trendingProducts->concat($extra);
-        }
+        // 4. Products from DB (Trending, New Arrivals — strictly respect admin toggle, no fallback)
+        $trendingProducts = Product::where('is_trending', true)->orderBy('created_at', 'desc')->take(12)->get();
 
-        $newArrivals = Product::where('is_new_arrival', true)->orderBy('created_at', 'desc')->get();
-        if ($newArrivals->count() < 4) {
-            $extra = Product::whereNotIn('id', $newArrivals->pluck('id'))->orderBy('created_at', 'desc')->take(6)->get();
-            $newArrivals = $newArrivals->concat($extra);
-        }
+        $newArrivals = Product::where('is_new_arrival', true)->orderBy('created_at', 'desc')->take(12)->get();
 
         $sareeSpotlight = Product::where('main_category', 'Sarees')->orWhere('category', 'LIKE', '%Saree%')->orderBy('created_at', 'desc')->get();
         if ($sareeSpotlight->count() < 4) {
