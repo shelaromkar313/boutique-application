@@ -122,25 +122,57 @@ document.addEventListener('alpine:init', function() {
 
             openEditProduct(p) {
                 this.selectedProduct = Object.assign({}, p);
-                this.selectedProduct.colors_str = Array.isArray(p.colors) ? p.colors.map(c => (c && typeof c === 'object' ? (c.name || '') : c)).filter(Boolean).join(', ') : (p.colors || '');
+                // Pre-fill colors as comma-separated string
+                this.selectedProduct.colors_str = Array.isArray(p.colors)
+                    ? p.colors.map(c => (c && typeof c === 'object' ? (c.name || '') : c)).filter(Boolean).join(', ')
+                    : (p.colors || '');
+
+                // Parse size_stock from DB (may be JSON string)
                 let stock = p.size_stock || {};
                 if (typeof stock === 'string') { try { stock = JSON.parse(stock); } catch(e) { stock = {}; } }
-                // Detect Free Size mode for sarees (same logic as create page)
+
+                // Auto-detect: Free Size = Sarees/Dupattas/Shawls/Unstitched
+                // Apparel (XS-XXL) = Kurtis, Dresses, Anarkali, Co-Ord, Lehenga, Suits, etc.
                 let isFree = false;
+                const catLower = String(p.category || p.occasion || '').toLowerCase();
+                const apparelKeywords = /kurti|dress|anarkali|lehenga|suit|co.ord|coord|set|gown|tunic|top|blouse|palazzo/;
+                const freesizeKeywords = /saree|sari|dupatta|shawl|unstitched/;
+
                 if (stock && typeof stock === 'object' && Object.keys(stock).length) {
-                    isFree = Object.keys(stock).some(k => ['free size','freesize','one size','onesize','unstitched'].includes(String(k).toLowerCase().trim()));
-                } else if (String(p.category||'').toLowerCase().match(/saree|sari|dupatta|shawl|unstitched/)) {
+                    // Trust whatever keys are already stored in DB
+                    isFree = Object.keys(stock).some(k =>
+                        ['free size','freesize','one size','onesize','unstitched'].includes(String(k).toLowerCase().trim())
+                    );
+                } else if (freesizeKeywords.test(catLower)) {
+                    isFree = true;
+                } else if (apparelKeywords.test(catLower)) {
+                    isFree = false;
+                } else if (freesizeKeywords.test(catLower)) {
                     isFree = true;
                 }
+
                 this.editSizeMode = isFree ? 'freesize' : 'apparel';
-                // Ensure Free Size key exists if in freesize mode
+
                 if (isFree) {
-                    let freeQty = 6;
-                    for (let k in stock) { if (['free size','freesize','one size','onesize','unstitched'].includes(String(k).toLowerCase().trim())) { freeQty = Number(stock[k] || 6); } }
+                    // Use actual stored free-size quantity, not a hardcoded 6
+                    let freeQty = 0;
+                    for (let k in stock) {
+                        if (['free size','freesize','one size','onesize','unstitched'].includes(String(k).toLowerCase().trim())) {
+                            freeQty = Number(stock[k] || 0);
+                        }
+                    }
+                    if (freeQty === 0 && Object.keys(stock).length === 0) freeQty = 6;
                     this.selectedProduct.size_stock = { 'Free Size': freeQty };
                 } else {
-                    if (!stock || !Object.keys(stock).length) { ['XS','S','M','L','XL','XXL'].forEach(sz => { stock[sz] = 2; }); }
-                    this.selectedProduct.size_stock = Object.assign({ XS:1, S:2, M:4, L:2, XL:3, XXL:2 }, stock);
+                    // Use the ACTUAL stored per-size quantities — do NOT reset to defaults
+                    if (!stock || !Object.keys(stock).length) {
+                        // Only use defaults if product has NO stock data at all
+                        stock = { XS: 0, S: 0, M: 0, L: 0, XL: 0, XXL: 0 };
+                    }
+                    // Ensure all standard sizes exist (fill missing with 0, keep existing values)
+                    let fullStock = { XS: 0, S: 0, M: 0, L: 0, XL: 0, XXL: 0 };
+                    Object.keys(stock).forEach(k => { fullStock[k] = Number(stock[k] || 0); });
+                    this.selectedProduct.size_stock = fullStock;
                 }
                 adminShowModal('modal-edit-product');
             },
