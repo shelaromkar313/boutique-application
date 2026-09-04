@@ -1754,22 +1754,24 @@ document.addEventListener('alpine:init', function() {
                     </div>
                 </div>
 
-                {{-- Size-Wise Stock Inventory Configuration — now with Free Size toggle for Sarees --}}
+                {{-- Size-Wise Stock Inventory Configuration — locked to product's original size type --}}
                 <div class="space-y-3 p-3 sm:p-4 bg-[var(--color-champagne-light)]/40 rounded-2xl border border-[var(--color-bisque)]">
                     <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
                         <label class="block text-xs font-sans font-bold text-[var(--color-ebony)] uppercase tracking-wider">
                             Stock Quantity Per Size
                         </label>
+                        {{-- Read-only badge: shows which size type this product uses, cannot be changed --}}
+                        <span x-show="editSizeMode==='freesize'"
+                              class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10.5px] font-bold bg-amber-100 border border-amber-300 text-amber-900 self-start sm:self-auto shrink-0">
+                            🥻 Free Size Product (Saree / Dupatta)
+                        </span>
+                        <span x-show="editSizeMode==='apparel'"
+                              class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10.5px] font-bold bg-blue-100 border border-blue-300 text-blue-900 self-start sm:self-auto shrink-0">
+                            👗 Standard Sized Product (XS – XXL)
+                        </span>
                     </div>
-                    {{-- Toggle Free Size / Standard --}}
-                    <div class="grid grid-cols-2 gap-2 p-1 bg-white rounded-xl border border-[var(--color-bisque)]">
-                        <button type="button" @click="editSizeMode='freesize'"
-                                :class="editSizeMode==='freesize' ? 'bg-[var(--color-ebony)] text-white font-bold shadow-sm' : 'text-gray-600 hover:text-[var(--color-ebony)]'"
-                                class="py-2 px-2 rounded-lg text-xs font-sans flex items-center justify-center gap-1">🥻 Free Size</button>
-                        <button type="button" @click="editSizeMode='apparel'"
-                                :class="editSizeMode==='apparel' ? 'bg-[var(--color-ebony)] text-white font-bold shadow-sm' : 'text-gray-600 hover:text-[var(--color-ebony)]'"
-                                class="py-2 px-2 rounded-lg text-xs font-sans flex items-center justify-center gap-1">👗 Standard (XS-XXL)</button>
-                    </div>
+
+                    {{-- FREE SIZE section: only shows for Sarees/Dupattas --}}
                     <div x-show="editSizeMode==='freesize'" class="space-y-2">
                         <p class="text-[10px] text-gray-500 font-sans">Universal for Sarees, Dupattas, Shawls (5.5m + blouse)</p>
                         <div class="flex flex-col sm:flex-row sm:items-center gap-2">
@@ -1777,6 +1779,8 @@ document.addEventListener('alpine:init', function() {
                             <input type="number" min="0" id="edit-stock-freesize" name="size_stock[Free Size]" class="w-full sm:w-28 bg-white border border-gray-200 rounded-lg py-2 px-3 text-center text-xs font-bold font-mono" />
                         </div>
                     </div>
+
+                    {{-- APPAREL SIZES section: only shows for Kurtis/Dresses/Anarkali etc --}}
                     <div x-show="editSizeMode==='apparel'" class="space-y-2">
                         <p class="text-[10px] text-gray-500 font-sans">Adjust quantity for each stitched size:</p>
                         <div class="grid grid-cols-3 sm:grid-cols-6 gap-2.5 pt-1">
