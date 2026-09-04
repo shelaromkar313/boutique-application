@@ -107,6 +107,16 @@ $adminRoutes = function () {
     Route::delete('/categories/{id}', [AdminController::class, 'deleteCategory']);
     Route::delete('/fabrics', [AdminController::class, 'deleteFabric']);
 
+    Route::post('/categories/{id}/photo', [AdminController::class, 'updateCategoryPhoto']);
+
+    Route::post('/hero-slides', [AdminController::class, 'storeHeroSlide']);
+    Route::post('/hero-slides/{id}', [AdminController::class, 'updateHeroSlide']);
+    Route::delete('/hero-slides/{id}', [AdminController::class, 'deleteHeroSlide']);
+
+    Route::post('/occasions', [AdminController::class, 'storeHomeOccasion']);
+    Route::post('/occasions/{id}', [AdminController::class, 'updateHomeOccasion']);
+    Route::delete('/occasions/{id}', [AdminController::class, 'deleteHomeOccasion']);
+
     Route::match(['get', 'post'], '/reviews/{id}/boost', [AdminController::class, 'boostReview']);
     Route::match(['get', 'post'], '/reviews/{id}/toggle', [AdminController::class, 'toggleReview']);
     Route::post('/reviews/{id}', [AdminController::class, 'updateReview']);

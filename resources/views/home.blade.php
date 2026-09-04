@@ -13,74 +13,37 @@
     {{-- ══ 2. CIRCULAR CATEGORY SECTION (CONTINUOUS AUTO-SLIDING MARQUEE) ══ --}}
     <section class="bg-white border-b border-[var(--color-bisque)]/30 py-5 sm:py-7 relative group">
         <div class="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 relative">
-            <!-- Static Container -->
-            <div class="flex gap-4 sm:gap-7 overflow-x-auto pb-2 pt-1" style="scrollbar-width:none;-ms-overflow-style:none;">
+            <!-- Centered container: w-max + mx-auto centers when few circles, scrolls when many -->
+            <div class="overflow-x-auto pb-2 pt-1" style="scrollbar-width:none;-ms-overflow-style:none;">
                 @php
                     $circleList = is_object($circleCategories) && method_exists($circleCategories, 'all') ? $circleCategories->all() : (array) $circleCategories;
                 @endphp
+                <div class="flex gap-4 sm:gap-7 w-max mx-auto px-2">
                 @foreach($circleList as $cat)
-                <div class="flex-none">
+                <div class="flex-none w-[68px] sm:w-[100px]">
                     <a href="{{ $cat['path'] }}" class="flex flex-col items-center gap-2 group/cat">
-                        <div class="w-[62px] h-[62px] sm:w-[86px] sm:h-[86px] lg:w-[96px] lg:h-[96px] rounded-full overflow-hidden border-2 border-[var(--color-bisque)]/60 p-[3px] sm:p-1 group-hover/cat:border-[var(--color-rose-antique)] group-hover/cat:shadow-[var(--shadow-floating)] transition-all duration-300">
+                        <div class="w-[62px] h-[62px] sm:w-[86px] sm:h-[86px] lg:w-[96px] lg:h-[96px] mx-auto rounded-full overflow-hidden border-2 border-[var(--color-bisque)]/60 p-[3px] sm:p-1 group-hover/cat:border-[var(--color-rose-antique)] group-hover/cat:shadow-[var(--shadow-floating)] transition-all duration-300">
                             <div class="w-full h-full rounded-full overflow-hidden">
                                 <img src="{{ $cat['image'] }}" alt="{{ $cat['name'] }}" class="w-full h-full object-cover group-hover/cat:scale-110 transition-transform duration-500" loading="lazy" />
                             </div>
                         </div>
-                        <span class="text-[10px] sm:text-xs font-sans font-semibold text-[var(--color-ebony)]/80 text-center tracking-wide group-hover/cat:text-[var(--color-rose-antique)] transition-colors duration-300 max-w-[68px] sm:max-w-[100px] leading-tight">{{ $cat['name'] }}</span>
+                        <span class="text-[10px] sm:text-xs font-sans font-semibold text-[var(--color-ebony)]/80 text-center tracking-wide group-hover/cat:text-[var(--color-rose-antique)] transition-colors duration-300 leading-tight break-words">{{ $cat['name'] }}</span>
                     </a>
                 </div>
                 @endforeach
+                </div>
             </div>
         </div>
     </section>
 
     {{-- ══ 3. HERO SLIDESHOW BANNER ══ --}}
+    <script>window.HERO_SLIDES = {!! json_encode($heroSlides ?? [], JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_AMP | JSON_HEX_QUOT) !!};</script>
     <section class="relative w-full overflow-hidden bg-[var(--color-ebony)] group"
              style="height: clamp(460px, 75vh, 900px);"
              aria-label="Hero Banner — New Collection"
              x-data="{
                  currentSlide: 0,
-                 slides: [
-                     {
-                         tag: 'NEW COLLECTION — 2025',
-                         titleline1: 'Timeless',
-                         titleline2: 'Indian',
-                         titleline3: 'Elegance',
-                         desc: 'Handcrafted Indian fashion for the modern woman — curated from artisan weavers across India.',
-                         image: '/hero/hero-main.jpg',
-                         objectPos: 'object-[85%_top] sm:object-[82%_top] md:object-[right_top]',
-                         btnText: 'Shop Now',
-                         btnLink: '/shop',
-                         subLinkText: 'View New Arrivals',
-                         subLink: '/shop?filter=new'
-                     },
-                     {
-                         tag: 'LUXURY SILK EDIT',
-                         titleline1: 'Royal',
-                         titleline2: 'Banarasi',
-                         titleline3: 'Sarees',
-                         desc: 'Pure silk mark certified sarees featuring gold zari brocade & Kadwa weaving from Varanasi.',
-                         image: '/hero/hero-slide-2.jpg',
-                         objectPos: 'object-[center_top] sm:object-[center_top] md:object-[center_top]',
-                         btnText: 'Explore Sarees',
-                         btnLink: '/shop?category=Sarees',
-                         subLinkText: 'View Banarasi Silk',
-                         subLink: '/shop?category=Sarees'
-                     },
-                     {
-                         tag: 'ROYAL HERITAGE CRAFT',
-                         titleline1: 'Lucknowi',
-                         titleline2: 'Chikankari',
-                         titleline3: 'Couture',
-                         desc: 'Airy mulmul cotton & silk Anarkalis with hand-embroidered shadow work & silver Mukaish.',
-                         image: '/hero/hero-slide-3.jpg',
-                         objectPos: 'object-[center_top] sm:object-[center_top] md:object-[center_top]',
-                         btnText: 'Explore Chikankari',
-                         btnLink: '/shop?category=Chikankari+Kurtis',
-                         subLinkText: 'View Anarkalis',
-                         subLink: '/shop?category=Anarkali'
-                     }
-                 ],
+                 slides: (window.HERO_SLIDES || []),
                  timer: null,
                  init() {
                      this.startTimer();
@@ -111,12 +74,20 @@
         <template x-for="(slide, idx) in slides" :key="idx">
             <div class="absolute inset-0 transition-opacity duration-1000 ease-in-out"
                  :class="currentSlide === idx ? 'opacity-100 z-10' : 'opacity-0 z-0'">
-                <img :src="slide.image"
+                <!-- Cover mode: full-bleed crop -->
+                <img x-show="slide.fit !== 'contain'" :src="slide.image"
                      :alt="slide.titleline1 + ' ' + slide.titleline2"
                      class="w-full h-full object-cover transition-transform duration-10000 ease-out transform scale-105"
                      :class="[currentSlide === idx ? 'scale-100' : 'scale-105', slide.objectPos]"
                      fetchpriority="high"
                      decoding="async" />
+                <!-- Contain mode: full portrait visible, blurred fill behind -->
+                <div x-show="slide.fit === 'contain'" class="absolute inset-0 overflow-hidden">
+                    <img :src="slide.image" alt="" aria-hidden="true" class="absolute inset-0 w-full h-full object-cover blur-2xl scale-125 opacity-70" />
+                    <img :src="slide.image"
+                         :alt="slide.titleline1 + ' ' + slide.titleline2"
+                         class="relative w-full h-full object-contain" />
+                </div>
                 <div class="absolute inset-0 bg-gradient-to-r from-black/70 via-black/30 to-transparent"></div>
                 <div class="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent"></div>
             </div>
@@ -302,7 +273,7 @@
                 @endphp
                 @foreach($infiniteOccasions as $occ)
                 <div class="flex-none w-[180px] sm:w-[220px] lg:w-[250px]">
-                    <a href="/shop?occasion={{ urlencode($occ['name']) }}" class="group relative block rounded-2xl overflow-hidden aspect-[4/5] shadow-sm hover:shadow-[var(--shadow-floating)] transition-all duration-500 border border-[var(--color-bisque)]/40">
+                    <a href="/shop?occasion={{ urlencode($occ['link'] ?? $occ['name']) }}" class="group relative block rounded-2xl overflow-hidden aspect-[4/5] shadow-sm hover:shadow-[var(--shadow-floating)] transition-all duration-500 border border-[var(--color-bisque)]/40">
                         <img src="{{ $occ['image'] }}" alt="{{ $occ['name'] }}" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" loading="lazy" />
                         <div class="absolute inset-0 bg-gradient-to-t from-[var(--color-ebony)]/90 via-[var(--color-ebony)]/20 to-transparent flex flex-col justify-end p-3 sm:p-4 text-center">
                             <h3 class="font-serif text-sm sm:text-lg font-bold text-white group-hover:text-[var(--color-blush)] transition-colors">{{ $occ['name'] }}</h3>

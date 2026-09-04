@@ -110,7 +110,7 @@ document.addEventListener('alpine:init', function() {
             selectedCoupon:      { id: null, code: '', title: '', discount_type: 'percentage', discount_value: 20, min_order_value: 1999, campaign_type: 'festival', valid_until: '', is_active: true },
 
             init() {
-                const titles = { overview:'Dashboard', inventory:'Inventory', orders:'Orders', customers:'Customers', reports:'Reports', offers:'Offers & Coupons', announcements:'Announcements', reviews:'Reviews' };
+                const titles = { overview:'Dashboard', inventory:'Inventory', orders:'Orders', customers:'Customers', reports:'Reports', offers:'Offers & Coupons', announcements:'Announcements', reviews:'Reviews', homepage:'Homepage Circles' };
                 this.$watch('activeTab', t => document.title = 'Estilo HQ — ' + (titles[t] || 'Dashboard'));
             },
 
@@ -434,6 +434,197 @@ document.addEventListener('alpine:init', function() {
                             @endforelse
                         </tbody>
                     </table>
+                </div>
+            </div>
+        </div>
+
+        {{-- TAB: HOMEPAGE CIRCLES (the round category bar) --}}
+        <div x-show="activeTab === 'homepage'" class="space-y-6">
+            <div class="bg-white rounded-3xl border border-[var(--color-bisque)] p-6 sm:p-8 shadow-sm space-y-6">
+                <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 border-b border-[var(--color-bisque)]/60 pb-3">
+                    <div>
+                        <h2 class="font-serif text-xl sm:text-2xl font-bold text-[var(--color-ebony)]">🏠 Homepage Circle Bar</h2>
+                        <p class="text-xs font-sans text-[var(--color-ebony)]/60">Only YOUR categories appear as circles on `/`. Rename, set photo or delete — live instantly. Leave photo empty to auto-use a product photo.</p>
+                    </div>
+                    <span class="text-[10px] font-bold bg-amber-50 border border-amber-200 text-amber-900 px-3 py-1 rounded-full">{{ $categories->count() }} Circles</span>
+                </div>
+
+                {{-- Add new category (becomes a circle) --}}
+                <form action="/estilo-hq-console/categories" method="POST" class="p-4 bg-[var(--color-champagne-light)]/40 rounded-2xl border border-[var(--color-bisque)] flex flex-col sm:flex-row gap-3 items-end">
+                    @csrf
+                    <div class="flex-1">
+                        <label class="block text-[10px] font-bold uppercase tracking-wider mb-1">New Category Name *</label>
+                        <input type="text" name="name" placeholder="e.g. Party Wear" required class="w-full bg-white border border-[var(--color-bisque)] rounded-xl px-3 py-2 text-xs font-sans focus:outline-none focus:border-amber-400" />
+                    </div>
+                    <button type="submit" class="bg-[var(--color-ebony)] hover:bg-black text-white text-xs font-bold px-5 py-2.5 rounded-full shrink-0">+ Add Category</button>
+                </form>
+
+                {{-- Current categories as circles --}}
+                <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4">
+                    @forelse($categories as $cat)
+                    @php
+                        $catWords = array_filter(preg_split('/[\s&\/-]+/', strtolower($cat->name)), fn($w) => strlen($w) >= 3);
+                        $catProd = null;
+                        foreach ($catWords as $w) {
+                            $catProd = \App\Models\Product::where('category', 'LIKE', '%' . $w . '%')->orderBy('created_at', 'desc')->first();
+                            if ($catProd) break;
+                        }
+                        $catImgs = $catProd ? (is_array($catProd->images) ? $catProd->images : []) : [];
+                        $catPhoto = $cat->image ?: ($catImgs[0] ?? '/images/circles/default.jpg');
+                        $catCount = \App\Models\Product::where(function($q) use ($catWords) { foreach ($catWords as $w) { $q->orWhere('category', 'LIKE', '%' . $w . '%'); } })->count();
+                    @endphp
+                    <div class="bg-white border border-[var(--color-bisque)] rounded-2xl p-3 space-y-2 shadow-sm">
+                        <img src="{{ $catPhoto }}" alt="{{ $cat->name }}" class="w-20 h-20 mx-auto rounded-full object-cover border-2 border-[var(--color-bisque)]" />
+                        <p class="text-xs font-bold text-center text-[var(--color-ebony)]">{{ $cat->name }}</p>
+                        <p class="text-[10px] text-center text-gray-500 font-mono">{{ $catCount }} products</p>
+                        <form action="/estilo-hq-console/categories/{{ $cat->id }}/photo" method="POST" enctype="multipart/form-data" class="space-y-1">
+                            @csrf
+                            <input type="text" name="name" value="{{ $cat->name }}" class="w-full border border-gray-200 rounded-lg px-2 py-1 text-xs" />
+                            <input type="file" name="image" accept="image/*" class="w-full text-[10px]" />
+                            <input type="text" name="image_url" placeholder="New photo URL (optional)" class="w-full border border-gray-200 rounded-lg px-2 py-1 text-xs mt-1" />
+                            <div class="grid grid-cols-2 gap-2">
+                                <select name="fit_mode" class="border border-gray-200 rounded-lg px-2 py-1 text-xs font-bold" title="Photo fit"><option value="cover" {{ ($slide->fit_mode ?? 'cover') === 'cover' ? 'selected' : '' }}>Cover (crop)</option><option value="contain" {{ ($slide->fit_mode ?? '') === 'contain' ? 'selected' : '' }}>Contain (full)</option></select>
+                                <select name="object_pos" class="border border-gray-200 rounded-lg px-2 py-1 text-xs" title="Focus"><option value="object-[center_top] sm:object-[center_top] md:object-[center_top]">Focus: Top</option><option value="object-center" {{ ($slide->object_pos ?? '') === 'object-center' ? 'selected' : '' }}>Focus: Center</option></select>
+                            </div>
+                            <button type="submit" class="w-full bg-amber-500 hover:bg-amber-600 text-white text-xs font-bold py-1 rounded-lg">Update</button>
+                        </form>
+                        <form action="/estilo-hq-console/categories/{{ $cat->id }}" method="POST" onsubmit="return confirm('Delete {{ $cat->name }} circle? Products stay, only the circle is removed.')">
+                            @csrf
+                            @method('DELETE')
+                            <button type="submit" class="w-full bg-rose-50 hover:bg-rose-100 text-rose-700 text-xs font-bold py-1 rounded-lg border border-rose-200">Remove</button>
+                        </form>
+                    </div>
+                    @empty
+                    <p class="text-xs text-gray-500 col-span-5 p-6 text-center border border-dashed rounded-2xl">No categories yet — add your first above.</p>
+                    @endforelse
+                </div>
+            </div>
+
+            {{-- Hero banner slideshow manager --}}
+            <div class="bg-white rounded-3xl border border-[var(--color-bisque)] p-6 sm:p-8 shadow-sm space-y-6">
+                <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 border-b border-[var(--color-bisque)]/60 pb-3">
+                    <div>
+                        <h2 class="font-serif text-xl sm:text-2xl font-bold text-[var(--color-ebony)]">🎬 Homepage Hero Banner</h2>
+                        <p class="text-xs font-sans text-[var(--color-ebony)]/60">Big slideshow on `/` — change photo, titles, description & buttons anytime. Uncheck Active to hide a slide.</p>
+                    </div>
+                    <span class="text-[10px] font-bold bg-amber-50 border border-amber-200 text-amber-900 px-3 py-1 rounded-full">{{ $heroSlides->count() }} Slides</span>
+                </div>
+
+                {{-- Add new slide --}}
+                <form action="/estilo-hq-console/hero-slides" method="POST" enctype="multipart/form-data" class="p-4 bg-[var(--color-champagne-light)]/40 rounded-2xl border border-[var(--color-bisque)] grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    @csrf
+                    <div class="sm:col-span-2">
+                        <label class="block text-[10px] font-bold uppercase tracking-wider mb-1">Small Top Tag *</label>
+                        <input type="text" name="tag" placeholder="e.g. LUXURY SILK EDIT" class="w-full bg-white border border-[var(--color-bisque)] rounded-xl px-3 py-2 text-xs" />
+                    </div>
+                    <div><label class="block text-[10px] font-bold uppercase tracking-wider mb-1">Big Title Line 1 *</label><input type="text" name="title1" placeholder="Royal" required class="w-full bg-white border border-[var(--color-bisque)] rounded-xl px-3 py-2 text-xs" /></div>
+                    <div><label class="block text-[10px] font-bold uppercase tracking-wider mb-1">Title Line 2 (pink)</label><input type="text" name="title2" placeholder="Banarasi" class="w-full bg-white border border-[var(--color-bisque)] rounded-xl px-3 py-2 text-xs" /></div>
+                    <div><label class="block text-[10px] font-bold uppercase tracking-wider mb-1">Title Line 3</label><input type="text" name="title3" placeholder="Sarees" class="w-full bg-white border border-[var(--color-bisque)] rounded-xl px-3 py-2 text-xs" /></div>
+                    <div><label class="block text-[10px] font-bold uppercase tracking-wider mb-1">Order</label><input type="number" name="sort_order" value="{{ $heroSlides->count() + 1 }}" class="w-full bg-white border border-[var(--color-bisque)] rounded-xl px-3 py-2 text-xs" /></div>
+                    <div class="sm:col-span-2"><label class="block text-[10px] font-bold uppercase tracking-wider mb-1">Description</label><textarea name="description" rows="2" placeholder="Pure silk mark certified sarees featuring..." class="w-full bg-white border border-[var(--color-bisque)] rounded-xl px-3 py-2 text-xs"></textarea></div>
+                    <div><label class="block text-[10px] font-bold uppercase tracking-wider mb-1">Photo (upload or URL)</label><input type="file" name="image" accept="image/*" class="w-full text-xs" /><input type="text" name="image_url" placeholder="https://... (optional)" class="w-full mt-1 bg-white border border-[var(--color-bisque)] rounded-lg px-3 py-1 text-xs" /></div>
+                    <div class="grid grid-cols-2 gap-2">
+                        <div><label class="block text-[10px] font-bold uppercase tracking-wider mb-1">Photo Fit</label><select name="fit_mode" class="w-full bg-white border border-[var(--color-bisque)] rounded-xl px-3 py-2 text-xs font-bold"><option value="cover">Cover (fill, may crop)</option><option value="contain">Contain (full photo)</option></select></div>
+                        <div><label class="block text-[10px] font-bold uppercase tracking-wider mb-1">Focus</label><select name="object_pos" class="w-full bg-white border border-[var(--color-bisque)] rounded-xl px-3 py-2 text-xs"><option value="object-[center_top] sm:object-[center_top] md:object-[center_top]">Top</option><option value="object-center">Center</option></select></div>
+                    </div>
+                    <div class="grid grid-cols-2 gap-2">
+                        <div><label class="block text-[10px] font-bold uppercase tracking-wider mb-1">Button Text</label><input type="text" name="btn_text" value="Shop Now" class="w-full bg-white border border-[var(--color-bisque)] rounded-xl px-3 py-2 text-xs" /></div>
+                        <div><label class="block text-[10px] font-bold uppercase tracking-wider mb-1">Button Link</label><input type="text" name="btn_link" value="/shop" class="w-full bg-white border border-[var(--color-bisque)] rounded-xl px-3 py-2 text-xs" /></div>
+                        <div><label class="block text-[10px] font-bold uppercase tracking-wider mb-1">Small Link Text</label><input type="text" name="sub_text" value="View New Arrivals" class="w-full bg-white border border-[var(--color-bisque)] rounded-xl px-3 py-2 text-xs" /></div>
+                        <div><label class="block text-[10px] font-bold uppercase tracking-wider mb-1">Small Link URL</label><input type="text" name="sub_link" value="/shop?filter=new" class="w-full bg-white border border-[var(--color-bisque)] rounded-xl px-3 py-2 text-xs" /></div>
+                    </div>
+                    <label class="flex items-center gap-2 text-xs font-bold sm:col-span-2"><input type="checkbox" name="is_active" checked class="accent-emerald-600" /> Active (visible on homepage)</label>
+                    <button type="submit" class="bg-[var(--color-ebony)] hover:bg-black text-white text-xs font-bold px-5 py-2.5 rounded-full shrink-0 sm:col-span-2">+ Add Slide</button>
+                </form>
+
+                {{-- Existing slides --}}
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                    @forelse($heroSlides as $slide)
+                    <div class="border border-[var(--color-bisque)] rounded-2xl overflow-hidden shadow-sm {{ $slide->is_active ? 'bg-white' : 'bg-gray-50 opacity-75' }}">
+                        <img src="{{ $slide->image }}" alt="{{ $slide->title1 }}" class="w-full h-40 object-cover" />
+                        <form action="/estilo-hq-console/hero-slides/{{ $slide->id }}" method="POST" enctype="multipart/form-data" class="p-3 space-y-2">
+                            @csrf
+                            <div class="grid grid-cols-3 gap-2">
+                                <input type="text" name="title1" value="{{ $slide->title1 }}" class="border border-gray-200 rounded-lg px-2 py-1 text-xs font-bold" />
+                                <input type="text" name="title2" value="{{ $slide->title2 }}" class="border border-gray-200 rounded-lg px-2 py-1 text-xs" />
+                                <input type="text" name="title3" value="{{ $slide->title3 }}" class="border border-gray-200 rounded-lg px-2 py-1 text-xs" />
+                            </div>
+                            <input type="text" name="tag" value="{{ $slide->tag }}" class="w-full border border-gray-200 rounded-lg px-2 py-1 text-xs" />
+                            <textarea name="description" rows="2" class="w-full border border-gray-200 rounded-lg px-2 py-1 text-xs">{{ $slide->description }}</textarea>
+                            <input type="file" name="image" accept="image/*" class="w-full text-[10px]" />
+                            <input type="text" name="image_url" placeholder="New photo URL (optional)" class="w-full border border-gray-200 rounded-lg px-2 py-1 text-xs" />
+                            <div class="grid grid-cols-2 gap-2">
+                                <input type="text" name="btn_text" value="{{ $slide->btn_text }}" class="border border-gray-200 rounded-lg px-2 py-1 text-xs" />
+                                <input type="text" name="btn_link" value="{{ $slide->btn_link }}" class="border border-gray-200 rounded-lg px-2 py-1 text-xs" />
+                                <input type="text" name="sub_text" value="{{ $slide->sub_text }}" class="border border-gray-200 rounded-lg px-2 py-1 text-xs" />
+                                <input type="text" name="sub_link" value="{{ $slide->sub_link }}" class="border border-gray-200 rounded-lg px-2 py-1 text-xs" />
+                            </div>
+                            <div class="flex items-center gap-2">
+                                <input type="number" name="sort_order" value="{{ $slide->sort_order }}" class="w-16 border border-gray-200 rounded-lg px-2 py-1 text-xs" title="Order" />
+                                <label class="flex items-center gap-1 text-xs font-bold"><input type="checkbox" name="is_active" {{ $slide->is_active ? 'checked' : '' }} class="accent-emerald-600" /> Active</label>
+                                <button type="submit" class="flex-1 bg-amber-500 hover:bg-amber-600 text-white text-xs font-bold py-1 rounded-lg">Update</button>
+                            </div>
+                        </form>
+                        <form action="/estilo-hq-console/hero-slides/{{ $slide->id }}" method="POST" onsubmit="return confirm('Delete this slide?')" class="px-3 pb-3">
+                            @csrf
+                            @method('DELETE')
+                            <button type="submit" class="w-full bg-rose-50 hover:bg-rose-100 text-rose-700 text-xs font-bold py-1 rounded-lg border border-rose-200">Remove</button>
+                        </form>
+                    </div>
+                    @empty
+                    <p class="text-xs text-gray-500 p-6 text-center border border-dashed rounded-2xl col-span-2">No slides — homepage shows defaults. Add your first above.</p>
+                    @endforelse
+                </div>
+            </div>
+        </div>
+
+            {{-- Shop By Occasion cards manager --}}
+            <div class="bg-white rounded-3xl border border-[var(--color-bisque)] p-6 sm:p-8 shadow-sm space-y-6">
+                <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 border-b border-[var(--color-bisque)]/60 pb-3">
+                    <div>
+                        <h2 class="font-serif text-xl sm:text-2xl font-bold text-[var(--color-ebony)]">🎭 Shop By Occasion Cards</h2>
+                        <p class="text-xs font-sans text-[var(--color-ebony)]/60">Cards on `/` link to <code>/shop?occasion=&lt;name&gt;</code>. Name should match a product occasion (e.g. Festive Wear) for results.</p>
+                    </div>
+                    <span class="text-[10px] font-bold bg-amber-50 border border-amber-200 text-amber-900 px-3 py-1 rounded-full">{{ $homeOccasions->count() }} Cards</span>
+                </div>
+
+                {{-- Add new occasion card --}}
+                <form action="/estilo-hq-console/occasions" method="POST" enctype="multipart/form-data" class="p-4 bg-[var(--color-champagne-light)]/40 rounded-2xl border border-[var(--color-bisque)] flex flex-col sm:flex-row gap-3 items-end">
+                    @csrf
+                    <div class="flex-1">
+                        <label class="block text-[10px] font-bold uppercase tracking-wider mb-1">Occasion Name *</label>
+                        <input type="text" name="name" placeholder="e.g. Haldi Ceremony" required class="w-full bg-white border border-[var(--color-bisque)] rounded-xl px-3 py-2 text-xs font-sans focus:outline-none focus:border-amber-400" />
+                    </div>
+                    <div class="flex-1">
+                        <label class="block text-[10px] font-bold uppercase tracking-wider mb-1">Photo (upload or URL)</label>
+                        <input type="file" name="image" accept="image/*" class="w-full text-xs file:mr-2 file:py-1.5 file:px-3 file:rounded-full file:border-0 file:bg-black file:text-white file:text-xs" />
+                        <input type="text" name="image_url" placeholder="https://... (optional)" class="w-full mt-1 bg-white border border-[var(--color-bisque)] rounded-lg px-3 py-1 text-xs" />
+                    </div>
+                    <button type="submit" class="bg-[var(--color-ebony)] hover:bg-black text-white text-xs font-bold px-5 py-2.5 rounded-full shrink-0">+ Add Card</button>
+                </form>
+
+                {{-- Current occasion cards --}}
+                <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4">
+                    @forelse($homeOccasions as $occ)
+                    <div class="bg-white border border-[var(--color-bisque)] rounded-2xl p-3 space-y-2 shadow-sm">
+                        <img src="{{ $occ->url }}" alt="{{ $occ->alt_text }}" class="w-full h-28 object-cover rounded-xl" />
+                        <p class="text-xs font-bold text-center text-[var(--color-ebony)]">{{ $occ->name }}</p>
+                        <form action="/estilo-hq-console/occasions/{{ $occ->id }}" method="POST" enctype="multipart/form-data" class="space-y-1">
+                            @csrf
+                            <input type="text" name="name" value="{{ $occ->name }}" class="w-full border border-gray-200 rounded-lg px-2 py-1 text-xs" />
+                            <input type="file" name="image" accept="image/*" class="w-full text-[10px]" />
+                            <input type="text" name="image_url" placeholder="New photo URL" class="w-full border border-gray-200 rounded-lg px-2 py-1 text-xs mt-1" />
+                            <button type="submit" class="w-full bg-amber-500 hover:bg-amber-600 text-white text-xs font-bold py-1 rounded-lg">Update</button>
+                        </form>
+                        <form action="/estilo-hq-console/occasions/{{ $occ->id }}" method="POST" onsubmit="return confirm('Delete {{ $occ->name }}?')">
+                            @csrf
+                            @method('DELETE')
+                            <button type="submit" class="w-full bg-rose-50 hover:bg-rose-100 text-rose-700 text-xs font-bold py-1 rounded-lg border border-rose-200">Remove</button>
+                        </form>
+                    </div>
+                    @empty
+                    <p class="text-xs text-gray-500 col-span-5 p-6 text-center border border-dashed rounded-2xl">No occasion cards — add your first above.</p>
+                    @endforelse
                 </div>
             </div>
         </div>
