@@ -123,7 +123,7 @@
                     </a>
                     <a href="/estilo-hq-console?tab=homepage"
                        class="px-2.5 py-1.5 rounded-full text-[9.5px] font-sans font-semibold uppercase tracking-wide transition-all whitespace-nowrap {{ $curTab === 'homepage' ? 'bg-[#FBEAD6] text-[#1A1818] font-bold shadow-md' : 'text-white/75 hover:text-white hover:bg-white/10' }}">
-                        Homepage
+                        Homepage changes
                     </a>
                     <a href="/estilo-hq-console/profile"
                        class="px-2.5 py-1.5 rounded-full text-[9.5px] font-sans font-semibold uppercase tracking-wide transition-all whitespace-nowrap {{ request()->is('estilo-hq-console/profile*') || $curTab === 'profile' ? 'bg-[#FBEAD6] text-[#1A1818] font-bold shadow-md' : 'text-white/75 hover:text-white hover:bg-white/10' }}">
@@ -297,7 +297,7 @@
                     <a href="/estilo-hq-console?tab=offers" class="block text-sm font-sans font-semibold text-[var(--color-ebony)] uppercase tracking-wider hover:text-[var(--color-rose-antique)]">🎟️ Offers & Coupons</a>
                     <a href="/estilo-hq-console?tab=announcements" class="block text-sm font-sans font-semibold text-[var(--color-ebony)] uppercase tracking-wider hover:text-[var(--color-rose-antique)]">📢 Storefront Announcements</a>
                     <a href="/estilo-hq-console?tab=reviews" class="block text-sm font-sans font-semibold text-[var(--color-ebony)] uppercase tracking-wider hover:text-[var(--color-rose-antique)]">⭐ Ratings & Reviews</a>
-                    <a href="/estilo-hq-console?tab=homepage" class="block text-sm font-sans font-semibold text-[var(--color-ebony)] uppercase tracking-wider hover:text-[var(--color-rose-antique)]">🏠 Homepage Circles</a>
+                    <a href="/estilo-hq-console?tab=homepage" class="block text-sm font-sans font-semibold text-[var(--color-ebony)] uppercase tracking-wider hover:text-[var(--color-rose-antique)]">🏠 Homepage changes</a>
                     <a href="/estilo-hq-console/profile" class="block text-sm font-sans font-semibold text-[var(--color-ebony)] uppercase tracking-wider hover:text-[var(--color-rose-antique)]">🛡️ Admin Profile & Security</a>
                     <div class="pt-3 border-t border-[var(--color-bisque)]/40 mt-3 space-y-2">
                         <a href="/shop" target="_blank" class="block text-xs font-sans font-bold text-gray-600 hover:text-black">Storefront ↗</a>
