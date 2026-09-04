@@ -522,7 +522,27 @@ document.addEventListener('alpine:init', function() {
                     <div><label class="block text-[10px] font-bold uppercase tracking-wider mb-1">Title Line 3</label><input type="text" name="title3" placeholder="Sarees" class="w-full bg-white border border-[var(--color-bisque)] rounded-xl px-3 py-2 text-xs" /></div>
                     <div><label class="block text-[10px] font-bold uppercase tracking-wider mb-1">Order</label><input type="number" name="sort_order" value="{{ $heroSlides->count() + 1 }}" class="w-full bg-white border border-[var(--color-bisque)] rounded-xl px-3 py-2 text-xs" /></div>
                     <div class="sm:col-span-2"><label class="block text-[10px] font-bold uppercase tracking-wider mb-1">Description</label><textarea name="description" rows="2" placeholder="Pure silk mark certified sarees featuring..." class="w-full bg-white border border-[var(--color-bisque)] rounded-xl px-3 py-2 text-xs"></textarea></div>
-                    <div><label class="block text-[10px] font-bold uppercase tracking-wider mb-1">Photo (upload or URL)</label><input type="file" name="image" accept="image/*" class="w-full text-xs" /><input type="text" name="image_url" placeholder="https://... (optional)" class="w-full mt-1 bg-white border border-[var(--color-bisque)] rounded-lg px-3 py-1 text-xs" /></div>
+                    <div><label class="block text-[10px] font-bold uppercase tracking-wider mb-1">Photo (upload or URL)</label><input type="file" name="image" accept="image/*" class="w-full text-xs" /><input type="text" name="image_url" id="hero-add-url" placeholder="https://... (optional)" class="w-full mt-1 bg-white border border-[var(--color-bisque)] rounded-lg px-3 py-1 text-xs" /></div>
+                    @php
+                        $mediaLib = collect();
+                        foreach (\App\Models\Product::select('images')->get() as $mp) {
+                            $mi = is_array($mp->images) ? $mp->images : (json_decode($mp->images ?? '[]', true) ?: []);
+                            foreach ((array) $mi as $u) { if (is_string($u) && $u !== '') $mediaLib->push($u); }
+                        }
+                        foreach (\App\Models\HeroSlide::pluck('image') as $u) { if ($u) $mediaLib->push($u); }
+                        $mediaLib = $mediaLib->unique()->take(80)->values();
+                    @endphp
+                    <div class="sm:col-span-2">
+                        <label class="block text-[10px] font-bold uppercase tracking-wider mb-1">📷 Or pick an uploaded photo (stored on this server)</label>
+                        <div class="flex gap-2 overflow-x-auto pb-2 pt-1" style="scrollbar-width:thin;">
+                            @forelse($mediaLib as $mu)
+                            <img src="{{ $mu }}" onclick="document.getElementById('hero-add-url').value='{{ $mu }}';this.style.outline='3px solid #059669';setTimeout(()=>this.style.outline='',1200)" title="{{ $mu }}" loading="lazy" class="w-16 h-16 rounded-xl object-cover border border-[var(--color-bisque)] cursor-pointer hover:scale-105 transition-transform shrink-0" onerror="this.style.display='none'" />
+                            @empty
+                            <span class="text-[11px] text-gray-500">No uploaded photos yet — upload a product photo first.</span>
+                            @endforelse
+                        </div>
+                        <p class="text-[10px] text-gray-500 mt-1">Click a thumbnail → its path fills the URL box. Hero always uses server-stored images.</p>
+                    </div>
                     <div class="grid grid-cols-2 gap-2">
                         <div><label class="block text-[10px] font-bold uppercase tracking-wider mb-1">Photo Fit</label><select name="fit_mode" class="w-full bg-white border border-[var(--color-bisque)] rounded-xl px-3 py-2 text-xs font-bold"><option value="">Auto (portrait → full photo)</option><option value="cover">Cover (fill, may crop)</option><option value="contain">Contain (full photo)</option></select></div>
                         <div><label class="block text-[10px] font-bold uppercase tracking-wider mb-1">Focus</label><select name="object_pos" class="w-full bg-white border border-[var(--color-bisque)] rounded-xl px-3 py-2 text-xs"><option value="object-[center_top] sm:object-[center_top] md:object-[center_top]">Top</option><option value="object-center">Center</option></select></div>

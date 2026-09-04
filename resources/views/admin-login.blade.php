@@ -62,8 +62,8 @@
                         </label>
                         <div class="relative">
                             <input type="email" name="email" id="adminEmailInput"
-                                   value="{{ old('email', 'admin@estilo.com') }}"
-                                   placeholder="admin@estilo.com" required
+                                   value="{{ old('email') }}"
+                                   placeholder=" [EMAIL_ADDRESS] " required
                                    class="w-full bg-[var(--color-offwhite)] border border-[var(--color-bisque)] rounded-xl px-4 py-3 text-sm font-sans font-semibold focus:outline-none focus:border-amber-400 focus:bg-white transition-all shadow-inner" />
                         </div>
                     </div>
@@ -74,7 +74,7 @@
                         </label>
                         <div class="relative">
                             <input type="password" name="password" id="adminPasswordInput"
-                                   value="Admin@123"
+                                   value=""
                                    placeholder="••••••••" required
                                    class="w-full bg-[var(--color-offwhite)] border border-[var(--color-bisque)] rounded-xl px-4 py-3 text-sm font-mono focus:outline-none focus:border-amber-400 focus:bg-white transition-all shadow-inner" />
                         </div>
