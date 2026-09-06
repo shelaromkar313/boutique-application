@@ -134,27 +134,9 @@ class AuthController extends Controller
 
         $user = $email ? User::where('email', $email)->first() : null;
 
-        // Seed check for demo admin/partner
+        // User password verification
         if (!$user || !Hash::check($request->password, $user->password)) {
-            if ($request->email === 'admin@estilo.com' && in_array($request->password, ['Admin@123', 'password123'])) {
-                $user = User::firstOrCreate(['email' => 'admin@estilo.com'], [
-                    'name' => 'Admin', 'role' => 'admin',
-                    'password' => Hash::make('Admin@123'), 'phone' => '9000000001',
-                ]);
-            } elseif ($request->email === 'associate@estilo.com' && in_array($request->password, ['Partner@123', 'password123'])) {
-                $user = User::firstOrCreate(['email' => 'associate@estilo.com'], [
-                    'name' => 'Pooja Verma', 'role' => 'sales_associate',
-                    'referral_code' => 'ESTILO-SA01',
-                    'password' => Hash::make('Partner@123'), 'phone' => '9876543211',
-                ]);
-            } elseif ($request->email === 'test@example.com' && in_array($request->password, ['Customer@123', 'password123'])) {
-                $user = User::firstOrCreate(['email' => 'test@example.com'], [
-                    'name' => 'Test Customer', 'role' => 'customer',
-                    'password' => Hash::make('Customer@123'), 'phone' => '9876543212',
-                ]);
-            } else {
-                return response()->json(['error' => 'Invalid credentials'], 401);
-            }
+            return response()->json(['error' => 'Invalid credentials provided.'], 401);
         }
 
         Auth::login($user, $request->boolean('remember'));
