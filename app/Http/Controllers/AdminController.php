@@ -127,24 +127,34 @@ class AdminController extends Controller
 
         $request->validate([
             'name'     => 'required|string|max:255',
-            'email'    => 'required|email|unique:users,email,' . $admin->id,
-            'phone'    => 'nullable|string|max:20',
-            'password' => 'nullable|min:6',
+            'email'    => 'required|email|max:255|unique:users,email,' . $admin->id,
+            'phone'    => 'nullable|string|max:25|unique:users,phone,' . $admin->id,
+            'password' => 'nullable|min:6|max:100',
         ]);
 
-        $data = [
-            'name'  => $request->name,
-            'email' => $request->email,
-            'phone' => $request->phone,
-        ];
+        try {
+            $data = [
+                'name'  => trim($request->name),
+                'email' => trim($request->email),
+                'phone' => $request->filled('phone') ? trim($request->phone) : null,
+            ];
 
-        if ($request->filled('password')) {
-            $data['password'] = Hash::make($request->password);
+            if ($request->filled('password')) {
+                $data['password'] = Hash::make($request->password);
+            }
+
+            $admin->update($data);
+
+            // Re-authenticate user so session remains active with new password
+            Auth::login($admin);
+
+            return back()->with('success', '✨ Administrator profile details and password updated successfully!');
+        } catch (\Illuminate\Database\QueryException $e) {
+            $msg = $e->errorInfo[2] ?? $e->getMessage();
+            return back()->withErrors(['db_error' => 'Database error: ' . $msg])->withInput();
+        } catch (\Throwable $e) {
+            return back()->withErrors(['general_error' => 'Could not update profile: ' . $e->getMessage()])->withInput();
         }
-
-        $admin->update($data);
-
-        return redirect($this->adminBaseUrl('overview'))->with('success', '✨ Administrator profile details updated successfully!');
     }
 
     /**
